@@ -1,0 +1,13 @@
+appEnv: e2e
+
+database:
+  user: root
+  password: root
+  addr: postgres
+  port: 5432
+  dbname: golang_boilerplate_e2e
+jwtTokenSecret: somesecret
+refreshTokenSecret: somesecret
+appName: golang_boilerplate
+server:
+  address: 8080

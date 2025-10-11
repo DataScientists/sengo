@@ -1,0 +1,14 @@
+appEnv: test
+
+database:
+  user: root
+  password: root
+  addr: postgres
+  port: 5432
+  dbname: golang_boilerplate_test
+jwtTokenSecret: somesecret
+refreshTokenSecret: somesecret
+
+appName: golang_boilerplate
+server:
+  address: 8080

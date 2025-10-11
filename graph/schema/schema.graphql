@@ -1,0 +1,19 @@
+directive @refreshToken on FIELD_DEFINITION
+directive @auth on FIELD_DEFINITION
+scalar Cursor
+scalar Time
+
+type PageInfo {
+  hasNextPage: Boolean!
+  hasPreviousPage: Boolean!
+  startCursor: Cursor
+  endCursor: Cursor
+}
+interface Node {
+  id: ID!
+}
+
+type Query {
+  node(id: ID!): Node
+}
+type Mutation

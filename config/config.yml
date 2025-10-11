@@ -1,0 +1,13 @@
+appEnv: development
+
+database:
+  user: root
+  password: root
+  addr: postgres
+  port: 5432
+  dbname: sheng_db
+jwtTokenSecret: somesecret
+refreshTokenSecret: somesecret
+appName: sheng_go_backend
+server:
+  address: 8080

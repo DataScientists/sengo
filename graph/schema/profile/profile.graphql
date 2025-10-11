@@ -1,0 +1,52 @@
+type Profile implements Node {
+  id: ID!
+  name: String!
+  title: String!
+  urn: String!
+  sourceFile: String!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type ProfileConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ProfileEdge]
+}
+
+type ProfileEdge {
+  node: Profile
+  cursor: Cursor!
+}
+
+input CreateProfileInput {
+  name: String!
+  title: String!
+  urn: String!
+  sourceFile: String!
+}
+
+input UpdateProfileInput {
+  id: ID!
+  name: String
+  title: String
+  urn: String
+  sourceFile: String
+}
+
+extend type Query {
+  profile(input: ProfileWhereInput): Profile
+  profiles(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: ProfileWhereInput
+  ): ProfileConnection
+}
+
+extend type Mutation {
+  createProfile(input: CreateProfileInput!): Profile! @auth
+  updateProfile(input: UpdateProfileInput!): Profile! @auth
+}
+

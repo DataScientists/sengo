@@ -1,0 +1,55 @@
+enum TodoStatus {
+  IN_PROGRESS
+  COMPLETED
+}
+
+type Todo implements Node {
+  id: ID!
+  name: String!
+  status: TodoStatus!
+  priority: Int!
+  userID: ID
+  createdAt: String!
+  updatedAt: String!
+}
+
+type TodoConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [TodoEdge]
+}
+
+type TodoEdge {
+  node: Todo
+  cursor: Cursor!
+}
+
+input CreateTodoInput {
+  name: String!
+  status: TodoStatus = IN_PROGRESS
+  priority: Int!
+  userID: ID!
+}
+input UpdateTodoInput {
+  id: ID!
+  name: String
+  status: TodoStatus
+  priority: Int
+  userID: ID
+}
+
+extend type Query {
+  todo(input: TodoWhereInput): Todo
+  todos(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: TodoWhereInput
+  ): TodoConnection @auth
+}
+
+extend type Mutation {
+  createTodo(input: CreateTodoInput!): Todo! @auth
+  updateTodo(input: UpdateTodoInput!): Todo! @auth
+}

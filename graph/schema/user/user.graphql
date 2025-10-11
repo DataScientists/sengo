@@ -1,0 +1,48 @@
+type User implements Node {
+  id: ID!
+  name: String!
+  email: String!
+  age: Int!
+  createdAt: String!
+  todos: [Todo!]!
+  updatedAt: String!
+}
+
+type UserConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [UserEdge]
+}
+
+type UserEdge {
+  node: User
+  cursor: Cursor!
+}
+
+extend type Query {
+  user(id: ID): User
+  users(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: UserWhereInput
+  ): UserConnection @auth
+}
+
+input CreateUserInput {
+  name: String!
+  email: String!
+  age: Int!
+  password: String!
+}
+input UpdateUserInput {
+  id: ID!
+  name: String
+  age: Int
+}
+
+extend type Mutation {
+  createUser(input: CreateUserInput!): User!
+  updateUser(input: UpdateUserInput!): User! @auth
+}

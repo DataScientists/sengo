@@ -1,0 +1,18 @@
+
+.idea
+*.iml
+gin-bin
+vendor
+tmp
+
+# Ignore all config files in configs directory
+configs/*
+# Keep the example file
+!configs/example.yaml
+# Keep the template files
+!configs/config.staging.yaml
+!configs/config.production.yaml
+# Keep the test config file for CI
+!configs/config.test.yaml
+#Ignore sample data
+test-data/**
