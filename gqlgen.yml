@@ -163,3 +163,6 @@ models:
   LoginInput:
     model:
       - sheng-go-backend/pkg/entity/model.LoginInput
+  ProfileTitleGroup:
+    model:
+      - sheng-go-backend/pkg/entity/model.ProfileTitleGroup

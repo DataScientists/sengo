@@ -13,3 +13,8 @@ type UpdateProfileInput = ent.UpdateProfileInput
 type ProfileWhereInput = ent.ProfileWhereInput
 
 type ProfileConnection = ent.ProfileConnection
+
+type ProfileTitleGroup struct {
+	Title string
+	Count int
+}

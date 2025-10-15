@@ -19,6 +19,11 @@ type Profile interface {
 		first *int,
 		before *model.Cursor,
 		last *int, where *model.ProfileWhereInput) (*model.ProfileConnection, error)
+	GroupByTitle(
+		ctx context.Context,
+		searchTerm *string,
+		minCount int,
+	) ([]*model.ProfileTitleGroup, error)
 }
 
 func NewProfileUseCase(r repository.Profile) Profile {
@@ -56,3 +61,10 @@ func (p *profileUseCase) List(
 	return p.profileRepository.List(ctx, after, first, before, last, where)
 }
 
+func (p *profileUseCase) GroupByTitle(
+	ctx context.Context,
+	searchTerm *string,
+	minCount int,
+) ([]*model.ProfileTitleGroup, error) {
+	return p.profileRepository.GroupByTitle(ctx, searchTerm, minCount)
+}

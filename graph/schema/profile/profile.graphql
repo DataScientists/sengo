@@ -19,6 +19,11 @@ type ProfileEdge {
   cursor: Cursor!
 }
 
+type ProfileTitleGroup {
+  title: String!
+  count: Int!
+}
+
 input CreateProfileInput {
   name: String!
   title: String!
@@ -43,10 +48,10 @@ extend type Query {
     last: Int
     where: ProfileWhereInput
   ): ProfileConnection
+  profilesByTitle(searchTerm: String, minCount: Int!): [ProfileTitleGroup!]!
 }
 
 extend type Mutation {
   createProfile(input: CreateProfileInput!): Profile! @auth
   updateProfile(input: UpdateProfileInput!): Profile! @auth
 }
-

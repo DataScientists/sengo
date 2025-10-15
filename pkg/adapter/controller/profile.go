@@ -15,6 +15,11 @@ type Profile interface {
 		first *int,
 		before *model.Cursor,
 		last *int, where *model.ProfileWhereInput) (*model.ProfileConnection, error)
+	GroupByTitle(
+		ctx context.Context,
+		searchTerm *string,
+		minCount int,
+	) ([]*model.ProfileTitleGroup, error)
 }
 
 type profileController struct {
@@ -56,3 +61,10 @@ func (pc *profileController) List(
 	return pc.profileUseCase.List(ctx, after, first, before, last, where)
 }
 
+func (pc *profileController) GroupByTitle(
+	ctx context.Context,
+	searchTerm *string,
+	minCount int,
+) ([]*model.ProfileTitleGroup, error) {
+	return pc.profileUseCase.GroupByTitle(ctx, searchTerm, minCount)
+}

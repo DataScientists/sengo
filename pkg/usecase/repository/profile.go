@@ -15,5 +15,9 @@ type Profile interface {
 		first *int,
 		before *model.Cursor,
 		last *int, where *model.ProfileWhereInput) (*model.ProfileConnection, error)
+	GroupByTitle(
+		ctx context.Context,
+		searchTerm *string,
+		minCount int,
+	) ([]*model.ProfileTitleGroup, error)
 }
-

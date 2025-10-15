@@ -10,6 +10,7 @@ import (
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/graph/generated"
 	"sheng-go-backend/pkg/adapter/handler"
+	"sheng-go-backend/pkg/entity/model"
 	"sheng-go-backend/pkg/util/datetime"
 
 	"entgo.io/contrib/entgql"
@@ -59,6 +60,16 @@ func (r *queryResolver) Profiles(ctx context.Context, after *entgql.Cursor[ulid.
 		return nil, err
 	}
 	return pc, err
+}
+
+// ProfilesByTitle is the resolver for the profilesByTitle field.
+func (r *queryResolver) ProfilesByTitle(ctx context.Context, searchTerm *string, minCount int) ([]*model.ProfileTitleGroup, error) {
+	groups, err := r.controller.Profile.GroupByTitle(ctx, searchTerm, minCount)
+	if err != nil {
+		return nil, handler.HandleGraphQLError(ctx, err)
+	}
+
+	return groups, nil
 }
 
 // Profile returns generated.ProfileResolver implementation.
