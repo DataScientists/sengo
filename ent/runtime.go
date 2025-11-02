@@ -4,6 +4,7 @@ package ent
 
 import (
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
@@ -64,6 +65,45 @@ func init() {
 	profileDescID := profileMixinFields0[0].Descriptor()
 	// profile.DefaultID holds the default value on creation for the id field.
 	profile.DefaultID = profileDescID.Default.(func() ulid.ID)
+	profileentryMixin := schema.ProfileEntry{}.Mixin()
+	profileentryMixinFields0 := profileentryMixin[0].Fields()
+	_ = profileentryMixinFields0
+	profileentryMixinFields2 := profileentryMixin[2].Fields()
+	_ = profileentryMixinFields2
+	profileentryFields := schema.ProfileEntry{}.Fields()
+	_ = profileentryFields
+	// profileentryDescCreatedAt is the schema descriptor for created_at field.
+	profileentryDescCreatedAt := profileentryMixinFields2[0].Descriptor()
+	// profileentry.DefaultCreatedAt holds the default value on creation for the created_at field.
+	profileentry.DefaultCreatedAt = profileentryDescCreatedAt.Default.(func() time.Time)
+	// profileentryDescUpdatedAt is the schema descriptor for updated_at field.
+	profileentryDescUpdatedAt := profileentryMixinFields2[1].Descriptor()
+	// profileentry.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	profileentry.DefaultUpdatedAt = profileentryDescUpdatedAt.Default.(func() time.Time)
+	// profileentry.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	profileentry.UpdateDefaultUpdatedAt = profileentryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// profileentryDescLinkedinUrn is the schema descriptor for linkedin_urn field.
+	profileentryDescLinkedinUrn := profileentryFields[0].Descriptor()
+	// profileentry.LinkedinUrnValidator is a validator for the "linkedin_urn" field. It is called by the builders before save.
+	profileentry.LinkedinUrnValidator = profileentryDescLinkedinUrn.Validators[0].(func(string) error)
+	// profileentryDescTemplateJSONS3Key is the schema descriptor for template_json_s3_key field.
+	profileentryDescTemplateJSONS3Key := profileentryFields[4].Descriptor()
+	// profileentry.TemplateJSONS3KeyValidator is a validator for the "template_json_s3_key" field. It is called by the builders before save.
+	profileentry.TemplateJSONS3KeyValidator = profileentryDescTemplateJSONS3Key.Validators[0].(func(string) error)
+	// profileentryDescRawResponseS3Key is the schema descriptor for raw_response_s3_key field.
+	profileentryDescRawResponseS3Key := profileentryFields[5].Descriptor()
+	// profileentry.RawResponseS3KeyValidator is a validator for the "raw_response_s3_key" field. It is called by the builders before save.
+	profileentry.RawResponseS3KeyValidator = profileentryDescRawResponseS3Key.Validators[0].(func(string) error)
+	// profileentryDescFetchCount is the schema descriptor for fetch_count field.
+	profileentryDescFetchCount := profileentryFields[6].Descriptor()
+	// profileentry.DefaultFetchCount holds the default value on creation for the fetch_count field.
+	profileentry.DefaultFetchCount = profileentryDescFetchCount.Default.(int)
+	// profileentry.FetchCountValidator is a validator for the "fetch_count" field. It is called by the builders before save.
+	profileentry.FetchCountValidator = profileentryDescFetchCount.Validators[0].(func(int) error)
+	// profileentryDescID is the schema descriptor for id field.
+	profileentryDescID := profileentryMixinFields0[0].Descriptor()
+	// profileentry.DefaultID holds the default value on creation for the id field.
+	profileentry.DefaultID = profileentryDescID.Default.(func() ulid.ID)
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0

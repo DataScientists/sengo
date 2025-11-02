@@ -2,6 +2,7 @@ directive @refreshToken on FIELD_DEFINITION
 directive @auth on FIELD_DEFINITION
 scalar Cursor
 scalar Time
+scalar Map
 
 type PageInfo {
   hasNextPage: Boolean!

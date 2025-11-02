@@ -1,0 +1,55 @@
+type ProfileEntry implements Node {
+  id: ID!
+  linkedinUrn: String!
+  gender: String
+  status: ProfileEntryStatus!
+  lastFetchedAt: Time
+  fetchCount: Int!
+  profileData: Map
+  createdAt: Time!
+  updatedAt: Time!
+}
+enum ProfileEntryStatus {
+  PENDING
+  FETCHING
+  COMPLETED
+  FAILED
+}
+
+type ProfileEntryConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ProfileEntryEdge]
+}
+
+type ProfileEntryEdge {
+  node: ProfileEntry
+  cursor: Cursor!
+}
+
+input CreateProfileEntryInput {
+  linkedinUrn: String!
+  gender: String!
+}
+
+input UpdateProfileEntryInput {
+  id: ID!
+  linkedinUrn: String
+  gender: String
+}
+
+extend type Query {
+  profileEntry(id: ID!): ProfileEntry
+  profileEntries(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: ProfileEntryWhereInput
+  ): ProfileEntryConnection
+}
+
+extend type Mutation {
+  createProfileEntry(input: CreateProfileEntryInput!): ProfileEntry!
+  updateProfileEntry(input: UpdateProfileEntryInput!): ProfileEntry!
+}

@@ -3,6 +3,7 @@
 package ent
 
 import (
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"time"
@@ -87,6 +88,147 @@ func (u *ProfileUpdate) SetInput(i UpdateProfileInput) *ProfileUpdate {
 
 // SetInput applies the change-set in the UpdateProfileInput on the update-one builder.
 func (u *ProfileUpdateOne) SetInput(i UpdateProfileInput) *ProfileUpdateOne {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// CreateProfileEntryInput represents a mutation input for creating profileentries.
+type CreateProfileEntryInput struct {
+	CreatedAt         *time.Time
+	UpdatedAt         *time.Time
+	LinkedinUrn       string
+	Gender            *string
+	Status            *profileentry.Status
+	ProfileData       *map[string]interface{}
+	TemplateJSONS3Key *string
+	RawResponseS3Key  *string
+	FetchCount        *int
+	LastFetchedAt     *time.Time
+	ErrorMessage      *string
+}
+
+// Mutate applies the CreateProfileEntryInput on the ProfileEntryCreate builder.
+func (i *CreateProfileEntryInput) Mutate(m *ProfileEntryCreate) {
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	m.SetLinkedinUrn(i.LinkedinUrn)
+	if v := i.Gender; v != nil {
+		m.SetGender(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if v := i.ProfileData; v != nil {
+		m.SetProfileData(*v)
+	}
+	if v := i.TemplateJSONS3Key; v != nil {
+		m.SetTemplateJSONS3Key(*v)
+	}
+	if v := i.RawResponseS3Key; v != nil {
+		m.SetRawResponseS3Key(*v)
+	}
+	if v := i.FetchCount; v != nil {
+		m.SetFetchCount(*v)
+	}
+	if v := i.LastFetchedAt; v != nil {
+		m.SetLastFetchedAt(*v)
+	}
+	if v := i.ErrorMessage; v != nil {
+		m.SetErrorMessage(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateProfileEntryInput on the create builder.
+func (c *ProfileEntryCreate) SetInput(i CreateProfileEntryInput) *ProfileEntryCreate {
+	i.Mutate(c)
+	return c
+}
+
+// UpdateProfileEntryInput represents a mutation input for updating profileentries.
+type UpdateProfileEntryInput struct {
+	ID                     ulid.ID
+	UpdatedAt              *time.Time
+	LinkedinUrn            *string
+	Gender                 *string
+	ClearGender            bool
+	Status                 *profileentry.Status
+	ProfileData            *map[string]interface{}
+	ClearProfileData       bool
+	TemplateJSONS3Key      *string
+	ClearTemplateJSONS3Key bool
+	RawResponseS3Key       *string
+	ClearRawResponseS3Key  bool
+	FetchCount             *int
+	LastFetchedAt          *time.Time
+	ClearLastFetchedAt     bool
+	ErrorMessage           *string
+	ClearErrorMessage      bool
+}
+
+// Mutate applies the UpdateProfileEntryInput on the ProfileEntryMutation.
+func (i *UpdateProfileEntryInput) Mutate(m *ProfileEntryMutation) {
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.LinkedinUrn; v != nil {
+		m.SetLinkedinUrn(*v)
+	}
+	if i.ClearGender {
+		m.ClearGender()
+	}
+	if v := i.Gender; v != nil {
+		m.SetGender(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if i.ClearProfileData {
+		m.ClearProfileData()
+	}
+	if v := i.ProfileData; v != nil {
+		m.SetProfileData(*v)
+	}
+	if i.ClearTemplateJSONS3Key {
+		m.ClearTemplateJSONS3Key()
+	}
+	if v := i.TemplateJSONS3Key; v != nil {
+		m.SetTemplateJSONS3Key(*v)
+	}
+	if i.ClearRawResponseS3Key {
+		m.ClearRawResponseS3Key()
+	}
+	if v := i.RawResponseS3Key; v != nil {
+		m.SetRawResponseS3Key(*v)
+	}
+	if v := i.FetchCount; v != nil {
+		m.SetFetchCount(*v)
+	}
+	if i.ClearLastFetchedAt {
+		m.ClearLastFetchedAt()
+	}
+	if v := i.LastFetchedAt; v != nil {
+		m.SetLastFetchedAt(*v)
+	}
+	if i.ClearErrorMessage {
+		m.ClearErrorMessage()
+	}
+	if v := i.ErrorMessage; v != nil {
+		m.SetErrorMessage(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateProfileEntryInput on the update builder.
+func (u *ProfileEntryUpdate) SetInput(i UpdateProfileEntryInput) *ProfileEntryUpdate {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// SetInput applies the change-set in the UpdateProfileEntryInput on the update-one builder.
+func (u *ProfileEntryUpdateOne) SetInput(i UpdateProfileEntryInput) *ProfileEntryUpdateOne {
 	i.Mutate(u.Mutation())
 	return u
 }

@@ -166,3 +166,6 @@ models:
   ProfileTitleGroup:
     model:
       - sheng-go-backend/pkg/entity/model.ProfileTitleGroup
+  ProfileEntryStatus:
+    model:
+      - sheng-go-backend/ent/profileentry.Status

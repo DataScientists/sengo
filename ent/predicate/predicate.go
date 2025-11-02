@@ -9,6 +9,9 @@ import (
 // Profile is the predicate function for profile builders.
 type Profile func(*sql.Selector)
 
+// ProfileEntry is the predicate function for profileentry builders.
+type ProfileEntry func(*sql.Selector)
+
 // Todo is the predicate function for todo builders.
 type Todo func(*sql.Selector)
 

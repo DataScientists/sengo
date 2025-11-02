@@ -6,6 +6,7 @@ import (
 	"context"
 	"fmt"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
@@ -24,6 +25,11 @@ var profileImplementors = []string{"Profile", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*Profile) IsNode() {}
+
+var profileentryImplementors = []string{"ProfileEntry", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ProfileEntry) IsNode() {}
 
 var todoImplementors = []string{"Todo", "Node"}
 
@@ -102,6 +108,19 @@ func (c *Client) noder(ctx context.Context, table string, id ulid.ID) (Noder, er
 			Where(profile.ID(uid))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, profileImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case profileentry.Table:
+		var uid ulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.ProfileEntry.Query().
+			Where(profileentry.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, profileentryImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -209,6 +228,22 @@ func (c *Client) noders(ctx context.Context, table string, ids []ulid.ID) ([]Nod
 		query := c.Profile.Query().
 			Where(profile.IDIn(ids...))
 		query, err := query.CollectFields(ctx, profileImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case profileentry.Table:
+		query := c.ProfileEntry.Query().
+			Where(profileentry.IDIn(ids...))
+		query, err := query.CollectFields(ctx, profileentryImplementors...)
 		if err != nil {
 			return nil, err
 		}

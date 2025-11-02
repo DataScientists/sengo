@@ -24,6 +24,49 @@ var (
 		Columns:    ProfilesColumns,
 		PrimaryKey: []*schema.Column{ProfilesColumns[0]},
 	}
+	// ProfileEntriesColumns holds the columns for the "profile_entries" table.
+	ProfileEntriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "linkedin_urn", Type: field.TypeString, Unique: true},
+		{Name: "gender", Type: field.TypeString, Nullable: true},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "FETCHING", "COMPLETED", "FAILED"}, Default: "PENDING"},
+		{Name: "profile_data", Type: field.TypeJSON, Nullable: true},
+		{Name: "template_json_s3_key", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "raw_response_s3_key", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "fetch_count", Type: field.TypeInt, Default: 0},
+		{Name: "last_fetched_at", Type: field.TypeTime, Nullable: true},
+		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
+	}
+	// ProfileEntriesTable holds the schema information for the "profile_entries" table.
+	ProfileEntriesTable = &schema.Table{
+		Name:       "profile_entries",
+		Columns:    ProfileEntriesColumns,
+		PrimaryKey: []*schema.Column{ProfileEntriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "profileentry_status",
+				Unique:  false,
+				Columns: []*schema.Column{ProfileEntriesColumns[5]},
+			},
+			{
+				Name:    "profileentry_linkedin_urn",
+				Unique:  false,
+				Columns: []*schema.Column{ProfileEntriesColumns[3]},
+			},
+			{
+				Name:    "profileentry_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ProfileEntriesColumns[1]},
+			},
+			{
+				Name:    "profileentry_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ProfileEntriesColumns[5], ProfileEntriesColumns[1]},
+			},
+		},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -74,6 +117,7 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		ProfilesTable,
+		ProfileEntriesTable,
 		TodosTable,
 		UsersTable,
 	}

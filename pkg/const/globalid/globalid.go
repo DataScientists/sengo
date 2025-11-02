@@ -5,6 +5,7 @@ import (
 	"log"
 	"reflect"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
 )
@@ -16,9 +17,10 @@ type field struct {
 
 // GlobalIDs maps unique string to tables names.
 type GlobalIDs struct {
-	User    field
-	Todo    field
-	Profile field
+	User         field
+	Todo         field
+	Profile      field
+	ProfileEntry field
 }
 
 // New generates a map object that is intended to be used as global identification for node interface query.
@@ -36,6 +38,9 @@ func New() GlobalIDs {
 		Profile: field{
 			Prefix: "0AC",
 			Table:  profile.Table,
+		}, ProfileEntry: field{
+			Prefix: "0AC",
+			Table:  profileentry.Table,
 		},
 	}
 }

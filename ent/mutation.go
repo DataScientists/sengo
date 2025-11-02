@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"sheng-go-backend/ent/predicate"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
@@ -27,9 +28,10 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeProfile = "Profile"
-	TypeTodo    = "Todo"
-	TypeUser    = "User"
+	TypeProfile      = "Profile"
+	TypeProfileEntry = "ProfileEntry"
+	TypeTodo         = "Todo"
+	TypeUser         = "User"
 )
 
 // ProfileMutation represents an operation that mutates the Profile nodes in the graph.
@@ -725,6 +727,1031 @@ func (m *ProfileMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown Profile edge %s", name)
+}
+
+// ProfileEntryMutation represents an operation that mutates the ProfileEntry nodes in the graph.
+type ProfileEntryMutation struct {
+	config
+	op                   Op
+	typ                  string
+	id                   *ulid.ID
+	created_at           *time.Time
+	updated_at           *time.Time
+	linkedin_urn         *string
+	gender               *string
+	status               *profileentry.Status
+	profile_data         *map[string]interface{}
+	template_json_s3_key *string
+	raw_response_s3_key  *string
+	fetch_count          *int
+	addfetch_count       *int
+	last_fetched_at      *time.Time
+	error_message        *string
+	clearedFields        map[string]struct{}
+	done                 bool
+	oldValue             func(context.Context) (*ProfileEntry, error)
+	predicates           []predicate.ProfileEntry
+}
+
+var _ ent.Mutation = (*ProfileEntryMutation)(nil)
+
+// profileentryOption allows management of the mutation configuration using functional options.
+type profileentryOption func(*ProfileEntryMutation)
+
+// newProfileEntryMutation creates new mutation for the ProfileEntry entity.
+func newProfileEntryMutation(c config, op Op, opts ...profileentryOption) *ProfileEntryMutation {
+	m := &ProfileEntryMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProfileEntry,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withProfileEntryID sets the ID field of the mutation.
+func withProfileEntryID(id ulid.ID) profileentryOption {
+	return func(m *ProfileEntryMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ProfileEntry
+		)
+		m.oldValue = func(ctx context.Context) (*ProfileEntry, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProfileEntry.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProfileEntry sets the old ProfileEntry of the mutation.
+func withProfileEntry(node *ProfileEntry) profileentryOption {
+	return func(m *ProfileEntryMutation) {
+		m.oldValue = func(context.Context) (*ProfileEntry, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ProfileEntryMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ProfileEntryMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ProfileEntry entities.
+func (m *ProfileEntryMutation) SetID(id ulid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ProfileEntryMutation) ID() (id ulid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ProfileEntryMutation) IDs(ctx context.Context) ([]ulid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []ulid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ProfileEntry.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProfileEntryMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProfileEntryMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProfileEntryMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ProfileEntryMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ProfileEntryMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ProfileEntryMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetLinkedinUrn sets the "linkedin_urn" field.
+func (m *ProfileEntryMutation) SetLinkedinUrn(s string) {
+	m.linkedin_urn = &s
+}
+
+// LinkedinUrn returns the value of the "linkedin_urn" field in the mutation.
+func (m *ProfileEntryMutation) LinkedinUrn() (r string, exists bool) {
+	v := m.linkedin_urn
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLinkedinUrn returns the old "linkedin_urn" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldLinkedinUrn(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLinkedinUrn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLinkedinUrn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLinkedinUrn: %w", err)
+	}
+	return oldValue.LinkedinUrn, nil
+}
+
+// ResetLinkedinUrn resets all changes to the "linkedin_urn" field.
+func (m *ProfileEntryMutation) ResetLinkedinUrn() {
+	m.linkedin_urn = nil
+}
+
+// SetGender sets the "gender" field.
+func (m *ProfileEntryMutation) SetGender(s string) {
+	m.gender = &s
+}
+
+// Gender returns the value of the "gender" field in the mutation.
+func (m *ProfileEntryMutation) Gender() (r string, exists bool) {
+	v := m.gender
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldGender returns the old "gender" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldGender(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldGender is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldGender requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldGender: %w", err)
+	}
+	return oldValue.Gender, nil
+}
+
+// ClearGender clears the value of the "gender" field.
+func (m *ProfileEntryMutation) ClearGender() {
+	m.gender = nil
+	m.clearedFields[profileentry.FieldGender] = struct{}{}
+}
+
+// GenderCleared returns if the "gender" field was cleared in this mutation.
+func (m *ProfileEntryMutation) GenderCleared() bool {
+	_, ok := m.clearedFields[profileentry.FieldGender]
+	return ok
+}
+
+// ResetGender resets all changes to the "gender" field.
+func (m *ProfileEntryMutation) ResetGender() {
+	m.gender = nil
+	delete(m.clearedFields, profileentry.FieldGender)
+}
+
+// SetStatus sets the "status" field.
+func (m *ProfileEntryMutation) SetStatus(pr profileentry.Status) {
+	m.status = &pr
+}
+
+// Status returns the value of the "status" field in the mutation.
+func (m *ProfileEntryMutation) Status() (r profileentry.Status, exists bool) {
+	v := m.status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldStatus returns the old "status" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldStatus(ctx context.Context) (v profileentry.Status, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldStatus: %w", err)
+	}
+	return oldValue.Status, nil
+}
+
+// ResetStatus resets all changes to the "status" field.
+func (m *ProfileEntryMutation) ResetStatus() {
+	m.status = nil
+}
+
+// SetProfileData sets the "profile_data" field.
+func (m *ProfileEntryMutation) SetProfileData(value map[string]interface{}) {
+	m.profile_data = &value
+}
+
+// ProfileData returns the value of the "profile_data" field in the mutation.
+func (m *ProfileEntryMutation) ProfileData() (r map[string]interface{}, exists bool) {
+	v := m.profile_data
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfileData returns the old "profile_data" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldProfileData(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfileData is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfileData requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfileData: %w", err)
+	}
+	return oldValue.ProfileData, nil
+}
+
+// ClearProfileData clears the value of the "profile_data" field.
+func (m *ProfileEntryMutation) ClearProfileData() {
+	m.profile_data = nil
+	m.clearedFields[profileentry.FieldProfileData] = struct{}{}
+}
+
+// ProfileDataCleared returns if the "profile_data" field was cleared in this mutation.
+func (m *ProfileEntryMutation) ProfileDataCleared() bool {
+	_, ok := m.clearedFields[profileentry.FieldProfileData]
+	return ok
+}
+
+// ResetProfileData resets all changes to the "profile_data" field.
+func (m *ProfileEntryMutation) ResetProfileData() {
+	m.profile_data = nil
+	delete(m.clearedFields, profileentry.FieldProfileData)
+}
+
+// SetTemplateJSONS3Key sets the "template_json_s3_key" field.
+func (m *ProfileEntryMutation) SetTemplateJSONS3Key(s string) {
+	m.template_json_s3_key = &s
+}
+
+// TemplateJSONS3Key returns the value of the "template_json_s3_key" field in the mutation.
+func (m *ProfileEntryMutation) TemplateJSONS3Key() (r string, exists bool) {
+	v := m.template_json_s3_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTemplateJSONS3Key returns the old "template_json_s3_key" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldTemplateJSONS3Key(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTemplateJSONS3Key is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTemplateJSONS3Key requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTemplateJSONS3Key: %w", err)
+	}
+	return oldValue.TemplateJSONS3Key, nil
+}
+
+// ClearTemplateJSONS3Key clears the value of the "template_json_s3_key" field.
+func (m *ProfileEntryMutation) ClearTemplateJSONS3Key() {
+	m.template_json_s3_key = nil
+	m.clearedFields[profileentry.FieldTemplateJSONS3Key] = struct{}{}
+}
+
+// TemplateJSONS3KeyCleared returns if the "template_json_s3_key" field was cleared in this mutation.
+func (m *ProfileEntryMutation) TemplateJSONS3KeyCleared() bool {
+	_, ok := m.clearedFields[profileentry.FieldTemplateJSONS3Key]
+	return ok
+}
+
+// ResetTemplateJSONS3Key resets all changes to the "template_json_s3_key" field.
+func (m *ProfileEntryMutation) ResetTemplateJSONS3Key() {
+	m.template_json_s3_key = nil
+	delete(m.clearedFields, profileentry.FieldTemplateJSONS3Key)
+}
+
+// SetRawResponseS3Key sets the "raw_response_s3_key" field.
+func (m *ProfileEntryMutation) SetRawResponseS3Key(s string) {
+	m.raw_response_s3_key = &s
+}
+
+// RawResponseS3Key returns the value of the "raw_response_s3_key" field in the mutation.
+func (m *ProfileEntryMutation) RawResponseS3Key() (r string, exists bool) {
+	v := m.raw_response_s3_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRawResponseS3Key returns the old "raw_response_s3_key" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldRawResponseS3Key(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRawResponseS3Key is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRawResponseS3Key requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRawResponseS3Key: %w", err)
+	}
+	return oldValue.RawResponseS3Key, nil
+}
+
+// ClearRawResponseS3Key clears the value of the "raw_response_s3_key" field.
+func (m *ProfileEntryMutation) ClearRawResponseS3Key() {
+	m.raw_response_s3_key = nil
+	m.clearedFields[profileentry.FieldRawResponseS3Key] = struct{}{}
+}
+
+// RawResponseS3KeyCleared returns if the "raw_response_s3_key" field was cleared in this mutation.
+func (m *ProfileEntryMutation) RawResponseS3KeyCleared() bool {
+	_, ok := m.clearedFields[profileentry.FieldRawResponseS3Key]
+	return ok
+}
+
+// ResetRawResponseS3Key resets all changes to the "raw_response_s3_key" field.
+func (m *ProfileEntryMutation) ResetRawResponseS3Key() {
+	m.raw_response_s3_key = nil
+	delete(m.clearedFields, profileentry.FieldRawResponseS3Key)
+}
+
+// SetFetchCount sets the "fetch_count" field.
+func (m *ProfileEntryMutation) SetFetchCount(i int) {
+	m.fetch_count = &i
+	m.addfetch_count = nil
+}
+
+// FetchCount returns the value of the "fetch_count" field in the mutation.
+func (m *ProfileEntryMutation) FetchCount() (r int, exists bool) {
+	v := m.fetch_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFetchCount returns the old "fetch_count" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldFetchCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFetchCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFetchCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFetchCount: %w", err)
+	}
+	return oldValue.FetchCount, nil
+}
+
+// AddFetchCount adds i to the "fetch_count" field.
+func (m *ProfileEntryMutation) AddFetchCount(i int) {
+	if m.addfetch_count != nil {
+		*m.addfetch_count += i
+	} else {
+		m.addfetch_count = &i
+	}
+}
+
+// AddedFetchCount returns the value that was added to the "fetch_count" field in this mutation.
+func (m *ProfileEntryMutation) AddedFetchCount() (r int, exists bool) {
+	v := m.addfetch_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFetchCount resets all changes to the "fetch_count" field.
+func (m *ProfileEntryMutation) ResetFetchCount() {
+	m.fetch_count = nil
+	m.addfetch_count = nil
+}
+
+// SetLastFetchedAt sets the "last_fetched_at" field.
+func (m *ProfileEntryMutation) SetLastFetchedAt(t time.Time) {
+	m.last_fetched_at = &t
+}
+
+// LastFetchedAt returns the value of the "last_fetched_at" field in the mutation.
+func (m *ProfileEntryMutation) LastFetchedAt() (r time.Time, exists bool) {
+	v := m.last_fetched_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLastFetchedAt returns the old "last_fetched_at" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldLastFetchedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLastFetchedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLastFetchedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLastFetchedAt: %w", err)
+	}
+	return oldValue.LastFetchedAt, nil
+}
+
+// ClearLastFetchedAt clears the value of the "last_fetched_at" field.
+func (m *ProfileEntryMutation) ClearLastFetchedAt() {
+	m.last_fetched_at = nil
+	m.clearedFields[profileentry.FieldLastFetchedAt] = struct{}{}
+}
+
+// LastFetchedAtCleared returns if the "last_fetched_at" field was cleared in this mutation.
+func (m *ProfileEntryMutation) LastFetchedAtCleared() bool {
+	_, ok := m.clearedFields[profileentry.FieldLastFetchedAt]
+	return ok
+}
+
+// ResetLastFetchedAt resets all changes to the "last_fetched_at" field.
+func (m *ProfileEntryMutation) ResetLastFetchedAt() {
+	m.last_fetched_at = nil
+	delete(m.clearedFields, profileentry.FieldLastFetchedAt)
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *ProfileEntryMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *ProfileEntryMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the ProfileEntry entity.
+// If the ProfileEntry object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfileEntryMutation) OldErrorMessage(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *ProfileEntryMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[profileentry.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *ProfileEntryMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[profileentry.FieldErrorMessage]
+	return ok
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *ProfileEntryMutation) ResetErrorMessage() {
+	m.error_message = nil
+	delete(m.clearedFields, profileentry.FieldErrorMessage)
+}
+
+// Where appends a list predicates to the ProfileEntryMutation builder.
+func (m *ProfileEntryMutation) Where(ps ...predicate.ProfileEntry) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ProfileEntryMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProfileEntryMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProfileEntry, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ProfileEntryMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProfileEntryMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ProfileEntry).
+func (m *ProfileEntryMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ProfileEntryMutation) Fields() []string {
+	fields := make([]string, 0, 11)
+	if m.created_at != nil {
+		fields = append(fields, profileentry.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, profileentry.FieldUpdatedAt)
+	}
+	if m.linkedin_urn != nil {
+		fields = append(fields, profileentry.FieldLinkedinUrn)
+	}
+	if m.gender != nil {
+		fields = append(fields, profileentry.FieldGender)
+	}
+	if m.status != nil {
+		fields = append(fields, profileentry.FieldStatus)
+	}
+	if m.profile_data != nil {
+		fields = append(fields, profileentry.FieldProfileData)
+	}
+	if m.template_json_s3_key != nil {
+		fields = append(fields, profileentry.FieldTemplateJSONS3Key)
+	}
+	if m.raw_response_s3_key != nil {
+		fields = append(fields, profileentry.FieldRawResponseS3Key)
+	}
+	if m.fetch_count != nil {
+		fields = append(fields, profileentry.FieldFetchCount)
+	}
+	if m.last_fetched_at != nil {
+		fields = append(fields, profileentry.FieldLastFetchedAt)
+	}
+	if m.error_message != nil {
+		fields = append(fields, profileentry.FieldErrorMessage)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ProfileEntryMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case profileentry.FieldCreatedAt:
+		return m.CreatedAt()
+	case profileentry.FieldUpdatedAt:
+		return m.UpdatedAt()
+	case profileentry.FieldLinkedinUrn:
+		return m.LinkedinUrn()
+	case profileentry.FieldGender:
+		return m.Gender()
+	case profileentry.FieldStatus:
+		return m.Status()
+	case profileentry.FieldProfileData:
+		return m.ProfileData()
+	case profileentry.FieldTemplateJSONS3Key:
+		return m.TemplateJSONS3Key()
+	case profileentry.FieldRawResponseS3Key:
+		return m.RawResponseS3Key()
+	case profileentry.FieldFetchCount:
+		return m.FetchCount()
+	case profileentry.FieldLastFetchedAt:
+		return m.LastFetchedAt()
+	case profileentry.FieldErrorMessage:
+		return m.ErrorMessage()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ProfileEntryMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case profileentry.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case profileentry.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	case profileentry.FieldLinkedinUrn:
+		return m.OldLinkedinUrn(ctx)
+	case profileentry.FieldGender:
+		return m.OldGender(ctx)
+	case profileentry.FieldStatus:
+		return m.OldStatus(ctx)
+	case profileentry.FieldProfileData:
+		return m.OldProfileData(ctx)
+	case profileentry.FieldTemplateJSONS3Key:
+		return m.OldTemplateJSONS3Key(ctx)
+	case profileentry.FieldRawResponseS3Key:
+		return m.OldRawResponseS3Key(ctx)
+	case profileentry.FieldFetchCount:
+		return m.OldFetchCount(ctx)
+	case profileentry.FieldLastFetchedAt:
+		return m.OldLastFetchedAt(ctx)
+	case profileentry.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	}
+	return nil, fmt.Errorf("unknown ProfileEntry field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProfileEntryMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case profileentry.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case profileentry.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	case profileentry.FieldLinkedinUrn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLinkedinUrn(v)
+		return nil
+	case profileentry.FieldGender:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetGender(v)
+		return nil
+	case profileentry.FieldStatus:
+		v, ok := value.(profileentry.Status)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetStatus(v)
+		return nil
+	case profileentry.FieldProfileData:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfileData(v)
+		return nil
+	case profileentry.FieldTemplateJSONS3Key:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTemplateJSONS3Key(v)
+		return nil
+	case profileentry.FieldRawResponseS3Key:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRawResponseS3Key(v)
+		return nil
+	case profileentry.FieldFetchCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFetchCount(v)
+		return nil
+	case profileentry.FieldLastFetchedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLastFetchedAt(v)
+		return nil
+	case profileentry.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProfileEntry field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ProfileEntryMutation) AddedFields() []string {
+	var fields []string
+	if m.addfetch_count != nil {
+		fields = append(fields, profileentry.FieldFetchCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ProfileEntryMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case profileentry.FieldFetchCount:
+		return m.AddedFetchCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProfileEntryMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case profileentry.FieldFetchCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFetchCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProfileEntry numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ProfileEntryMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(profileentry.FieldGender) {
+		fields = append(fields, profileentry.FieldGender)
+	}
+	if m.FieldCleared(profileentry.FieldProfileData) {
+		fields = append(fields, profileentry.FieldProfileData)
+	}
+	if m.FieldCleared(profileentry.FieldTemplateJSONS3Key) {
+		fields = append(fields, profileentry.FieldTemplateJSONS3Key)
+	}
+	if m.FieldCleared(profileentry.FieldRawResponseS3Key) {
+		fields = append(fields, profileentry.FieldRawResponseS3Key)
+	}
+	if m.FieldCleared(profileentry.FieldLastFetchedAt) {
+		fields = append(fields, profileentry.FieldLastFetchedAt)
+	}
+	if m.FieldCleared(profileentry.FieldErrorMessage) {
+		fields = append(fields, profileentry.FieldErrorMessage)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ProfileEntryMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ProfileEntryMutation) ClearField(name string) error {
+	switch name {
+	case profileentry.FieldGender:
+		m.ClearGender()
+		return nil
+	case profileentry.FieldProfileData:
+		m.ClearProfileData()
+		return nil
+	case profileentry.FieldTemplateJSONS3Key:
+		m.ClearTemplateJSONS3Key()
+		return nil
+	case profileentry.FieldRawResponseS3Key:
+		m.ClearRawResponseS3Key()
+		return nil
+	case profileentry.FieldLastFetchedAt:
+		m.ClearLastFetchedAt()
+		return nil
+	case profileentry.FieldErrorMessage:
+		m.ClearErrorMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown ProfileEntry nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ProfileEntryMutation) ResetField(name string) error {
+	switch name {
+	case profileentry.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case profileentry.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	case profileentry.FieldLinkedinUrn:
+		m.ResetLinkedinUrn()
+		return nil
+	case profileentry.FieldGender:
+		m.ResetGender()
+		return nil
+	case profileentry.FieldStatus:
+		m.ResetStatus()
+		return nil
+	case profileentry.FieldProfileData:
+		m.ResetProfileData()
+		return nil
+	case profileentry.FieldTemplateJSONS3Key:
+		m.ResetTemplateJSONS3Key()
+		return nil
+	case profileentry.FieldRawResponseS3Key:
+		m.ResetRawResponseS3Key()
+		return nil
+	case profileentry.FieldFetchCount:
+		m.ResetFetchCount()
+		return nil
+	case profileentry.FieldLastFetchedAt:
+		m.ResetLastFetchedAt()
+		return nil
+	case profileentry.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown ProfileEntry field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ProfileEntryMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ProfileEntryMutation) AddedIDs(name string) []ent.Value {
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ProfileEntryMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ProfileEntryMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ProfileEntryMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ProfileEntryMutation) EdgeCleared(name string) bool {
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ProfileEntryMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown ProfileEntry unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ProfileEntryMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown ProfileEntry edge %s", name)
 }
 
 // TodoMutation represents an operation that mutates the Todo nodes in the graph.

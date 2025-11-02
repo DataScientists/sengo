@@ -5,6 +5,7 @@ package ent
 import (
 	"context"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
 
@@ -112,6 +113,123 @@ func newProfilePaginateArgs(rv map[string]any) *profilePaginateArgs {
 	}
 	if v, ok := rv[whereField].(*ProfileWhereInput); ok {
 		args.opts = append(args.opts, WithProfileFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (pe *ProfileEntryQuery) CollectFields(ctx context.Context, satisfies ...string) (*ProfileEntryQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return pe, nil
+	}
+	if err := pe.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return pe, nil
+}
+
+func (pe *ProfileEntryQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(profileentry.Columns))
+		selectedFields = []string{profileentry.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "createdAt":
+			if _, ok := fieldSeen[profileentry.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldCreatedAt)
+				fieldSeen[profileentry.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[profileentry.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldUpdatedAt)
+				fieldSeen[profileentry.FieldUpdatedAt] = struct{}{}
+			}
+		case "linkedinUrn":
+			if _, ok := fieldSeen[profileentry.FieldLinkedinUrn]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldLinkedinUrn)
+				fieldSeen[profileentry.FieldLinkedinUrn] = struct{}{}
+			}
+		case "gender":
+			if _, ok := fieldSeen[profileentry.FieldGender]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldGender)
+				fieldSeen[profileentry.FieldGender] = struct{}{}
+			}
+		case "status":
+			if _, ok := fieldSeen[profileentry.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldStatus)
+				fieldSeen[profileentry.FieldStatus] = struct{}{}
+			}
+		case "profileData":
+			if _, ok := fieldSeen[profileentry.FieldProfileData]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldProfileData)
+				fieldSeen[profileentry.FieldProfileData] = struct{}{}
+			}
+		case "templateJSONS3Key":
+			if _, ok := fieldSeen[profileentry.FieldTemplateJSONS3Key]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldTemplateJSONS3Key)
+				fieldSeen[profileentry.FieldTemplateJSONS3Key] = struct{}{}
+			}
+		case "rawResponseS3Key":
+			if _, ok := fieldSeen[profileentry.FieldRawResponseS3Key]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldRawResponseS3Key)
+				fieldSeen[profileentry.FieldRawResponseS3Key] = struct{}{}
+			}
+		case "fetchCount":
+			if _, ok := fieldSeen[profileentry.FieldFetchCount]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldFetchCount)
+				fieldSeen[profileentry.FieldFetchCount] = struct{}{}
+			}
+		case "lastFetchedAt":
+			if _, ok := fieldSeen[profileentry.FieldLastFetchedAt]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldLastFetchedAt)
+				fieldSeen[profileentry.FieldLastFetchedAt] = struct{}{}
+			}
+		case "errorMessage":
+			if _, ok := fieldSeen[profileentry.FieldErrorMessage]; !ok {
+				selectedFields = append(selectedFields, profileentry.FieldErrorMessage)
+				fieldSeen[profileentry.FieldErrorMessage] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		pe.Select(selectedFields...)
+	}
+	return nil
+}
+
+type profileentryPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ProfileEntryPaginateOption
+}
+
+func newProfileEntryPaginateArgs(rv map[string]any) *profileentryPaginateArgs {
+	args := &profileentryPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*ProfileEntryWhereInput); ok {
+		args.opts = append(args.opts, WithProfileEntryFilter(v.Filter))
 	}
 	return args
 }

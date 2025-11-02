@@ -14,6 +14,8 @@ type Tx struct {
 	config
 	// Profile is the client for interacting with the Profile builders.
 	Profile *ProfileClient
+	// ProfileEntry is the client for interacting with the ProfileEntry builders.
+	ProfileEntry *ProfileEntryClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
@@ -150,6 +152,7 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.Profile = NewProfileClient(tx.config)
+	tx.ProfileEntry = NewProfileEntryClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

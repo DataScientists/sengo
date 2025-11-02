@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"sheng-go-backend/ent/predicate"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
@@ -406,6 +407,560 @@ func (i *ProfileWhereInput) P() (predicate.Profile, error) {
 		return predicates[0], nil
 	default:
 		return profile.And(predicates...), nil
+	}
+}
+
+// ProfileEntryWhereInput represents a where input for filtering ProfileEntry queries.
+type ProfileEntryWhereInput struct {
+	Predicates []predicate.ProfileEntry  `json:"-"`
+	Not        *ProfileEntryWhereInput   `json:"not,omitempty"`
+	Or         []*ProfileEntryWhereInput `json:"or,omitempty"`
+	And        []*ProfileEntryWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *ulid.ID  `json:"id,omitempty"`
+	IDNEQ   *ulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []ulid.ID `json:"idIn,omitempty"`
+	IDNotIn []ulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *ulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *ulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *ulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *ulid.ID  `json:"idLTE,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "linkedin_urn" field predicates.
+	LinkedinUrn             *string  `json:"linkedinUrn,omitempty"`
+	LinkedinUrnNEQ          *string  `json:"linkedinUrnNEQ,omitempty"`
+	LinkedinUrnIn           []string `json:"linkedinUrnIn,omitempty"`
+	LinkedinUrnNotIn        []string `json:"linkedinUrnNotIn,omitempty"`
+	LinkedinUrnGT           *string  `json:"linkedinUrnGT,omitempty"`
+	LinkedinUrnGTE          *string  `json:"linkedinUrnGTE,omitempty"`
+	LinkedinUrnLT           *string  `json:"linkedinUrnLT,omitempty"`
+	LinkedinUrnLTE          *string  `json:"linkedinUrnLTE,omitempty"`
+	LinkedinUrnContains     *string  `json:"linkedinUrnContains,omitempty"`
+	LinkedinUrnHasPrefix    *string  `json:"linkedinUrnHasPrefix,omitempty"`
+	LinkedinUrnHasSuffix    *string  `json:"linkedinUrnHasSuffix,omitempty"`
+	LinkedinUrnEqualFold    *string  `json:"linkedinUrnEqualFold,omitempty"`
+	LinkedinUrnContainsFold *string  `json:"linkedinUrnContainsFold,omitempty"`
+
+	// "gender" field predicates.
+	Gender             *string  `json:"gender,omitempty"`
+	GenderNEQ          *string  `json:"genderNEQ,omitempty"`
+	GenderIn           []string `json:"genderIn,omitempty"`
+	GenderNotIn        []string `json:"genderNotIn,omitempty"`
+	GenderGT           *string  `json:"genderGT,omitempty"`
+	GenderGTE          *string  `json:"genderGTE,omitempty"`
+	GenderLT           *string  `json:"genderLT,omitempty"`
+	GenderLTE          *string  `json:"genderLTE,omitempty"`
+	GenderContains     *string  `json:"genderContains,omitempty"`
+	GenderHasPrefix    *string  `json:"genderHasPrefix,omitempty"`
+	GenderHasSuffix    *string  `json:"genderHasSuffix,omitempty"`
+	GenderIsNil        bool     `json:"genderIsNil,omitempty"`
+	GenderNotNil       bool     `json:"genderNotNil,omitempty"`
+	GenderEqualFold    *string  `json:"genderEqualFold,omitempty"`
+	GenderContainsFold *string  `json:"genderContainsFold,omitempty"`
+
+	// "status" field predicates.
+	Status      *profileentry.Status  `json:"status,omitempty"`
+	StatusNEQ   *profileentry.Status  `json:"statusNEQ,omitempty"`
+	StatusIn    []profileentry.Status `json:"statusIn,omitempty"`
+	StatusNotIn []profileentry.Status `json:"statusNotIn,omitempty"`
+
+	// "template_json_s3_key" field predicates.
+	TemplateJSONS3Key             *string  `json:"templateJSONS3Key,omitempty"`
+	TemplateJSONS3KeyNEQ          *string  `json:"templateJSONS3KeyNEQ,omitempty"`
+	TemplateJSONS3KeyIn           []string `json:"templateJSONS3KeyIn,omitempty"`
+	TemplateJSONS3KeyNotIn        []string `json:"templateJSONS3KeyNotIn,omitempty"`
+	TemplateJSONS3KeyGT           *string  `json:"templateJSONS3KeyGT,omitempty"`
+	TemplateJSONS3KeyGTE          *string  `json:"templateJSONS3KeyGTE,omitempty"`
+	TemplateJSONS3KeyLT           *string  `json:"templateJSONS3KeyLT,omitempty"`
+	TemplateJSONS3KeyLTE          *string  `json:"templateJSONS3KeyLTE,omitempty"`
+	TemplateJSONS3KeyContains     *string  `json:"templateJSONS3KeyContains,omitempty"`
+	TemplateJSONS3KeyHasPrefix    *string  `json:"templateJSONS3KeyHasPrefix,omitempty"`
+	TemplateJSONS3KeyHasSuffix    *string  `json:"templateJSONS3KeyHasSuffix,omitempty"`
+	TemplateJSONS3KeyIsNil        bool     `json:"templateJSONS3KeyIsNil,omitempty"`
+	TemplateJSONS3KeyNotNil       bool     `json:"templateJSONS3KeyNotNil,omitempty"`
+	TemplateJSONS3KeyEqualFold    *string  `json:"templateJSONS3KeyEqualFold,omitempty"`
+	TemplateJSONS3KeyContainsFold *string  `json:"templateJSONS3KeyContainsFold,omitempty"`
+
+	// "raw_response_s3_key" field predicates.
+	RawResponseS3Key             *string  `json:"rawResponseS3Key,omitempty"`
+	RawResponseS3KeyNEQ          *string  `json:"rawResponseS3KeyNEQ,omitempty"`
+	RawResponseS3KeyIn           []string `json:"rawResponseS3KeyIn,omitempty"`
+	RawResponseS3KeyNotIn        []string `json:"rawResponseS3KeyNotIn,omitempty"`
+	RawResponseS3KeyGT           *string  `json:"rawResponseS3KeyGT,omitempty"`
+	RawResponseS3KeyGTE          *string  `json:"rawResponseS3KeyGTE,omitempty"`
+	RawResponseS3KeyLT           *string  `json:"rawResponseS3KeyLT,omitempty"`
+	RawResponseS3KeyLTE          *string  `json:"rawResponseS3KeyLTE,omitempty"`
+	RawResponseS3KeyContains     *string  `json:"rawResponseS3KeyContains,omitempty"`
+	RawResponseS3KeyHasPrefix    *string  `json:"rawResponseS3KeyHasPrefix,omitempty"`
+	RawResponseS3KeyHasSuffix    *string  `json:"rawResponseS3KeyHasSuffix,omitempty"`
+	RawResponseS3KeyIsNil        bool     `json:"rawResponseS3KeyIsNil,omitempty"`
+	RawResponseS3KeyNotNil       bool     `json:"rawResponseS3KeyNotNil,omitempty"`
+	RawResponseS3KeyEqualFold    *string  `json:"rawResponseS3KeyEqualFold,omitempty"`
+	RawResponseS3KeyContainsFold *string  `json:"rawResponseS3KeyContainsFold,omitempty"`
+
+	// "fetch_count" field predicates.
+	FetchCount      *int  `json:"fetchCount,omitempty"`
+	FetchCountNEQ   *int  `json:"fetchCountNEQ,omitempty"`
+	FetchCountIn    []int `json:"fetchCountIn,omitempty"`
+	FetchCountNotIn []int `json:"fetchCountNotIn,omitempty"`
+	FetchCountGT    *int  `json:"fetchCountGT,omitempty"`
+	FetchCountGTE   *int  `json:"fetchCountGTE,omitempty"`
+	FetchCountLT    *int  `json:"fetchCountLT,omitempty"`
+	FetchCountLTE   *int  `json:"fetchCountLTE,omitempty"`
+
+	// "last_fetched_at" field predicates.
+	LastFetchedAt       *time.Time  `json:"lastFetchedAt,omitempty"`
+	LastFetchedAtNEQ    *time.Time  `json:"lastFetchedAtNEQ,omitempty"`
+	LastFetchedAtIn     []time.Time `json:"lastFetchedAtIn,omitempty"`
+	LastFetchedAtNotIn  []time.Time `json:"lastFetchedAtNotIn,omitempty"`
+	LastFetchedAtGT     *time.Time  `json:"lastFetchedAtGT,omitempty"`
+	LastFetchedAtGTE    *time.Time  `json:"lastFetchedAtGTE,omitempty"`
+	LastFetchedAtLT     *time.Time  `json:"lastFetchedAtLT,omitempty"`
+	LastFetchedAtLTE    *time.Time  `json:"lastFetchedAtLTE,omitempty"`
+	LastFetchedAtIsNil  bool        `json:"lastFetchedAtIsNil,omitempty"`
+	LastFetchedAtNotNil bool        `json:"lastFetchedAtNotNil,omitempty"`
+
+	// "error_message" field predicates.
+	ErrorMessage             *string  `json:"errorMessage,omitempty"`
+	ErrorMessageNEQ          *string  `json:"errorMessageNEQ,omitempty"`
+	ErrorMessageIn           []string `json:"errorMessageIn,omitempty"`
+	ErrorMessageNotIn        []string `json:"errorMessageNotIn,omitempty"`
+	ErrorMessageGT           *string  `json:"errorMessageGT,omitempty"`
+	ErrorMessageGTE          *string  `json:"errorMessageGTE,omitempty"`
+	ErrorMessageLT           *string  `json:"errorMessageLT,omitempty"`
+	ErrorMessageLTE          *string  `json:"errorMessageLTE,omitempty"`
+	ErrorMessageContains     *string  `json:"errorMessageContains,omitempty"`
+	ErrorMessageHasPrefix    *string  `json:"errorMessageHasPrefix,omitempty"`
+	ErrorMessageHasSuffix    *string  `json:"errorMessageHasSuffix,omitempty"`
+	ErrorMessageIsNil        bool     `json:"errorMessageIsNil,omitempty"`
+	ErrorMessageNotNil       bool     `json:"errorMessageNotNil,omitempty"`
+	ErrorMessageEqualFold    *string  `json:"errorMessageEqualFold,omitempty"`
+	ErrorMessageContainsFold *string  `json:"errorMessageContainsFold,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *ProfileEntryWhereInput) AddPredicates(predicates ...predicate.ProfileEntry) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the ProfileEntryWhereInput filter on the ProfileEntryQuery builder.
+func (i *ProfileEntryWhereInput) Filter(q *ProfileEntryQuery) (*ProfileEntryQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyProfileEntryWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyProfileEntryWhereInput is returned in case the ProfileEntryWhereInput is empty.
+var ErrEmptyProfileEntryWhereInput = errors.New("ent: empty predicate ProfileEntryWhereInput")
+
+// P returns a predicate for filtering profileentries.
+// An error is returned if the input is empty or invalid.
+func (i *ProfileEntryWhereInput) P() (predicate.ProfileEntry, error) {
+	var predicates []predicate.ProfileEntry
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, profileentry.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.ProfileEntry, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, profileentry.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.ProfileEntry, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, profileentry.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, profileentry.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, profileentry.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, profileentry.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, profileentry.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, profileentry.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, profileentry.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, profileentry.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, profileentry.IDLTE(*i.IDLTE))
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, profileentry.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, profileentry.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, profileentry.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, profileentry.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, profileentry.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, profileentry.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, profileentry.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, profileentry.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+	if i.LinkedinUrn != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnEQ(*i.LinkedinUrn))
+	}
+	if i.LinkedinUrnNEQ != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnNEQ(*i.LinkedinUrnNEQ))
+	}
+	if len(i.LinkedinUrnIn) > 0 {
+		predicates = append(predicates, profileentry.LinkedinUrnIn(i.LinkedinUrnIn...))
+	}
+	if len(i.LinkedinUrnNotIn) > 0 {
+		predicates = append(predicates, profileentry.LinkedinUrnNotIn(i.LinkedinUrnNotIn...))
+	}
+	if i.LinkedinUrnGT != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnGT(*i.LinkedinUrnGT))
+	}
+	if i.LinkedinUrnGTE != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnGTE(*i.LinkedinUrnGTE))
+	}
+	if i.LinkedinUrnLT != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnLT(*i.LinkedinUrnLT))
+	}
+	if i.LinkedinUrnLTE != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnLTE(*i.LinkedinUrnLTE))
+	}
+	if i.LinkedinUrnContains != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnContains(*i.LinkedinUrnContains))
+	}
+	if i.LinkedinUrnHasPrefix != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnHasPrefix(*i.LinkedinUrnHasPrefix))
+	}
+	if i.LinkedinUrnHasSuffix != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnHasSuffix(*i.LinkedinUrnHasSuffix))
+	}
+	if i.LinkedinUrnEqualFold != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnEqualFold(*i.LinkedinUrnEqualFold))
+	}
+	if i.LinkedinUrnContainsFold != nil {
+		predicates = append(predicates, profileentry.LinkedinUrnContainsFold(*i.LinkedinUrnContainsFold))
+	}
+	if i.Gender != nil {
+		predicates = append(predicates, profileentry.GenderEQ(*i.Gender))
+	}
+	if i.GenderNEQ != nil {
+		predicates = append(predicates, profileentry.GenderNEQ(*i.GenderNEQ))
+	}
+	if len(i.GenderIn) > 0 {
+		predicates = append(predicates, profileentry.GenderIn(i.GenderIn...))
+	}
+	if len(i.GenderNotIn) > 0 {
+		predicates = append(predicates, profileentry.GenderNotIn(i.GenderNotIn...))
+	}
+	if i.GenderGT != nil {
+		predicates = append(predicates, profileentry.GenderGT(*i.GenderGT))
+	}
+	if i.GenderGTE != nil {
+		predicates = append(predicates, profileentry.GenderGTE(*i.GenderGTE))
+	}
+	if i.GenderLT != nil {
+		predicates = append(predicates, profileentry.GenderLT(*i.GenderLT))
+	}
+	if i.GenderLTE != nil {
+		predicates = append(predicates, profileentry.GenderLTE(*i.GenderLTE))
+	}
+	if i.GenderContains != nil {
+		predicates = append(predicates, profileentry.GenderContains(*i.GenderContains))
+	}
+	if i.GenderHasPrefix != nil {
+		predicates = append(predicates, profileentry.GenderHasPrefix(*i.GenderHasPrefix))
+	}
+	if i.GenderHasSuffix != nil {
+		predicates = append(predicates, profileentry.GenderHasSuffix(*i.GenderHasSuffix))
+	}
+	if i.GenderIsNil {
+		predicates = append(predicates, profileentry.GenderIsNil())
+	}
+	if i.GenderNotNil {
+		predicates = append(predicates, profileentry.GenderNotNil())
+	}
+	if i.GenderEqualFold != nil {
+		predicates = append(predicates, profileentry.GenderEqualFold(*i.GenderEqualFold))
+	}
+	if i.GenderContainsFold != nil {
+		predicates = append(predicates, profileentry.GenderContainsFold(*i.GenderContainsFold))
+	}
+	if i.Status != nil {
+		predicates = append(predicates, profileentry.StatusEQ(*i.Status))
+	}
+	if i.StatusNEQ != nil {
+		predicates = append(predicates, profileentry.StatusNEQ(*i.StatusNEQ))
+	}
+	if len(i.StatusIn) > 0 {
+		predicates = append(predicates, profileentry.StatusIn(i.StatusIn...))
+	}
+	if len(i.StatusNotIn) > 0 {
+		predicates = append(predicates, profileentry.StatusNotIn(i.StatusNotIn...))
+	}
+	if i.TemplateJSONS3Key != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyEQ(*i.TemplateJSONS3Key))
+	}
+	if i.TemplateJSONS3KeyNEQ != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyNEQ(*i.TemplateJSONS3KeyNEQ))
+	}
+	if len(i.TemplateJSONS3KeyIn) > 0 {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyIn(i.TemplateJSONS3KeyIn...))
+	}
+	if len(i.TemplateJSONS3KeyNotIn) > 0 {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyNotIn(i.TemplateJSONS3KeyNotIn...))
+	}
+	if i.TemplateJSONS3KeyGT != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyGT(*i.TemplateJSONS3KeyGT))
+	}
+	if i.TemplateJSONS3KeyGTE != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyGTE(*i.TemplateJSONS3KeyGTE))
+	}
+	if i.TemplateJSONS3KeyLT != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyLT(*i.TemplateJSONS3KeyLT))
+	}
+	if i.TemplateJSONS3KeyLTE != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyLTE(*i.TemplateJSONS3KeyLTE))
+	}
+	if i.TemplateJSONS3KeyContains != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyContains(*i.TemplateJSONS3KeyContains))
+	}
+	if i.TemplateJSONS3KeyHasPrefix != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyHasPrefix(*i.TemplateJSONS3KeyHasPrefix))
+	}
+	if i.TemplateJSONS3KeyHasSuffix != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyHasSuffix(*i.TemplateJSONS3KeyHasSuffix))
+	}
+	if i.TemplateJSONS3KeyIsNil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyIsNil())
+	}
+	if i.TemplateJSONS3KeyNotNil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyNotNil())
+	}
+	if i.TemplateJSONS3KeyEqualFold != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyEqualFold(*i.TemplateJSONS3KeyEqualFold))
+	}
+	if i.TemplateJSONS3KeyContainsFold != nil {
+		predicates = append(predicates, profileentry.TemplateJSONS3KeyContainsFold(*i.TemplateJSONS3KeyContainsFold))
+	}
+	if i.RawResponseS3Key != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyEQ(*i.RawResponseS3Key))
+	}
+	if i.RawResponseS3KeyNEQ != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyNEQ(*i.RawResponseS3KeyNEQ))
+	}
+	if len(i.RawResponseS3KeyIn) > 0 {
+		predicates = append(predicates, profileentry.RawResponseS3KeyIn(i.RawResponseS3KeyIn...))
+	}
+	if len(i.RawResponseS3KeyNotIn) > 0 {
+		predicates = append(predicates, profileentry.RawResponseS3KeyNotIn(i.RawResponseS3KeyNotIn...))
+	}
+	if i.RawResponseS3KeyGT != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyGT(*i.RawResponseS3KeyGT))
+	}
+	if i.RawResponseS3KeyGTE != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyGTE(*i.RawResponseS3KeyGTE))
+	}
+	if i.RawResponseS3KeyLT != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyLT(*i.RawResponseS3KeyLT))
+	}
+	if i.RawResponseS3KeyLTE != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyLTE(*i.RawResponseS3KeyLTE))
+	}
+	if i.RawResponseS3KeyContains != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyContains(*i.RawResponseS3KeyContains))
+	}
+	if i.RawResponseS3KeyHasPrefix != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyHasPrefix(*i.RawResponseS3KeyHasPrefix))
+	}
+	if i.RawResponseS3KeyHasSuffix != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyHasSuffix(*i.RawResponseS3KeyHasSuffix))
+	}
+	if i.RawResponseS3KeyIsNil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyIsNil())
+	}
+	if i.RawResponseS3KeyNotNil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyNotNil())
+	}
+	if i.RawResponseS3KeyEqualFold != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyEqualFold(*i.RawResponseS3KeyEqualFold))
+	}
+	if i.RawResponseS3KeyContainsFold != nil {
+		predicates = append(predicates, profileentry.RawResponseS3KeyContainsFold(*i.RawResponseS3KeyContainsFold))
+	}
+	if i.FetchCount != nil {
+		predicates = append(predicates, profileentry.FetchCountEQ(*i.FetchCount))
+	}
+	if i.FetchCountNEQ != nil {
+		predicates = append(predicates, profileentry.FetchCountNEQ(*i.FetchCountNEQ))
+	}
+	if len(i.FetchCountIn) > 0 {
+		predicates = append(predicates, profileentry.FetchCountIn(i.FetchCountIn...))
+	}
+	if len(i.FetchCountNotIn) > 0 {
+		predicates = append(predicates, profileentry.FetchCountNotIn(i.FetchCountNotIn...))
+	}
+	if i.FetchCountGT != nil {
+		predicates = append(predicates, profileentry.FetchCountGT(*i.FetchCountGT))
+	}
+	if i.FetchCountGTE != nil {
+		predicates = append(predicates, profileentry.FetchCountGTE(*i.FetchCountGTE))
+	}
+	if i.FetchCountLT != nil {
+		predicates = append(predicates, profileentry.FetchCountLT(*i.FetchCountLT))
+	}
+	if i.FetchCountLTE != nil {
+		predicates = append(predicates, profileentry.FetchCountLTE(*i.FetchCountLTE))
+	}
+	if i.LastFetchedAt != nil {
+		predicates = append(predicates, profileentry.LastFetchedAtEQ(*i.LastFetchedAt))
+	}
+	if i.LastFetchedAtNEQ != nil {
+		predicates = append(predicates, profileentry.LastFetchedAtNEQ(*i.LastFetchedAtNEQ))
+	}
+	if len(i.LastFetchedAtIn) > 0 {
+		predicates = append(predicates, profileentry.LastFetchedAtIn(i.LastFetchedAtIn...))
+	}
+	if len(i.LastFetchedAtNotIn) > 0 {
+		predicates = append(predicates, profileentry.LastFetchedAtNotIn(i.LastFetchedAtNotIn...))
+	}
+	if i.LastFetchedAtGT != nil {
+		predicates = append(predicates, profileentry.LastFetchedAtGT(*i.LastFetchedAtGT))
+	}
+	if i.LastFetchedAtGTE != nil {
+		predicates = append(predicates, profileentry.LastFetchedAtGTE(*i.LastFetchedAtGTE))
+	}
+	if i.LastFetchedAtLT != nil {
+		predicates = append(predicates, profileentry.LastFetchedAtLT(*i.LastFetchedAtLT))
+	}
+	if i.LastFetchedAtLTE != nil {
+		predicates = append(predicates, profileentry.LastFetchedAtLTE(*i.LastFetchedAtLTE))
+	}
+	if i.LastFetchedAtIsNil {
+		predicates = append(predicates, profileentry.LastFetchedAtIsNil())
+	}
+	if i.LastFetchedAtNotNil {
+		predicates = append(predicates, profileentry.LastFetchedAtNotNil())
+	}
+	if i.ErrorMessage != nil {
+		predicates = append(predicates, profileentry.ErrorMessageEQ(*i.ErrorMessage))
+	}
+	if i.ErrorMessageNEQ != nil {
+		predicates = append(predicates, profileentry.ErrorMessageNEQ(*i.ErrorMessageNEQ))
+	}
+	if len(i.ErrorMessageIn) > 0 {
+		predicates = append(predicates, profileentry.ErrorMessageIn(i.ErrorMessageIn...))
+	}
+	if len(i.ErrorMessageNotIn) > 0 {
+		predicates = append(predicates, profileentry.ErrorMessageNotIn(i.ErrorMessageNotIn...))
+	}
+	if i.ErrorMessageGT != nil {
+		predicates = append(predicates, profileentry.ErrorMessageGT(*i.ErrorMessageGT))
+	}
+	if i.ErrorMessageGTE != nil {
+		predicates = append(predicates, profileentry.ErrorMessageGTE(*i.ErrorMessageGTE))
+	}
+	if i.ErrorMessageLT != nil {
+		predicates = append(predicates, profileentry.ErrorMessageLT(*i.ErrorMessageLT))
+	}
+	if i.ErrorMessageLTE != nil {
+		predicates = append(predicates, profileentry.ErrorMessageLTE(*i.ErrorMessageLTE))
+	}
+	if i.ErrorMessageContains != nil {
+		predicates = append(predicates, profileentry.ErrorMessageContains(*i.ErrorMessageContains))
+	}
+	if i.ErrorMessageHasPrefix != nil {
+		predicates = append(predicates, profileentry.ErrorMessageHasPrefix(*i.ErrorMessageHasPrefix))
+	}
+	if i.ErrorMessageHasSuffix != nil {
+		predicates = append(predicates, profileentry.ErrorMessageHasSuffix(*i.ErrorMessageHasSuffix))
+	}
+	if i.ErrorMessageIsNil {
+		predicates = append(predicates, profileentry.ErrorMessageIsNil())
+	}
+	if i.ErrorMessageNotNil {
+		predicates = append(predicates, profileentry.ErrorMessageNotNil())
+	}
+	if i.ErrorMessageEqualFold != nil {
+		predicates = append(predicates, profileentry.ErrorMessageEqualFold(*i.ErrorMessageEqualFold))
+	}
+	if i.ErrorMessageContainsFold != nil {
+		predicates = append(predicates, profileentry.ErrorMessageContainsFold(*i.ErrorMessageContainsFold))
+	}
+
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyProfileEntryWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return profileentry.And(predicates...), nil
 	}
 }
 

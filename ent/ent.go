@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
 	"sync"
@@ -75,9 +76,10 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			profile.Table: profile.ValidColumn,
-			todo.Table:    todo.ValidColumn,
-			user.Table:    user.ValidColumn,
+			profile.Table:      profile.ValidColumn,
+			profileentry.Table: profileentry.ValidColumn,
+			todo.Table:         todo.ValidColumn,
+			user.Table:         user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"sheng-go-backend/ent"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/pkg/entity/model"
@@ -63,14 +64,16 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateProfile func(childComplexity int, input ent.CreateProfileInput) int
-		CreateTodo    func(childComplexity int, input ent.CreateTodoInput) int
-		CreateUser    func(childComplexity int, input ent.CreateUserInput) int
-		Login         func(childComplexity int, input model.LoginInput) int
-		RefreshToken  func(childComplexity int) int
-		UpdateProfile func(childComplexity int, input ent.UpdateProfileInput) int
-		UpdateTodo    func(childComplexity int, input ent.UpdateTodoInput) int
-		UpdateUser    func(childComplexity int, input ent.UpdateUserInput) int
+		CreateProfile      func(childComplexity int, input ent.CreateProfileInput) int
+		CreateProfileEntry func(childComplexity int, input ent.CreateProfileEntryInput) int
+		CreateTodo         func(childComplexity int, input ent.CreateTodoInput) int
+		CreateUser         func(childComplexity int, input ent.CreateUserInput) int
+		Login              func(childComplexity int, input model.LoginInput) int
+		RefreshToken       func(childComplexity int) int
+		UpdateProfile      func(childComplexity int, input ent.UpdateProfileInput) int
+		UpdateProfileEntry func(childComplexity int, input ent.UpdateProfileEntryInput) int
+		UpdateTodo         func(childComplexity int, input ent.UpdateTodoInput) int
+		UpdateUser         func(childComplexity int, input ent.UpdateUserInput) int
 	}
 
 	PageInfo struct {
@@ -101,6 +104,29 @@ type ComplexityRoot struct {
 		Node   func(childComplexity int) int
 	}
 
+	ProfileEntry struct {
+		CreatedAt     func(childComplexity int) int
+		FetchCount    func(childComplexity int) int
+		Gender        func(childComplexity int) int
+		ID            func(childComplexity int) int
+		LastFetchedAt func(childComplexity int) int
+		LinkedinUrn   func(childComplexity int) int
+		ProfileData   func(childComplexity int) int
+		Status        func(childComplexity int) int
+		UpdatedAt     func(childComplexity int) int
+	}
+
+	ProfileEntryConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	ProfileEntryEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	ProfileTitleGroup struct {
 		Count func(childComplexity int) int
 		Title func(childComplexity int) int
@@ -109,6 +135,8 @@ type ComplexityRoot struct {
 	Query struct {
 		Node            func(childComplexity int, id ulid.ID) int
 		Profile         func(childComplexity int, input *ent.ProfileWhereInput) int
+		ProfileEntries  func(childComplexity int, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.ProfileEntryWhereInput) int
+		ProfileEntry    func(childComplexity int, id ulid.ID) int
 		Profiles        func(childComplexity int, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.ProfileWhereInput) int
 		ProfilesByTitle func(childComplexity int, searchTerm *string, minCount int) int
 		Todo            func(childComplexity int, input *ent.TodoWhereInput) int
@@ -170,6 +198,8 @@ type MutationResolver interface {
 	RefreshToken(ctx context.Context) (*model.RefreshTokenPayload, error)
 	CreateProfile(ctx context.Context, input ent.CreateProfileInput) (*ent.Profile, error)
 	UpdateProfile(ctx context.Context, input ent.UpdateProfileInput) (*ent.Profile, error)
+	CreateProfileEntry(ctx context.Context, input ent.CreateProfileEntryInput) (*ent.ProfileEntry, error)
+	UpdateProfileEntry(ctx context.Context, input ent.UpdateProfileEntryInput) (*ent.ProfileEntry, error)
 	CreateTodo(ctx context.Context, input ent.CreateTodoInput) (*ent.Todo, error)
 	UpdateTodo(ctx context.Context, input ent.UpdateTodoInput) (*ent.Todo, error)
 	CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error)
@@ -184,6 +214,8 @@ type QueryResolver interface {
 	Profile(ctx context.Context, input *ent.ProfileWhereInput) (*ent.Profile, error)
 	Profiles(ctx context.Context, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.ProfileWhereInput) (*ent.ProfileConnection, error)
 	ProfilesByTitle(ctx context.Context, searchTerm *string, minCount int) ([]*model.ProfileTitleGroup, error)
+	ProfileEntry(ctx context.Context, id ulid.ID) (*ent.ProfileEntry, error)
+	ProfileEntries(ctx context.Context, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.ProfileEntryWhereInput) (*ent.ProfileEntryConnection, error)
 	Todo(ctx context.Context, input *ent.TodoWhereInput) (*ent.Todo, error)
 	Todos(ctx context.Context, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.TodoWhereInput) (*ent.TodoConnection, error)
 	User(ctx context.Context, id *ulid.ID) (*ent.User, error)
@@ -251,6 +283,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Mutation.CreateProfile(childComplexity, args["input"].(ent.CreateProfileInput)), true
 
+	case "Mutation.createProfileEntry":
+		if e.complexity.Mutation.CreateProfileEntry == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createProfileEntry_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateProfileEntry(childComplexity, args["input"].(ent.CreateProfileEntryInput)), true
+
 	case "Mutation.createTodo":
 		if e.complexity.Mutation.CreateTodo == nil {
 			break
@@ -305,6 +349,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Mutation.UpdateProfile(childComplexity, args["input"].(ent.UpdateProfileInput)), true
+
+	case "Mutation.updateProfileEntry":
+		if e.complexity.Mutation.UpdateProfileEntry == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateProfileEntry_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateProfileEntry(childComplexity, args["input"].(ent.UpdateProfileEntryInput)), true
 
 	case "Mutation.updateTodo":
 		if e.complexity.Mutation.UpdateTodo == nil {
@@ -442,6 +498,104 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ProfileEdge.Node(childComplexity), true
 
+	case "ProfileEntry.createdAt":
+		if e.complexity.ProfileEntry.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntry.CreatedAt(childComplexity), true
+
+	case "ProfileEntry.fetchCount":
+		if e.complexity.ProfileEntry.FetchCount == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntry.FetchCount(childComplexity), true
+
+	case "ProfileEntry.gender":
+		if e.complexity.ProfileEntry.Gender == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntry.Gender(childComplexity), true
+
+	case "ProfileEntry.id":
+		if e.complexity.ProfileEntry.ID == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntry.ID(childComplexity), true
+
+	case "ProfileEntry.lastFetchedAt":
+		if e.complexity.ProfileEntry.LastFetchedAt == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntry.LastFetchedAt(childComplexity), true
+
+	case "ProfileEntry.linkedinUrn":
+		if e.complexity.ProfileEntry.LinkedinUrn == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntry.LinkedinUrn(childComplexity), true
+
+	case "ProfileEntry.profileData":
+		if e.complexity.ProfileEntry.ProfileData == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntry.ProfileData(childComplexity), true
+
+	case "ProfileEntry.status":
+		if e.complexity.ProfileEntry.Status == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntry.Status(childComplexity), true
+
+	case "ProfileEntry.updatedAt":
+		if e.complexity.ProfileEntry.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntry.UpdatedAt(childComplexity), true
+
+	case "ProfileEntryConnection.edges":
+		if e.complexity.ProfileEntryConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntryConnection.Edges(childComplexity), true
+
+	case "ProfileEntryConnection.pageInfo":
+		if e.complexity.ProfileEntryConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntryConnection.PageInfo(childComplexity), true
+
+	case "ProfileEntryConnection.totalCount":
+		if e.complexity.ProfileEntryConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntryConnection.TotalCount(childComplexity), true
+
+	case "ProfileEntryEdge.cursor":
+		if e.complexity.ProfileEntryEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntryEdge.Cursor(childComplexity), true
+
+	case "ProfileEntryEdge.node":
+		if e.complexity.ProfileEntryEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.ProfileEntryEdge.Node(childComplexity), true
+
 	case "ProfileTitleGroup.count":
 		if e.complexity.ProfileTitleGroup.Count == nil {
 			break
@@ -479,6 +633,30 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Profile(childComplexity, args["input"].(*ent.ProfileWhereInput)), true
+
+	case "Query.profileEntries":
+		if e.complexity.Query.ProfileEntries == nil {
+			break
+		}
+
+		args, err := ec.field_Query_profileEntries_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ProfileEntries(childComplexity, args["after"].(*entgql.Cursor[ulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[ulid.ID]), args["last"].(*int), args["where"].(*ent.ProfileEntryWhereInput)), true
+
+	case "Query.profileEntry":
+		if e.complexity.Query.ProfileEntry == nil {
+			break
+		}
+
+		args, err := ec.field_Query_profileEntry_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.ProfileEntry(childComplexity, args["id"].(ulid.ID)), true
 
 	case "Query.profiles":
 		if e.complexity.Query.Profiles == nil {
@@ -742,12 +920,15 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 	opCtx := graphql.GetOperationContext(ctx)
 	ec := executionContext{opCtx, e, 0, 0, make(chan graphql.DeferredResult)}
 	inputUnmarshalMap := graphql.BuildUnmarshalerMap(
+		ec.unmarshalInputCreateProfileEntryInput,
 		ec.unmarshalInputCreateProfileInput,
 		ec.unmarshalInputCreateTodoInput,
 		ec.unmarshalInputCreateUserInput,
 		ec.unmarshalInputLoginInput,
+		ec.unmarshalInputProfileEntryWhereInput,
 		ec.unmarshalInputProfileWhereInput,
 		ec.unmarshalInputTodoWhereInput,
+		ec.unmarshalInputUpdateProfileEntryInput,
 		ec.unmarshalInputUpdateProfileInput,
 		ec.unmarshalInputUpdateTodoInput,
 		ec.unmarshalInputUpdateUserInput,
@@ -850,6 +1031,156 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 
 var sources = []*ast.Source{
 	{Name: "../ent.graphql", Input: `"""
+ProfileEntryWhereInput is used for filtering ProfileEntry objects.
+Input was generated by ent.
+"""
+input ProfileEntryWhereInput {
+  not: ProfileEntryWhereInput
+  and: [ProfileEntryWhereInput!]
+  or: [ProfileEntryWhereInput!]
+  """
+  id field predicates
+  """
+  id: ID
+  idNEQ: ID
+  idIn: [ID!]
+  idNotIn: [ID!]
+  idGT: ID
+  idGTE: ID
+  idLT: ID
+  idLTE: ID
+  """
+  created_at field predicates
+  """
+  createdAt: Time
+  createdAtNEQ: Time
+  createdAtIn: [Time!]
+  createdAtNotIn: [Time!]
+  createdAtGT: Time
+  createdAtGTE: Time
+  createdAtLT: Time
+  createdAtLTE: Time
+  """
+  linkedin_urn field predicates
+  """
+  linkedinUrn: String
+  linkedinUrnNEQ: String
+  linkedinUrnIn: [String!]
+  linkedinUrnNotIn: [String!]
+  linkedinUrnGT: String
+  linkedinUrnGTE: String
+  linkedinUrnLT: String
+  linkedinUrnLTE: String
+  linkedinUrnContains: String
+  linkedinUrnHasPrefix: String
+  linkedinUrnHasSuffix: String
+  linkedinUrnEqualFold: String
+  linkedinUrnContainsFold: String
+  """
+  gender field predicates
+  """
+  gender: String
+  genderNEQ: String
+  genderIn: [String!]
+  genderNotIn: [String!]
+  genderGT: String
+  genderGTE: String
+  genderLT: String
+  genderLTE: String
+  genderContains: String
+  genderHasPrefix: String
+  genderHasSuffix: String
+  genderIsNil: Boolean
+  genderNotNil: Boolean
+  genderEqualFold: String
+  genderContainsFold: String
+  """
+  status field predicates
+  """
+  status: ProfileEntryStatus
+  statusNEQ: ProfileEntryStatus
+  statusIn: [ProfileEntryStatus!]
+  statusNotIn: [ProfileEntryStatus!]
+  """
+  template_json_s3_key field predicates
+  """
+  templateJSONS3Key: String
+  templateJSONS3KeyNEQ: String
+  templateJSONS3KeyIn: [String!]
+  templateJSONS3KeyNotIn: [String!]
+  templateJSONS3KeyGT: String
+  templateJSONS3KeyGTE: String
+  templateJSONS3KeyLT: String
+  templateJSONS3KeyLTE: String
+  templateJSONS3KeyContains: String
+  templateJSONS3KeyHasPrefix: String
+  templateJSONS3KeyHasSuffix: String
+  templateJSONS3KeyIsNil: Boolean
+  templateJSONS3KeyNotNil: Boolean
+  templateJSONS3KeyEqualFold: String
+  templateJSONS3KeyContainsFold: String
+  """
+  raw_response_s3_key field predicates
+  """
+  rawResponseS3Key: String
+  rawResponseS3KeyNEQ: String
+  rawResponseS3KeyIn: [String!]
+  rawResponseS3KeyNotIn: [String!]
+  rawResponseS3KeyGT: String
+  rawResponseS3KeyGTE: String
+  rawResponseS3KeyLT: String
+  rawResponseS3KeyLTE: String
+  rawResponseS3KeyContains: String
+  rawResponseS3KeyHasPrefix: String
+  rawResponseS3KeyHasSuffix: String
+  rawResponseS3KeyIsNil: Boolean
+  rawResponseS3KeyNotNil: Boolean
+  rawResponseS3KeyEqualFold: String
+  rawResponseS3KeyContainsFold: String
+  """
+  fetch_count field predicates
+  """
+  fetchCount: Int
+  fetchCountNEQ: Int
+  fetchCountIn: [Int!]
+  fetchCountNotIn: [Int!]
+  fetchCountGT: Int
+  fetchCountGTE: Int
+  fetchCountLT: Int
+  fetchCountLTE: Int
+  """
+  last_fetched_at field predicates
+  """
+  lastFetchedAt: Time
+  lastFetchedAtNEQ: Time
+  lastFetchedAtIn: [Time!]
+  lastFetchedAtNotIn: [Time!]
+  lastFetchedAtGT: Time
+  lastFetchedAtGTE: Time
+  lastFetchedAtLT: Time
+  lastFetchedAtLTE: Time
+  lastFetchedAtIsNil: Boolean
+  lastFetchedAtNotNil: Boolean
+  """
+  error_message field predicates
+  """
+  errorMessage: String
+  errorMessageNEQ: String
+  errorMessageIn: [String!]
+  errorMessageNotIn: [String!]
+  errorMessageGT: String
+  errorMessageGTE: String
+  errorMessageLT: String
+  errorMessageLTE: String
+  errorMessageContains: String
+  errorMessageHasPrefix: String
+  errorMessageHasSuffix: String
+  errorMessageIsNil: Boolean
+  errorMessageNotNil: Boolean
+  errorMessageEqualFold: String
+  errorMessageContainsFold: String
+}
+"""
 ProfileWhereInput is used for filtering Profile objects.
 Input was generated by ent.
 """
@@ -1196,10 +1527,67 @@ extend type Mutation {
   updateProfile(input: UpdateProfileInput!): Profile! @auth
 }
 `, BuiltIn: false},
+	{Name: "../schema/profileentry/profileentry.graphql", Input: `type ProfileEntry implements Node {
+  id: ID!
+  linkedinUrn: String!
+  gender: String
+  status: ProfileEntryStatus!
+  lastFetchedAt: Time
+  fetchCount: Int!
+  profileData: Map
+  createdAt: Time!
+  updatedAt: Time!
+}
+enum ProfileEntryStatus {
+  PENDING
+  FETCHING
+  COMPLETED
+  FAILED
+}
+
+type ProfileEntryConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [ProfileEntryEdge]
+}
+
+type ProfileEntryEdge {
+  node: ProfileEntry
+  cursor: Cursor!
+}
+
+input CreateProfileEntryInput {
+  linkedinUrn: String!
+  gender: String!
+}
+
+input UpdateProfileEntryInput {
+  id: ID!
+  linkedinUrn: String
+  gender: String
+}
+
+extend type Query {
+  profileEntry(id: ID!): ProfileEntry
+  profileEntries(
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
+    where: ProfileEntryWhereInput
+  ): ProfileEntryConnection
+}
+
+extend type Mutation {
+  createProfileEntry(input: CreateProfileEntryInput!): ProfileEntry!
+  updateProfileEntry(input: UpdateProfileEntryInput!): ProfileEntry!
+}
+`, BuiltIn: false},
 	{Name: "../schema/schema.graphql", Input: `directive @refreshToken on FIELD_DEFINITION
 directive @auth on FIELD_DEFINITION
 scalar Cursor
 scalar Time
+scalar Map
 
 type PageInfo {
   hasNextPage: Boolean!
@@ -1328,6 +1716,17 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 
 // region    ***************************** args.gotpl *****************************
 
+func (ec *executionContext) field_Mutation_createProfileEntry_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNCreateProfileEntryInput2shengᚑgoᚑbackendᚋentᚐCreateProfileEntryInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createProfile_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
@@ -1365,6 +1764,17 @@ func (ec *executionContext) field_Mutation_login_args(ctx context.Context, rawAr
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNLoginInput2shengᚑgoᚑbackendᚋpkgᚋentityᚋmodelᚐLoginInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateProfileEntry_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNUpdateProfileEntryInput2shengᚑgoᚑbackendᚋentᚐUpdateProfileEntryInput)
 	if err != nil {
 		return nil, err
 	}
@@ -1417,6 +1827,48 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 }
 
 func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2shengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID)
+	if err != nil {
+		return nil, err
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_profileEntries_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "after", ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor)
+	if err != nil {
+		return nil, err
+	}
+	args["after"] = arg0
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "first", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["first"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "before", ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor)
+	if err != nil {
+		return nil, err
+	}
+	args["before"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "last", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["last"] = arg3
+	arg4, err := graphql.ProcessArgField(ctx, rawArgs, "where", ec.unmarshalOProfileEntryWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntryWhereInput)
+	if err != nil {
+		return nil, err
+	}
+	args["where"] = arg4
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_profileEntry_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
 	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2shengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID)
@@ -2078,6 +2530,156 @@ func (ec *executionContext) fieldContext_Mutation_updateProfile(ctx context.Cont
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Mutation_updateProfile_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_createProfileEntry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createProfileEntry(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateProfileEntry(rctx, fc.Args["input"].(ent.CreateProfileEntryInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProfileEntry)
+	fc.Result = res
+	return ec.marshalNProfileEntry2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createProfileEntry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfileEntry_id(ctx, field)
+			case "linkedinUrn":
+				return ec.fieldContext_ProfileEntry_linkedinUrn(ctx, field)
+			case "gender":
+				return ec.fieldContext_ProfileEntry_gender(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfileEntry_status(ctx, field)
+			case "lastFetchedAt":
+				return ec.fieldContext_ProfileEntry_lastFetchedAt(ctx, field)
+			case "fetchCount":
+				return ec.fieldContext_ProfileEntry_fetchCount(ctx, field)
+			case "profileData":
+				return ec.fieldContext_ProfileEntry_profileData(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ProfileEntry_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ProfileEntry_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfileEntry", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createProfileEntry_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_updateProfileEntry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_updateProfileEntry(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateProfileEntry(rctx, fc.Args["input"].(ent.UpdateProfileEntryInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProfileEntry)
+	fc.Result = res
+	return ec.marshalNProfileEntry2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_updateProfileEntry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfileEntry_id(ctx, field)
+			case "linkedinUrn":
+				return ec.fieldContext_ProfileEntry_linkedinUrn(ctx, field)
+			case "gender":
+				return ec.fieldContext_ProfileEntry_gender(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfileEntry_status(ctx, field)
+			case "lastFetchedAt":
+				return ec.fieldContext_ProfileEntry_lastFetchedAt(ctx, field)
+			case "fetchCount":
+				return ec.fieldContext_ProfileEntry_fetchCount(ctx, field)
+			case "profileData":
+				return ec.fieldContext_ProfileEntry_profileData(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ProfileEntry_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ProfileEntry_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfileEntry", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_updateProfileEntry_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -3158,6 +3760,643 @@ func (ec *executionContext) fieldContext_ProfileEdge_cursor(_ context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _ProfileEntry_id(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntry_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(ulid.ID)
+	fc.Result = res
+	return ec.marshalNID2shengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntry_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntry_linkedinUrn(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntry_linkedinUrn(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LinkedinUrn, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntry_linkedinUrn(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntry_gender(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntry_gender(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Gender, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntry_gender(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntry_status(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntry_status(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Status, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(profileentry.Status)
+	fc.Result = res
+	return ec.marshalNProfileEntryStatus2shengᚑgoᚑbackendᚋentᚋprofileentryᚐStatus(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntry_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ProfileEntryStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntry_lastFetchedAt(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntry_lastFetchedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastFetchedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntry_lastFetchedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntry_fetchCount(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntry_fetchCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FetchCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntry_fetchCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntry_profileData(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntry_profileData(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileData, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]any)
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntry_profileData(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntry_createdAt(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntry_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntry_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntry_updatedAt(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntry) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntry_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntry_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntry",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntryConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntryConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntryConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntryConnection_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntryConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntryConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntryConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.PageInfo[ulid.ID])
+	fc.Result = res
+	return ec.marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntryConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntryConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntryConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntryConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.ProfileEntryEdge)
+	fc.Result = res
+	return ec.marshalOProfileEntryEdge2ᚕᚖshengᚑgoᚑbackendᚋentᚐProfileEntryEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntryConnection_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_ProfileEntryEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_ProfileEntryEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfileEntryEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntryEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntryEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntryEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProfileEntry)
+	fc.Result = res
+	return ec.marshalOProfileEntry2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntryEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfileEntry_id(ctx, field)
+			case "linkedinUrn":
+				return ec.fieldContext_ProfileEntry_linkedinUrn(ctx, field)
+			case "gender":
+				return ec.fieldContext_ProfileEntry_gender(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfileEntry_status(ctx, field)
+			case "lastFetchedAt":
+				return ec.fieldContext_ProfileEntry_lastFetchedAt(ctx, field)
+			case "fetchCount":
+				return ec.fieldContext_ProfileEntry_fetchCount(ctx, field)
+			case "profileData":
+				return ec.fieldContext_ProfileEntry_profileData(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ProfileEntry_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ProfileEntry_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfileEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ProfileEntryEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.ProfileEntryEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_ProfileEntryEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.Cursor[ulid.ID])
+	fc.Result = res
+	return ec.marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_ProfileEntryEdge_cursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ProfileEntryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ProfileTitleGroup_title(ctx context.Context, field graphql.CollectedField, obj *model.ProfileTitleGroup) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_ProfileTitleGroup_title(ctx, field)
 	if err != nil {
@@ -3481,6 +4720,138 @@ func (ec *executionContext) fieldContext_Query_profilesByTitle(ctx context.Conte
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_profilesByTitle_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_profileEntry(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_profileEntry(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ProfileEntry(rctx, fc.Args["id"].(ulid.ID))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProfileEntry)
+	fc.Result = res
+	return ec.marshalOProfileEntry2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_profileEntry(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfileEntry_id(ctx, field)
+			case "linkedinUrn":
+				return ec.fieldContext_ProfileEntry_linkedinUrn(ctx, field)
+			case "gender":
+				return ec.fieldContext_ProfileEntry_gender(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfileEntry_status(ctx, field)
+			case "lastFetchedAt":
+				return ec.fieldContext_ProfileEntry_lastFetchedAt(ctx, field)
+			case "fetchCount":
+				return ec.fieldContext_ProfileEntry_fetchCount(ctx, field)
+			case "profileData":
+				return ec.fieldContext_ProfileEntry_profileData(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ProfileEntry_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ProfileEntry_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfileEntry", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_profileEntry_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_profileEntries(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_profileEntries(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().ProfileEntries(rctx, fc.Args["after"].(*entgql.Cursor[ulid.ID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[ulid.ID]), fc.Args["last"].(*int), fc.Args["where"].(*ent.ProfileEntryWhereInput))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProfileEntryConnection)
+	fc.Result = res
+	return ec.marshalOProfileEntryConnection2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntryConnection(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_profileEntries(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "totalCount":
+				return ec.fieldContext_ProfileEntryConnection_totalCount(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_ProfileEntryConnection_pageInfo(ctx, field)
+			case "edges":
+				return ec.fieldContext_ProfileEntryConnection_edges(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfileEntryConnection", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_profileEntries_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return fc, err
 	}
@@ -7078,6 +8449,40 @@ func (ec *executionContext) fieldContext___Type_isOneOf(_ context.Context, field
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputCreateProfileEntryInput(ctx context.Context, obj any) (ent.CreateProfileEntryInput, error) {
+	var it ent.CreateProfileEntryInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"linkedinUrn", "gender"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "linkedinUrn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrn"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrn = data
+		case "gender":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			data, err := ec.unmarshalNString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Gender = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputCreateProfileInput(ctx context.Context, obj any) (ent.CreateProfileInput, error) {
 	var it ent.CreateProfileInput
 	asMap := map[string]any{}
@@ -7254,6 +8659,824 @@ func (ec *executionContext) unmarshalInputLoginInput(ctx context.Context, obj an
 				return it, err
 			}
 			it.Password = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputProfileEntryWhereInput(ctx context.Context, obj any) (ent.ProfileEntryWhereInput, error) {
+	var it ent.ProfileEntryWhereInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "linkedinUrn", "linkedinUrnNEQ", "linkedinUrnIn", "linkedinUrnNotIn", "linkedinUrnGT", "linkedinUrnGTE", "linkedinUrnLT", "linkedinUrnLTE", "linkedinUrnContains", "linkedinUrnHasPrefix", "linkedinUrnHasSuffix", "linkedinUrnEqualFold", "linkedinUrnContainsFold", "gender", "genderNEQ", "genderIn", "genderNotIn", "genderGT", "genderGTE", "genderLT", "genderLTE", "genderContains", "genderHasPrefix", "genderHasSuffix", "genderIsNil", "genderNotNil", "genderEqualFold", "genderContainsFold", "status", "statusNEQ", "statusIn", "statusNotIn", "templateJSONS3Key", "templateJSONS3KeyNEQ", "templateJSONS3KeyIn", "templateJSONS3KeyNotIn", "templateJSONS3KeyGT", "templateJSONS3KeyGTE", "templateJSONS3KeyLT", "templateJSONS3KeyLTE", "templateJSONS3KeyContains", "templateJSONS3KeyHasPrefix", "templateJSONS3KeyHasSuffix", "templateJSONS3KeyIsNil", "templateJSONS3KeyNotNil", "templateJSONS3KeyEqualFold", "templateJSONS3KeyContainsFold", "rawResponseS3Key", "rawResponseS3KeyNEQ", "rawResponseS3KeyIn", "rawResponseS3KeyNotIn", "rawResponseS3KeyGT", "rawResponseS3KeyGTE", "rawResponseS3KeyLT", "rawResponseS3KeyLTE", "rawResponseS3KeyContains", "rawResponseS3KeyHasPrefix", "rawResponseS3KeyHasSuffix", "rawResponseS3KeyIsNil", "rawResponseS3KeyNotNil", "rawResponseS3KeyEqualFold", "rawResponseS3KeyContainsFold", "fetchCount", "fetchCountNEQ", "fetchCountIn", "fetchCountNotIn", "fetchCountGT", "fetchCountGTE", "fetchCountLT", "fetchCountLTE", "lastFetchedAt", "lastFetchedAtNEQ", "lastFetchedAtIn", "lastFetchedAtNotIn", "lastFetchedAtGT", "lastFetchedAtGTE", "lastFetchedAtLT", "lastFetchedAtLTE", "lastFetchedAtIsNil", "lastFetchedAtNotNil", "errorMessage", "errorMessageNEQ", "errorMessageIn", "errorMessageNotIn", "errorMessageGT", "errorMessageGTE", "errorMessageLT", "errorMessageLTE", "errorMessageContains", "errorMessageHasPrefix", "errorMessageHasSuffix", "errorMessageIsNil", "errorMessageNotNil", "errorMessageEqualFold", "errorMessageContainsFold"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "not":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("not"))
+			data, err := ec.unmarshalOProfileEntryWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntryWhereInput(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Not = data
+		case "and":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("and"))
+			data, err := ec.unmarshalOProfileEntryWhereInput2ᚕᚖshengᚑgoᚑbackendᚋentᚐProfileEntryWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.And = data
+		case "or":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("or"))
+			data, err := ec.unmarshalOProfileEntryWhereInput2ᚕᚖshengᚑgoᚑbackendᚋentᚐProfileEntryWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Or = data
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalOID2ᚖshengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "idNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNEQ"))
+			data, err := ec.unmarshalOID2ᚖshengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDNEQ = data
+		case "idIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idIn"))
+			data, err := ec.unmarshalOID2ᚕshengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐIDᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDIn = data
+		case "idNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idNotIn"))
+			data, err := ec.unmarshalOID2ᚕshengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐIDᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDNotIn = data
+		case "idGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGT"))
+			data, err := ec.unmarshalOID2ᚖshengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDGT = data
+		case "idGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idGTE"))
+			data, err := ec.unmarshalOID2ᚖshengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDGTE = data
+		case "idLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLT"))
+			data, err := ec.unmarshalOID2ᚖshengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDLT = data
+		case "idLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("idLTE"))
+			data, err := ec.unmarshalOID2ᚖshengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.IDLTE = data
+		case "createdAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAt"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedAt = data
+		case "createdAtNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNEQ"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedAtNEQ = data
+		case "createdAtIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtIn"))
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedAtIn = data
+		case "createdAtNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtNotIn"))
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedAtNotIn = data
+		case "createdAtGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGT"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedAtGT = data
+		case "createdAtGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtGTE"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedAtGTE = data
+		case "createdAtLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLT"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedAtLT = data
+		case "createdAtLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("createdAtLTE"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CreatedAtLTE = data
+		case "linkedinUrn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrn"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrn = data
+		case "linkedinUrnNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnNEQ = data
+		case "linkedinUrnIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnIn = data
+		case "linkedinUrnNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnNotIn = data
+		case "linkedinUrnGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnGT = data
+		case "linkedinUrnGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnGTE = data
+		case "linkedinUrnLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnLT = data
+		case "linkedinUrnLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnLTE = data
+		case "linkedinUrnContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnContains = data
+		case "linkedinUrnHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnHasPrefix = data
+		case "linkedinUrnHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnHasSuffix = data
+		case "linkedinUrnEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnEqualFold = data
+		case "linkedinUrnContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrnContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrnContainsFold = data
+		case "gender":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Gender = data
+		case "genderNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderNEQ = data
+		case "genderIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderIn = data
+		case "genderNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderNotIn = data
+		case "genderGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderGT = data
+		case "genderGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderGTE = data
+		case "genderLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderLT = data
+		case "genderLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderLTE = data
+		case "genderContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderContains = data
+		case "genderHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderHasPrefix = data
+		case "genderHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderHasSuffix = data
+		case "genderIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderIsNil = data
+		case "genderNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderNotNil = data
+		case "genderEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderEqualFold = data
+		case "genderContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("genderContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.GenderContainsFold = data
+		case "status":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("status"))
+			data, err := ec.unmarshalOProfileEntryStatus2ᚖshengᚑgoᚑbackendᚋentᚋprofileentryᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Status = data
+		case "statusNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNEQ"))
+			data, err := ec.unmarshalOProfileEntryStatus2ᚖshengᚑgoᚑbackendᚋentᚋprofileentryᚐStatus(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StatusNEQ = data
+		case "statusIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusIn"))
+			data, err := ec.unmarshalOProfileEntryStatus2ᚕshengᚑgoᚑbackendᚋentᚋprofileentryᚐStatusᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StatusIn = data
+		case "statusNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("statusNotIn"))
+			data, err := ec.unmarshalOProfileEntryStatus2ᚕshengᚑgoᚑbackendᚋentᚋprofileentryᚐStatusᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StatusNotIn = data
+		case "templateJSONS3Key":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3Key"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3Key = data
+		case "templateJSONS3KeyNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyNEQ = data
+		case "templateJSONS3KeyIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyIn = data
+		case "templateJSONS3KeyNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyNotIn = data
+		case "templateJSONS3KeyGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyGT = data
+		case "templateJSONS3KeyGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyGTE = data
+		case "templateJSONS3KeyLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyLT = data
+		case "templateJSONS3KeyLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyLTE = data
+		case "templateJSONS3KeyContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyContains = data
+		case "templateJSONS3KeyHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyHasPrefix = data
+		case "templateJSONS3KeyHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyHasSuffix = data
+		case "templateJSONS3KeyIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyIsNil = data
+		case "templateJSONS3KeyNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyNotNil = data
+		case "templateJSONS3KeyEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyEqualFold = data
+		case "templateJSONS3KeyContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateJSONS3KeyContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.TemplateJSONS3KeyContainsFold = data
+		case "rawResponseS3Key":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3Key"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3Key = data
+		case "rawResponseS3KeyNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyNEQ = data
+		case "rawResponseS3KeyIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyIn = data
+		case "rawResponseS3KeyNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyNotIn = data
+		case "rawResponseS3KeyGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyGT = data
+		case "rawResponseS3KeyGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyGTE = data
+		case "rawResponseS3KeyLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyLT = data
+		case "rawResponseS3KeyLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyLTE = data
+		case "rawResponseS3KeyContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyContains = data
+		case "rawResponseS3KeyHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyHasPrefix = data
+		case "rawResponseS3KeyHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyHasSuffix = data
+		case "rawResponseS3KeyIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyIsNil = data
+		case "rawResponseS3KeyNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyNotNil = data
+		case "rawResponseS3KeyEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyEqualFold = data
+		case "rawResponseS3KeyContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("rawResponseS3KeyContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.RawResponseS3KeyContainsFold = data
+		case "fetchCount":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetchCount"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FetchCount = data
+		case "fetchCountNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetchCountNEQ"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FetchCountNEQ = data
+		case "fetchCountIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetchCountIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FetchCountIn = data
+		case "fetchCountNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetchCountNotIn"))
+			data, err := ec.unmarshalOInt2ᚕintᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FetchCountNotIn = data
+		case "fetchCountGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetchCountGT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FetchCountGT = data
+		case "fetchCountGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetchCountGTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FetchCountGTE = data
+		case "fetchCountLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetchCountLT"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FetchCountLT = data
+		case "fetchCountLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fetchCountLTE"))
+			data, err := ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.FetchCountLTE = data
+		case "lastFetchedAt":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAt"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAt = data
+		case "lastFetchedAtNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAtNEQ"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAtNEQ = data
+		case "lastFetchedAtIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAtIn"))
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAtIn = data
+		case "lastFetchedAtNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAtNotIn"))
+			data, err := ec.unmarshalOTime2ᚕtimeᚐTimeᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAtNotIn = data
+		case "lastFetchedAtGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAtGT"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAtGT = data
+		case "lastFetchedAtGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAtGTE"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAtGTE = data
+		case "lastFetchedAtLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAtLT"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAtLT = data
+		case "lastFetchedAtLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAtLTE"))
+			data, err := ec.unmarshalOTime2ᚖtimeᚐTime(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAtLTE = data
+		case "lastFetchedAtIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAtIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAtIsNil = data
+		case "lastFetchedAtNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("lastFetchedAtNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LastFetchedAtNotNil = data
+		case "errorMessage":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessage"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessage = data
+		case "errorMessageNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageNEQ = data
+		case "errorMessageIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageIn = data
+		case "errorMessageNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageNotIn = data
+		case "errorMessageGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageGT = data
+		case "errorMessageGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageGTE = data
+		case "errorMessageLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageLT = data
+		case "errorMessageLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageLTE = data
+		case "errorMessageContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageContains = data
+		case "errorMessageHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageHasPrefix = data
+		case "errorMessageHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageHasSuffix = data
+		case "errorMessageIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageIsNil = data
+		case "errorMessageNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageNotNil = data
+		case "errorMessageEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageEqualFold = data
+		case "errorMessageContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("errorMessageContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ErrorMessageContainsFold = data
 		}
 	}
 
@@ -8238,6 +10461,47 @@ func (ec *executionContext) unmarshalInputTodoWhereInput(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputUpdateProfileEntryInput(ctx context.Context, obj any) (ent.UpdateProfileEntryInput, error) {
+	var it ent.UpdateProfileEntryInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"id", "linkedinUrn", "gender"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "id":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+			data, err := ec.unmarshalNID2shengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ID = data
+		case "linkedinUrn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("linkedinUrn"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.LinkedinUrn = data
+		case "gender":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("gender"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Gender = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputUpdateProfileInput(ctx context.Context, obj any) (ent.UpdateProfileInput, error) {
 	var it ent.UpdateProfileInput
 	asMap := map[string]any{}
@@ -8812,6 +11076,11 @@ func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj
 			return graphql.Null
 		}
 		return ec._Todo(ctx, sel, obj)
+	case *ent.ProfileEntry:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._ProfileEntry(ctx, sel, obj)
 	case *ent.Profile:
 		if obj == nil {
 			return graphql.Null
@@ -8912,6 +11181,20 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "updateProfile":
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_updateProfile(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createProfileEntry":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createProfileEntry(ctx, field)
+			})
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updateProfileEntry":
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateProfileEntry(ctx, field)
 			})
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
@@ -9233,6 +11516,163 @@ func (ec *executionContext) _ProfileEdge(ctx context.Context, sel ast.SelectionS
 	return out
 }
 
+var profileEntryImplementors = []string{"ProfileEntry", "Node"}
+
+func (ec *executionContext) _ProfileEntry(ctx context.Context, sel ast.SelectionSet, obj *ent.ProfileEntry) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, profileEntryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProfileEntry")
+		case "id":
+			out.Values[i] = ec._ProfileEntry_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "linkedinUrn":
+			out.Values[i] = ec._ProfileEntry_linkedinUrn(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "gender":
+			out.Values[i] = ec._ProfileEntry_gender(ctx, field, obj)
+		case "status":
+			out.Values[i] = ec._ProfileEntry_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "lastFetchedAt":
+			out.Values[i] = ec._ProfileEntry_lastFetchedAt(ctx, field, obj)
+		case "fetchCount":
+			out.Values[i] = ec._ProfileEntry_fetchCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "profileData":
+			out.Values[i] = ec._ProfileEntry_profileData(ctx, field, obj)
+		case "createdAt":
+			out.Values[i] = ec._ProfileEntry_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._ProfileEntry_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var profileEntryConnectionImplementors = []string{"ProfileEntryConnection"}
+
+func (ec *executionContext) _ProfileEntryConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.ProfileEntryConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, profileEntryConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProfileEntryConnection")
+		case "totalCount":
+			out.Values[i] = ec._ProfileEntryConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._ProfileEntryConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "edges":
+			out.Values[i] = ec._ProfileEntryConnection_edges(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var profileEntryEdgeImplementors = []string{"ProfileEntryEdge"}
+
+func (ec *executionContext) _ProfileEntryEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.ProfileEntryEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, profileEntryEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ProfileEntryEdge")
+		case "node":
+			out.Values[i] = ec._ProfileEntryEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._ProfileEntryEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var profileTitleGroupImplementors = []string{"ProfileTitleGroup"}
 
 func (ec *executionContext) _ProfileTitleGroup(ctx context.Context, sel ast.SelectionSet, obj *model.ProfileTitleGroup) graphql.Marshaler {
@@ -9366,6 +11806,44 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "profileEntry":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_profileEntry(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "profileEntries":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_profileEntries(ctx, field)
 				return res
 			}
 
@@ -10341,6 +12819,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNCreateProfileEntryInput2shengᚑgoᚑbackendᚋentᚐCreateProfileEntryInput(ctx context.Context, v any) (ent.CreateProfileEntryInput, error) {
+	res, err := ec.unmarshalInputCreateProfileEntryInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalNCreateProfileInput2shengᚑgoᚑbackendᚋentᚐCreateProfileInput(ctx context.Context, v any) (ent.CreateProfileInput, error) {
 	res, err := ec.unmarshalInputCreateProfileInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -10451,6 +12934,35 @@ func (ec *executionContext) marshalNProfile2ᚖshengᚑgoᚑbackendᚋentᚐProf
 		return graphql.Null
 	}
 	return ec._Profile(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNProfileEntry2shengᚑgoᚑbackendᚋentᚐProfileEntry(ctx context.Context, sel ast.SelectionSet, v ent.ProfileEntry) graphql.Marshaler {
+	return ec._ProfileEntry(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProfileEntry2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntry(ctx context.Context, sel ast.SelectionSet, v *ent.ProfileEntry) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._ProfileEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNProfileEntryStatus2shengᚑgoᚑbackendᚋentᚋprofileentryᚐStatus(ctx context.Context, v any) (profileentry.Status, error) {
+	var res profileentry.Status
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNProfileEntryStatus2shengᚑgoᚑbackendᚋentᚋprofileentryᚐStatus(ctx context.Context, sel ast.SelectionSet, v profileentry.Status) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) unmarshalNProfileEntryWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntryWhereInput(ctx context.Context, v any) (*ent.ProfileEntryWhereInput, error) {
+	res, err := ec.unmarshalInputProfileEntryWhereInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNProfileTitleGroup2ᚕᚖshengᚑgoᚑbackendᚋpkgᚋentityᚋmodelᚐProfileTitleGroupᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.ProfileTitleGroup) graphql.Marshaler {
@@ -10637,6 +13149,11 @@ func (ec *executionContext) marshalNTodoStatus2shengᚑgoᚑbackendᚋentᚋtodo
 func (ec *executionContext) unmarshalNTodoWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐTodoWhereInput(ctx context.Context, v any) (*ent.TodoWhereInput, error) {
 	res, err := ec.unmarshalInputTodoWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNUpdateProfileEntryInput2shengᚑgoᚑbackendᚋentᚐUpdateProfileEntryInput(ctx context.Context, v any) (ent.UpdateProfileEntryInput, error) {
+	res, err := ec.unmarshalInputUpdateProfileEntryInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNUpdateProfileInput2shengᚑgoᚑbackendᚋentᚐUpdateProfileInput(ctx context.Context, v any) (ent.UpdateProfileInput, error) {
@@ -11095,6 +13612,24 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
+func (ec *executionContext) unmarshalOMap2map(ctx context.Context, v any) (map[string]any, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalMap(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOMap2map(ctx context.Context, sel ast.SelectionSet, v map[string]any) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalMap(v)
+	return res
+}
+
 func (ec *executionContext) marshalONode2shengᚑgoᚑbackendᚋentᚐNoder(ctx context.Context, sel ast.SelectionSet, v ent.Noder) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -11162,6 +13697,175 @@ func (ec *executionContext) marshalOProfileEdge2ᚖshengᚑgoᚑbackendᚋentᚐ
 		return graphql.Null
 	}
 	return ec._ProfileEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProfileEntry2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntry(ctx context.Context, sel ast.SelectionSet, v *ent.ProfileEntry) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProfileEntry(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProfileEntryConnection2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntryConnection(ctx context.Context, sel ast.SelectionSet, v *ent.ProfileEntryConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProfileEntryConnection(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOProfileEntryEdge2ᚕᚖshengᚑgoᚑbackendᚋentᚐProfileEntryEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.ProfileEntryEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOProfileEntryEdge2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntryEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOProfileEntryEdge2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntryEdge(ctx context.Context, sel ast.SelectionSet, v *ent.ProfileEntryEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ProfileEntryEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOProfileEntryStatus2ᚕshengᚑgoᚑbackendᚋentᚋprofileentryᚐStatusᚄ(ctx context.Context, v any) ([]profileentry.Status, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]profileentry.Status, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNProfileEntryStatus2shengᚑgoᚑbackendᚋentᚋprofileentryᚐStatus(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalOProfileEntryStatus2ᚕshengᚑgoᚑbackendᚋentᚋprofileentryᚐStatusᚄ(ctx context.Context, sel ast.SelectionSet, v []profileentry.Status) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProfileEntryStatus2shengᚑgoᚑbackendᚋentᚋprofileentryᚐStatus(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalOProfileEntryStatus2ᚖshengᚑgoᚑbackendᚋentᚋprofileentryᚐStatus(ctx context.Context, v any) (*profileentry.Status, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(profileentry.Status)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOProfileEntryStatus2ᚖshengᚑgoᚑbackendᚋentᚋprofileentryᚐStatus(ctx context.Context, sel ast.SelectionSet, v *profileentry.Status) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
+}
+
+func (ec *executionContext) unmarshalOProfileEntryWhereInput2ᚕᚖshengᚑgoᚑbackendᚋentᚐProfileEntryWhereInputᚄ(ctx context.Context, v any) ([]*ent.ProfileEntryWhereInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var vSlice []any
+	vSlice = graphql.CoerceList(v)
+	var err error
+	res := make([]*ent.ProfileEntryWhereInput, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNProfileEntryWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntryWhereInput(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalOProfileEntryWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntryWhereInput(ctx context.Context, v any) (*ent.ProfileEntryWhereInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputProfileEntryWhereInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOProfileWhereInput2ᚕᚖshengᚑgoᚑbackendᚋentᚐProfileWhereInputᚄ(ctx context.Context, v any) ([]*ent.ProfileWhereInput, error) {

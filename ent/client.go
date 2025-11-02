@@ -13,6 +13,7 @@ import (
 	"sheng-go-backend/ent/schema/ulid"
 
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
 
@@ -29,6 +30,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// Profile is the client for interacting with the Profile builders.
 	Profile *ProfileClient
+	// ProfileEntry is the client for interacting with the ProfileEntry builders.
+	ProfileEntry *ProfileEntryClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
@@ -45,6 +48,7 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.Profile = NewProfileClient(c.config)
+	c.ProfileEntry = NewProfileEntryClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -137,11 +141,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Profile: NewProfileClient(cfg),
-		Todo:    NewTodoClient(cfg),
-		User:    NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Profile:      NewProfileClient(cfg),
+		ProfileEntry: NewProfileEntryClient(cfg),
+		Todo:         NewTodoClient(cfg),
+		User:         NewUserClient(cfg),
 	}, nil
 }
 
@@ -159,11 +164,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Profile: NewProfileClient(cfg),
-		Todo:    NewTodoClient(cfg),
-		User:    NewUserClient(cfg),
+		ctx:          ctx,
+		config:       cfg,
+		Profile:      NewProfileClient(cfg),
+		ProfileEntry: NewProfileEntryClient(cfg),
+		Todo:         NewTodoClient(cfg),
+		User:         NewUserClient(cfg),
 	}, nil
 }
 
@@ -193,6 +199,7 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	c.Profile.Use(hooks...)
+	c.ProfileEntry.Use(hooks...)
 	c.Todo.Use(hooks...)
 	c.User.Use(hooks...)
 }
@@ -201,6 +208,7 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.Profile.Intercept(interceptors...)
+	c.ProfileEntry.Intercept(interceptors...)
 	c.Todo.Intercept(interceptors...)
 	c.User.Intercept(interceptors...)
 }
@@ -210,6 +218,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *ProfileMutation:
 		return c.Profile.mutate(ctx, m)
+	case *ProfileEntryMutation:
+		return c.ProfileEntry.mutate(ctx, m)
 	case *TodoMutation:
 		return c.Todo.mutate(ctx, m)
 	case *UserMutation:
@@ -365,6 +375,139 @@ func (c *ProfileClient) mutate(ctx context.Context, m *ProfileMutation) (Value, 
 		return (&ProfileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown Profile mutation op: %q", m.Op())
+	}
+}
+
+// ProfileEntryClient is a client for the ProfileEntry schema.
+type ProfileEntryClient struct {
+	config
+}
+
+// NewProfileEntryClient returns a client for the ProfileEntry from the given config.
+func NewProfileEntryClient(c config) *ProfileEntryClient {
+	return &ProfileEntryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `profileentry.Hooks(f(g(h())))`.
+func (c *ProfileEntryClient) Use(hooks ...Hook) {
+	c.hooks.ProfileEntry = append(c.hooks.ProfileEntry, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `profileentry.Intercept(f(g(h())))`.
+func (c *ProfileEntryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProfileEntry = append(c.inters.ProfileEntry, interceptors...)
+}
+
+// Create returns a builder for creating a ProfileEntry entity.
+func (c *ProfileEntryClient) Create() *ProfileEntryCreate {
+	mutation := newProfileEntryMutation(c.config, OpCreate)
+	return &ProfileEntryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProfileEntry entities.
+func (c *ProfileEntryClient) CreateBulk(builders ...*ProfileEntryCreate) *ProfileEntryCreateBulk {
+	return &ProfileEntryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProfileEntryClient) MapCreateBulk(slice any, setFunc func(*ProfileEntryCreate, int)) *ProfileEntryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProfileEntryCreateBulk{err: fmt.Errorf("calling to ProfileEntryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProfileEntryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProfileEntryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProfileEntry.
+func (c *ProfileEntryClient) Update() *ProfileEntryUpdate {
+	mutation := newProfileEntryMutation(c.config, OpUpdate)
+	return &ProfileEntryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProfileEntryClient) UpdateOne(pe *ProfileEntry) *ProfileEntryUpdateOne {
+	mutation := newProfileEntryMutation(c.config, OpUpdateOne, withProfileEntry(pe))
+	return &ProfileEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProfileEntryClient) UpdateOneID(id ulid.ID) *ProfileEntryUpdateOne {
+	mutation := newProfileEntryMutation(c.config, OpUpdateOne, withProfileEntryID(id))
+	return &ProfileEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProfileEntry.
+func (c *ProfileEntryClient) Delete() *ProfileEntryDelete {
+	mutation := newProfileEntryMutation(c.config, OpDelete)
+	return &ProfileEntryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProfileEntryClient) DeleteOne(pe *ProfileEntry) *ProfileEntryDeleteOne {
+	return c.DeleteOneID(pe.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProfileEntryClient) DeleteOneID(id ulid.ID) *ProfileEntryDeleteOne {
+	builder := c.Delete().Where(profileentry.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProfileEntryDeleteOne{builder}
+}
+
+// Query returns a query builder for ProfileEntry.
+func (c *ProfileEntryClient) Query() *ProfileEntryQuery {
+	return &ProfileEntryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProfileEntry},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProfileEntry entity by its id.
+func (c *ProfileEntryClient) Get(ctx context.Context, id ulid.ID) (*ProfileEntry, error) {
+	return c.Query().Where(profileentry.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProfileEntryClient) GetX(ctx context.Context, id ulid.ID) *ProfileEntry {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *ProfileEntryClient) Hooks() []Hook {
+	return c.hooks.ProfileEntry
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProfileEntryClient) Interceptors() []Interceptor {
+	return c.inters.ProfileEntry
+}
+
+func (c *ProfileEntryClient) mutate(ctx context.Context, m *ProfileEntryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProfileEntryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProfileEntryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProfileEntryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProfileEntryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProfileEntry mutation op: %q", m.Op())
 	}
 }
 
@@ -669,9 +812,9 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Profile, Todo, User []ent.Hook
+		Profile, ProfileEntry, Todo, User []ent.Hook
 	}
 	inters struct {
-		Profile, Todo, User []ent.Interceptor
+		Profile, ProfileEntry, Todo, User []ent.Interceptor
 	}
 )
