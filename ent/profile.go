@@ -3,8 +3,10 @@
 package ent
 
 import (
+	"encoding/json"
 	"fmt"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"strings"
 	"time"
@@ -18,44 +20,69 @@ type Profile struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID ulid.ID `json:"id,omitempty"`
-	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
-	// Title holds the value of the "title" field.
-	Title string `json:"title,omitempty"`
-	// Urn holds the value of the "urn" field.
+	// LinkedIn profile URN identifier
 	Urn string `json:"urn,omitempty"`
-	// SourceFile holds the value of the "source_file" field.
-	SourceFile string `json:"source_file,omitempty"`
+	// LinkedIn username from URL
+	Username *string `json:"username,omitempty"`
+	// First name
+	FirstName *string `json:"first_name,omitempty"`
+	// Last name
+	LastName *string `json:"last_name,omitempty"`
+	// Full name (legacy field)
+	Name *string `json:"name,omitempty"`
+	// LinkedIn headline/bio
+	Headline *string `json:"headline,omitempty"`
+	// Current job title (legacy field)
+	Title *string `json:"title,omitempty"`
+	// Country name
+	Country *string `json:"country,omitempty"`
+	// City name
+	City *string `json:"city,omitempty"`
+	// Array of education records: [{schoolName, degree?, fieldOfStudy?}]
+	Educations []map[string]interface{} `json:"educations,omitempty"`
+	// Array of position records: [{companyName, title, description?, isCurrent?}]
+	Positions []map[string]interface{} `json:"positions,omitempty"`
+	// Array of skills: [{name, endorsementCount?}]
+	Skills []map[string]interface{} `json:"skills,omitempty"`
+	// Geographic data: {country_name, city_name}
+	GeoData map[string]interface{} `json:"geo_data,omitempty"`
+	// S3 path to full RapidAPI response JSON
+	RawDataS3Key *string `json:"raw_data_s3_key,omitempty"`
+	// S3 path to cleaned/extracted profile JSON
+	CleanedDataS3Key *string `json:"cleaned_data_s3_key,omitempty"`
+	// Legacy source file field
+	SourceFile *string `json:"source_file,omitempty"`
 	// CreatedAt holds the value of the "created_at" field.
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	// UpdatedAt holds the value of the "updated_at" field.
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the ProfileQuery when eager-loading is set.
-	Edges        ProfileEdges `json:"edges"`
-	selectValues sql.SelectValues
+	Edges                 ProfileEdges `json:"edges"`
+	profile_entry_profile *ulid.ID
+	selectValues          sql.SelectValues
 }
 
 // ProfileEdges holds the relations/edges for other nodes in the graph.
 type ProfileEdges struct {
-	// Todos holds the value of the todos edge.
-	Todos []*Todo `json:"todos,omitempty"`
+	// Associated ProfileEntry that triggered this profile fetch
+	ProfileEntry *ProfileEntry `json:"profile_entry,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 	// totalCount holds the count of the edges above.
 	totalCount [1]map[string]int
-
-	namedTodos map[string][]*Todo
 }
 
-// TodosOrErr returns the Todos value or an error if the edge
-// was not loaded in eager-loading.
-func (e ProfileEdges) TodosOrErr() ([]*Todo, error) {
-	if e.loadedTypes[0] {
-		return e.Todos, nil
+// ProfileEntryOrErr returns the ProfileEntry value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProfileEdges) ProfileEntryOrErr() (*ProfileEntry, error) {
+	if e.ProfileEntry != nil {
+		return e.ProfileEntry, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: profileentry.Label}
 	}
-	return nil, &NotLoadedError{edge: "todos"}
+	return nil, &NotLoadedError{edge: "profile_entry"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -63,12 +90,16 @@ func (*Profile) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case profile.FieldName, profile.FieldTitle, profile.FieldUrn, profile.FieldSourceFile:
+		case profile.FieldEducations, profile.FieldPositions, profile.FieldSkills, profile.FieldGeoData:
+			values[i] = new([]byte)
+		case profile.FieldUrn, profile.FieldUsername, profile.FieldFirstName, profile.FieldLastName, profile.FieldName, profile.FieldHeadline, profile.FieldTitle, profile.FieldCountry, profile.FieldCity, profile.FieldRawDataS3Key, profile.FieldCleanedDataS3Key, profile.FieldSourceFile:
 			values[i] = new(sql.NullString)
 		case profile.FieldCreatedAt, profile.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
 		case profile.FieldID:
 			values[i] = new(ulid.ID)
+		case profile.ForeignKeys[0]: // profile_entry_profile
+			values[i] = &sql.NullScanner{S: new(ulid.ID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -90,29 +121,120 @@ func (pr *Profile) assignValues(columns []string, values []any) error {
 			} else if value != nil {
 				pr.ID = *value
 			}
-		case profile.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				pr.Name = value.String
-			}
-		case profile.FieldTitle:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field title", values[i])
-			} else if value.Valid {
-				pr.Title = value.String
-			}
 		case profile.FieldUrn:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field urn", values[i])
 			} else if value.Valid {
 				pr.Urn = value.String
 			}
+		case profile.FieldUsername:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field username", values[i])
+			} else if value.Valid {
+				pr.Username = new(string)
+				*pr.Username = value.String
+			}
+		case profile.FieldFirstName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field first_name", values[i])
+			} else if value.Valid {
+				pr.FirstName = new(string)
+				*pr.FirstName = value.String
+			}
+		case profile.FieldLastName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field last_name", values[i])
+			} else if value.Valid {
+				pr.LastName = new(string)
+				*pr.LastName = value.String
+			}
+		case profile.FieldName:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field name", values[i])
+			} else if value.Valid {
+				pr.Name = new(string)
+				*pr.Name = value.String
+			}
+		case profile.FieldHeadline:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field headline", values[i])
+			} else if value.Valid {
+				pr.Headline = new(string)
+				*pr.Headline = value.String
+			}
+		case profile.FieldTitle:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field title", values[i])
+			} else if value.Valid {
+				pr.Title = new(string)
+				*pr.Title = value.String
+			}
+		case profile.FieldCountry:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field country", values[i])
+			} else if value.Valid {
+				pr.Country = new(string)
+				*pr.Country = value.String
+			}
+		case profile.FieldCity:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field city", values[i])
+			} else if value.Valid {
+				pr.City = new(string)
+				*pr.City = value.String
+			}
+		case profile.FieldEducations:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field educations", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.Educations); err != nil {
+					return fmt.Errorf("unmarshal field educations: %w", err)
+				}
+			}
+		case profile.FieldPositions:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field positions", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.Positions); err != nil {
+					return fmt.Errorf("unmarshal field positions: %w", err)
+				}
+			}
+		case profile.FieldSkills:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field skills", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.Skills); err != nil {
+					return fmt.Errorf("unmarshal field skills: %w", err)
+				}
+			}
+		case profile.FieldGeoData:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field geo_data", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &pr.GeoData); err != nil {
+					return fmt.Errorf("unmarshal field geo_data: %w", err)
+				}
+			}
+		case profile.FieldRawDataS3Key:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field raw_data_s3_key", values[i])
+			} else if value.Valid {
+				pr.RawDataS3Key = new(string)
+				*pr.RawDataS3Key = value.String
+			}
+		case profile.FieldCleanedDataS3Key:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field cleaned_data_s3_key", values[i])
+			} else if value.Valid {
+				pr.CleanedDataS3Key = new(string)
+				*pr.CleanedDataS3Key = value.String
+			}
 		case profile.FieldSourceFile:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field source_file", values[i])
 			} else if value.Valid {
-				pr.SourceFile = value.String
+				pr.SourceFile = new(string)
+				*pr.SourceFile = value.String
 			}
 		case profile.FieldCreatedAt:
 			if value, ok := values[i].(*sql.NullTime); !ok {
@@ -125,6 +247,13 @@ func (pr *Profile) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				pr.UpdatedAt = value.Time
+			}
+		case profile.ForeignKeys[0]:
+			if value, ok := values[i].(*sql.NullScanner); !ok {
+				return fmt.Errorf("unexpected type %T for field profile_entry_profile", values[i])
+			} else if value.Valid {
+				pr.profile_entry_profile = new(ulid.ID)
+				*pr.profile_entry_profile = *value.S.(*ulid.ID)
 			}
 		default:
 			pr.selectValues.Set(columns[i], values[i])
@@ -139,9 +268,9 @@ func (pr *Profile) Value(name string) (ent.Value, error) {
 	return pr.selectValues.Get(name)
 }
 
-// QueryTodos queries the "todos" edge of the Profile entity.
-func (pr *Profile) QueryTodos() *TodoQuery {
-	return NewProfileClient(pr.config).QueryTodos(pr)
+// QueryProfileEntry queries the "profile_entry" edge of the Profile entity.
+func (pr *Profile) QueryProfileEntry() *ProfileEntryQuery {
+	return NewProfileClient(pr.config).QueryProfileEntry(pr)
 }
 
 // Update returns a builder for updating this Profile.
@@ -167,17 +296,75 @@ func (pr *Profile) String() string {
 	var builder strings.Builder
 	builder.WriteString("Profile(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", pr.ID))
-	builder.WriteString("name=")
-	builder.WriteString(pr.Name)
-	builder.WriteString(", ")
-	builder.WriteString("title=")
-	builder.WriteString(pr.Title)
-	builder.WriteString(", ")
 	builder.WriteString("urn=")
 	builder.WriteString(pr.Urn)
 	builder.WriteString(", ")
-	builder.WriteString("source_file=")
-	builder.WriteString(pr.SourceFile)
+	if v := pr.Username; v != nil {
+		builder.WriteString("username=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.FirstName; v != nil {
+		builder.WriteString("first_name=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.LastName; v != nil {
+		builder.WriteString("last_name=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.Name; v != nil {
+		builder.WriteString("name=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.Headline; v != nil {
+		builder.WriteString("headline=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.Title; v != nil {
+		builder.WriteString("title=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.Country; v != nil {
+		builder.WriteString("country=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.City; v != nil {
+		builder.WriteString("city=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	builder.WriteString("educations=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Educations))
+	builder.WriteString(", ")
+	builder.WriteString("positions=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Positions))
+	builder.WriteString(", ")
+	builder.WriteString("skills=")
+	builder.WriteString(fmt.Sprintf("%v", pr.Skills))
+	builder.WriteString(", ")
+	builder.WriteString("geo_data=")
+	builder.WriteString(fmt.Sprintf("%v", pr.GeoData))
+	builder.WriteString(", ")
+	if v := pr.RawDataS3Key; v != nil {
+		builder.WriteString("raw_data_s3_key=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.CleanedDataS3Key; v != nil {
+		builder.WriteString("cleaned_data_s3_key=")
+		builder.WriteString(*v)
+	}
+	builder.WriteString(", ")
+	if v := pr.SourceFile; v != nil {
+		builder.WriteString("source_file=")
+		builder.WriteString(*v)
+	}
 	builder.WriteString(", ")
 	builder.WriteString("created_at=")
 	builder.WriteString(pr.CreatedAt.Format(time.ANSIC))
@@ -186,30 +373,6 @@ func (pr *Profile) String() string {
 	builder.WriteString(pr.UpdatedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
-}
-
-// NamedTodos returns the Todos named value or an error if the edge was not
-// loaded in eager-loading with this name.
-func (pr *Profile) NamedTodos(name string) ([]*Todo, error) {
-	if pr.Edges.namedTodos == nil {
-		return nil, &NotLoadedError{edge: name}
-	}
-	nodes, ok := pr.Edges.namedTodos[name]
-	if !ok {
-		return nil, &NotLoadedError{edge: name}
-	}
-	return nodes, nil
-}
-
-func (pr *Profile) appendNamedTodos(name string, edges ...*Todo) {
-	if pr.Edges.namedTodos == nil {
-		pr.Edges.namedTodos = make(map[string][]*Todo)
-	}
-	if len(edges) == 0 {
-		pr.Edges.namedTodos[name] = []*Todo{}
-	} else {
-		pr.Edges.namedTodos[name] = append(pr.Edges.namedTodos[name], edges...)
-	}
 }
 
 // Profiles is a parsable slice of Profile.

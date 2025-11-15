@@ -1,0 +1,72 @@
+{
+  "urn": "ACoAACaIDZoBkNOtTo-YvAPpwQR6G6yoRhl-KOc",
+  "username": "çağla-komili-4225b3160",
+  "firstName": "Çağla",
+  "lastName": "Komili",
+  "headline": "Bilgi Teknolojileri ve Haberleşme Kurumu (Information and Communication Technologies Authority) şirketinde IT Specialist",
+  "geo": {
+    "country_name": "Cyprus",
+    "city_name": "Nicosia, Nicosia"
+  },
+  "educations": [
+    {
+      "schoolName": "Doğu Akdeniz Üniversitesi"
+    },
+    {
+      "schoolName": "Doğu Akdeniz Üniversitesi"
+    },
+    {
+      "schoolName": "Bülent Ecevit Anatolian High School"
+    }
+  ],
+  "fullPositions": [
+    {
+      "companyName": "KTMMOB Elektrik Mühendisleri Odası",
+      "title": "Yayın Kurulu Üyesi"
+    },
+    {
+      "companyName": "Bilgi Teknolojileri ve Haberleşme Kurumu (Information and Communication Technologies)",
+      "title": "IT Specialist"
+    },
+    {
+      "companyName": "TTG International",
+      "title": "Software Developer"
+    },
+    {
+      "companyName": "Eastern Mediterranean University",
+      "title": "Student Assistant"
+    }
+  ],
+  "skills": [
+    {
+      "name": "Data Analytics"
+    },
+    {
+      "name": "SQL"
+    },
+    {
+      "name": "ASP.NET"
+    },
+    {
+      "name": "Oracle SQL Developer"
+    },
+    {
+      "name": "Oracle Veritabanı"
+    },
+    {
+      "name": "Yazılım Geliştirme"
+    },
+    {
+      "name": "Veri Analizi"
+    },
+    {
+      "name": "Toad "
+    },
+    {
+      "name": "Visual Studio"
+    },
+    {
+      "name": "İstatistiksel Veri Analizi"
+    }
+  ]
+}

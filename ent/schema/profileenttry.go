@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	entMixin "entgo.io/ent/schema/mixin"
@@ -107,8 +108,8 @@ func (ProfileEntry) Indexes() []ent.Index {
 // Edges of the ProfileEntry.
 func (ProfileEntry) Edges() []ent.Edge {
 	return []ent.Edge{
-		// Add edges here when you add related entities
-		// For example, when you add fetch_jobs:
-		// edge.From("fetch_jobs", FetchJob.Type).Ref("profile_entries"),
+		edge.To("profile", Profile.Type).
+			Unique().
+			Comment("Linked Profile after successful fetch"),
 	}
 }

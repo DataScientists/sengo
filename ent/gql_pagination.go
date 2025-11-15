@@ -5,6 +5,9 @@ package ent
 import (
 	"context"
 	"errors"
+	"sheng-go-backend/ent/apiquotatracker"
+	"sheng-go-backend/ent/cronjobconfig"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
@@ -97,6 +100,753 @@ func paginateLimit(first, last *int) int {
 		limit = *last + 1
 	}
 	return limit
+}
+
+// APIQuotaTrackerEdge is the edge representation of APIQuotaTracker.
+type APIQuotaTrackerEdge struct {
+	Node   *APIQuotaTracker `json:"node"`
+	Cursor Cursor           `json:"cursor"`
+}
+
+// APIQuotaTrackerConnection is the connection containing edges to APIQuotaTracker.
+type APIQuotaTrackerConnection struct {
+	Edges      []*APIQuotaTrackerEdge `json:"edges"`
+	PageInfo   PageInfo               `json:"pageInfo"`
+	TotalCount int                    `json:"totalCount"`
+}
+
+func (c *APIQuotaTrackerConnection) build(nodes []*APIQuotaTracker, pager *apiquotatrackerPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *APIQuotaTracker
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *APIQuotaTracker {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *APIQuotaTracker {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*APIQuotaTrackerEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &APIQuotaTrackerEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// APIQuotaTrackerPaginateOption enables pagination customization.
+type APIQuotaTrackerPaginateOption func(*apiquotatrackerPager) error
+
+// WithAPIQuotaTrackerOrder configures pagination ordering.
+func WithAPIQuotaTrackerOrder(order *APIQuotaTrackerOrder) APIQuotaTrackerPaginateOption {
+	if order == nil {
+		order = DefaultAPIQuotaTrackerOrder
+	}
+	o := *order
+	return func(pager *apiquotatrackerPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultAPIQuotaTrackerOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithAPIQuotaTrackerFilter configures pagination filter.
+func WithAPIQuotaTrackerFilter(filter func(*APIQuotaTrackerQuery) (*APIQuotaTrackerQuery, error)) APIQuotaTrackerPaginateOption {
+	return func(pager *apiquotatrackerPager) error {
+		if filter == nil {
+			return errors.New("APIQuotaTrackerQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type apiquotatrackerPager struct {
+	reverse bool
+	order   *APIQuotaTrackerOrder
+	filter  func(*APIQuotaTrackerQuery) (*APIQuotaTrackerQuery, error)
+}
+
+func newAPIQuotaTrackerPager(opts []APIQuotaTrackerPaginateOption, reverse bool) (*apiquotatrackerPager, error) {
+	pager := &apiquotatrackerPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultAPIQuotaTrackerOrder
+	}
+	return pager, nil
+}
+
+func (p *apiquotatrackerPager) applyFilter(query *APIQuotaTrackerQuery) (*APIQuotaTrackerQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *apiquotatrackerPager) toCursor(aqt *APIQuotaTracker) Cursor {
+	return p.order.Field.toCursor(aqt)
+}
+
+func (p *apiquotatrackerPager) applyCursors(query *APIQuotaTrackerQuery, after, before *Cursor) (*APIQuotaTrackerQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultAPIQuotaTrackerOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *apiquotatrackerPager) applyOrder(query *APIQuotaTrackerQuery) *APIQuotaTrackerQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultAPIQuotaTrackerOrder.Field {
+		query = query.Order(DefaultAPIQuotaTrackerOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *apiquotatrackerPager) orderExpr(query *APIQuotaTrackerQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultAPIQuotaTrackerOrder.Field {
+			b.Comma().Ident(DefaultAPIQuotaTrackerOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to APIQuotaTracker.
+func (aqt *APIQuotaTrackerQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...APIQuotaTrackerPaginateOption,
+) (*APIQuotaTrackerConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newAPIQuotaTrackerPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if aqt, err = pager.applyFilter(aqt); err != nil {
+		return nil, err
+	}
+	conn := &APIQuotaTrackerConnection{Edges: []*APIQuotaTrackerEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := aqt.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if aqt, err = pager.applyCursors(aqt, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		aqt.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := aqt.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	aqt = pager.applyOrder(aqt)
+	nodes, err := aqt.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// APIQuotaTrackerOrderField defines the ordering field of APIQuotaTracker.
+type APIQuotaTrackerOrderField struct {
+	// Value extracts the ordering value from the given APIQuotaTracker.
+	Value    func(*APIQuotaTracker) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) apiquotatracker.OrderOption
+	toCursor func(*APIQuotaTracker) Cursor
+}
+
+// APIQuotaTrackerOrder defines the ordering of APIQuotaTracker.
+type APIQuotaTrackerOrder struct {
+	Direction OrderDirection             `json:"direction"`
+	Field     *APIQuotaTrackerOrderField `json:"field"`
+}
+
+// DefaultAPIQuotaTrackerOrder is the default ordering of APIQuotaTracker.
+var DefaultAPIQuotaTrackerOrder = &APIQuotaTrackerOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &APIQuotaTrackerOrderField{
+		Value: func(aqt *APIQuotaTracker) (ent.Value, error) {
+			return aqt.ID, nil
+		},
+		column: apiquotatracker.FieldID,
+		toTerm: apiquotatracker.ByID,
+		toCursor: func(aqt *APIQuotaTracker) Cursor {
+			return Cursor{ID: aqt.ID}
+		},
+	},
+}
+
+// ToEdge converts APIQuotaTracker into APIQuotaTrackerEdge.
+func (aqt *APIQuotaTracker) ToEdge(order *APIQuotaTrackerOrder) *APIQuotaTrackerEdge {
+	if order == nil {
+		order = DefaultAPIQuotaTrackerOrder
+	}
+	return &APIQuotaTrackerEdge{
+		Node:   aqt,
+		Cursor: order.Field.toCursor(aqt),
+	}
+}
+
+// CronJobConfigEdge is the edge representation of CronJobConfig.
+type CronJobConfigEdge struct {
+	Node   *CronJobConfig `json:"node"`
+	Cursor Cursor         `json:"cursor"`
+}
+
+// CronJobConfigConnection is the connection containing edges to CronJobConfig.
+type CronJobConfigConnection struct {
+	Edges      []*CronJobConfigEdge `json:"edges"`
+	PageInfo   PageInfo             `json:"pageInfo"`
+	TotalCount int                  `json:"totalCount"`
+}
+
+func (c *CronJobConfigConnection) build(nodes []*CronJobConfig, pager *cronjobconfigPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *CronJobConfig
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *CronJobConfig {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *CronJobConfig {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*CronJobConfigEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &CronJobConfigEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// CronJobConfigPaginateOption enables pagination customization.
+type CronJobConfigPaginateOption func(*cronjobconfigPager) error
+
+// WithCronJobConfigOrder configures pagination ordering.
+func WithCronJobConfigOrder(order *CronJobConfigOrder) CronJobConfigPaginateOption {
+	if order == nil {
+		order = DefaultCronJobConfigOrder
+	}
+	o := *order
+	return func(pager *cronjobconfigPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultCronJobConfigOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithCronJobConfigFilter configures pagination filter.
+func WithCronJobConfigFilter(filter func(*CronJobConfigQuery) (*CronJobConfigQuery, error)) CronJobConfigPaginateOption {
+	return func(pager *cronjobconfigPager) error {
+		if filter == nil {
+			return errors.New("CronJobConfigQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type cronjobconfigPager struct {
+	reverse bool
+	order   *CronJobConfigOrder
+	filter  func(*CronJobConfigQuery) (*CronJobConfigQuery, error)
+}
+
+func newCronJobConfigPager(opts []CronJobConfigPaginateOption, reverse bool) (*cronjobconfigPager, error) {
+	pager := &cronjobconfigPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultCronJobConfigOrder
+	}
+	return pager, nil
+}
+
+func (p *cronjobconfigPager) applyFilter(query *CronJobConfigQuery) (*CronJobConfigQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *cronjobconfigPager) toCursor(cjc *CronJobConfig) Cursor {
+	return p.order.Field.toCursor(cjc)
+}
+
+func (p *cronjobconfigPager) applyCursors(query *CronJobConfigQuery, after, before *Cursor) (*CronJobConfigQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultCronJobConfigOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *cronjobconfigPager) applyOrder(query *CronJobConfigQuery) *CronJobConfigQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultCronJobConfigOrder.Field {
+		query = query.Order(DefaultCronJobConfigOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *cronjobconfigPager) orderExpr(query *CronJobConfigQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultCronJobConfigOrder.Field {
+			b.Comma().Ident(DefaultCronJobConfigOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to CronJobConfig.
+func (cjc *CronJobConfigQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...CronJobConfigPaginateOption,
+) (*CronJobConfigConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newCronJobConfigPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if cjc, err = pager.applyFilter(cjc); err != nil {
+		return nil, err
+	}
+	conn := &CronJobConfigConnection{Edges: []*CronJobConfigEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := cjc.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if cjc, err = pager.applyCursors(cjc, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		cjc.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := cjc.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	cjc = pager.applyOrder(cjc)
+	nodes, err := cjc.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// CronJobConfigOrderField defines the ordering field of CronJobConfig.
+type CronJobConfigOrderField struct {
+	// Value extracts the ordering value from the given CronJobConfig.
+	Value    func(*CronJobConfig) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) cronjobconfig.OrderOption
+	toCursor func(*CronJobConfig) Cursor
+}
+
+// CronJobConfigOrder defines the ordering of CronJobConfig.
+type CronJobConfigOrder struct {
+	Direction OrderDirection           `json:"direction"`
+	Field     *CronJobConfigOrderField `json:"field"`
+}
+
+// DefaultCronJobConfigOrder is the default ordering of CronJobConfig.
+var DefaultCronJobConfigOrder = &CronJobConfigOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &CronJobConfigOrderField{
+		Value: func(cjc *CronJobConfig) (ent.Value, error) {
+			return cjc.ID, nil
+		},
+		column: cronjobconfig.FieldID,
+		toTerm: cronjobconfig.ByID,
+		toCursor: func(cjc *CronJobConfig) Cursor {
+			return Cursor{ID: cjc.ID}
+		},
+	},
+}
+
+// ToEdge converts CronJobConfig into CronJobConfigEdge.
+func (cjc *CronJobConfig) ToEdge(order *CronJobConfigOrder) *CronJobConfigEdge {
+	if order == nil {
+		order = DefaultCronJobConfigOrder
+	}
+	return &CronJobConfigEdge{
+		Node:   cjc,
+		Cursor: order.Field.toCursor(cjc),
+	}
+}
+
+// JobExecutionHistoryEdge is the edge representation of JobExecutionHistory.
+type JobExecutionHistoryEdge struct {
+	Node   *JobExecutionHistory `json:"node"`
+	Cursor Cursor               `json:"cursor"`
+}
+
+// JobExecutionHistoryConnection is the connection containing edges to JobExecutionHistory.
+type JobExecutionHistoryConnection struct {
+	Edges      []*JobExecutionHistoryEdge `json:"edges"`
+	PageInfo   PageInfo                   `json:"pageInfo"`
+	TotalCount int                        `json:"totalCount"`
+}
+
+func (c *JobExecutionHistoryConnection) build(nodes []*JobExecutionHistory, pager *jobexecutionhistoryPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *JobExecutionHistory
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *JobExecutionHistory {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *JobExecutionHistory {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*JobExecutionHistoryEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &JobExecutionHistoryEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// JobExecutionHistoryPaginateOption enables pagination customization.
+type JobExecutionHistoryPaginateOption func(*jobexecutionhistoryPager) error
+
+// WithJobExecutionHistoryOrder configures pagination ordering.
+func WithJobExecutionHistoryOrder(order *JobExecutionHistoryOrder) JobExecutionHistoryPaginateOption {
+	if order == nil {
+		order = DefaultJobExecutionHistoryOrder
+	}
+	o := *order
+	return func(pager *jobexecutionhistoryPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultJobExecutionHistoryOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithJobExecutionHistoryFilter configures pagination filter.
+func WithJobExecutionHistoryFilter(filter func(*JobExecutionHistoryQuery) (*JobExecutionHistoryQuery, error)) JobExecutionHistoryPaginateOption {
+	return func(pager *jobexecutionhistoryPager) error {
+		if filter == nil {
+			return errors.New("JobExecutionHistoryQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type jobexecutionhistoryPager struct {
+	reverse bool
+	order   *JobExecutionHistoryOrder
+	filter  func(*JobExecutionHistoryQuery) (*JobExecutionHistoryQuery, error)
+}
+
+func newJobExecutionHistoryPager(opts []JobExecutionHistoryPaginateOption, reverse bool) (*jobexecutionhistoryPager, error) {
+	pager := &jobexecutionhistoryPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultJobExecutionHistoryOrder
+	}
+	return pager, nil
+}
+
+func (p *jobexecutionhistoryPager) applyFilter(query *JobExecutionHistoryQuery) (*JobExecutionHistoryQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *jobexecutionhistoryPager) toCursor(jeh *JobExecutionHistory) Cursor {
+	return p.order.Field.toCursor(jeh)
+}
+
+func (p *jobexecutionhistoryPager) applyCursors(query *JobExecutionHistoryQuery, after, before *Cursor) (*JobExecutionHistoryQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultJobExecutionHistoryOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *jobexecutionhistoryPager) applyOrder(query *JobExecutionHistoryQuery) *JobExecutionHistoryQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultJobExecutionHistoryOrder.Field {
+		query = query.Order(DefaultJobExecutionHistoryOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *jobexecutionhistoryPager) orderExpr(query *JobExecutionHistoryQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultJobExecutionHistoryOrder.Field {
+			b.Comma().Ident(DefaultJobExecutionHistoryOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to JobExecutionHistory.
+func (jeh *JobExecutionHistoryQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...JobExecutionHistoryPaginateOption,
+) (*JobExecutionHistoryConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newJobExecutionHistoryPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if jeh, err = pager.applyFilter(jeh); err != nil {
+		return nil, err
+	}
+	conn := &JobExecutionHistoryConnection{Edges: []*JobExecutionHistoryEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := jeh.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if jeh, err = pager.applyCursors(jeh, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		jeh.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := jeh.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	jeh = pager.applyOrder(jeh)
+	nodes, err := jeh.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// JobExecutionHistoryOrderField defines the ordering field of JobExecutionHistory.
+type JobExecutionHistoryOrderField struct {
+	// Value extracts the ordering value from the given JobExecutionHistory.
+	Value    func(*JobExecutionHistory) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) jobexecutionhistory.OrderOption
+	toCursor func(*JobExecutionHistory) Cursor
+}
+
+// JobExecutionHistoryOrder defines the ordering of JobExecutionHistory.
+type JobExecutionHistoryOrder struct {
+	Direction OrderDirection                 `json:"direction"`
+	Field     *JobExecutionHistoryOrderField `json:"field"`
+}
+
+// DefaultJobExecutionHistoryOrder is the default ordering of JobExecutionHistory.
+var DefaultJobExecutionHistoryOrder = &JobExecutionHistoryOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &JobExecutionHistoryOrderField{
+		Value: func(jeh *JobExecutionHistory) (ent.Value, error) {
+			return jeh.ID, nil
+		},
+		column: jobexecutionhistory.FieldID,
+		toTerm: jobexecutionhistory.ByID,
+		toCursor: func(jeh *JobExecutionHistory) Cursor {
+			return Cursor{ID: jeh.ID}
+		},
+	},
+}
+
+// ToEdge converts JobExecutionHistory into JobExecutionHistoryEdge.
+func (jeh *JobExecutionHistory) ToEdge(order *JobExecutionHistoryOrder) *JobExecutionHistoryEdge {
+	if order == nil {
+		order = DefaultJobExecutionHistoryOrder
+	}
+	return &JobExecutionHistoryEdge{
+		Node:   jeh,
+		Cursor: order.Field.toCursor(jeh),
+	}
 }
 
 // ProfileEdge is the edge representation of Profile.

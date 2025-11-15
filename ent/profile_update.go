@@ -8,12 +8,13 @@ import (
 	"fmt"
 	"sheng-go-backend/ent/predicate"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
-	"sheng-go-backend/ent/todo"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/dialect/sql/sqljson"
 	"entgo.io/ent/schema/field"
 )
 
@@ -27,34 +28,6 @@ type ProfileUpdate struct {
 // Where appends a list predicates to the ProfileUpdate builder.
 func (pu *ProfileUpdate) Where(ps ...predicate.Profile) *ProfileUpdate {
 	pu.mutation.Where(ps...)
-	return pu
-}
-
-// SetName sets the "name" field.
-func (pu *ProfileUpdate) SetName(s string) *ProfileUpdate {
-	pu.mutation.SetName(s)
-	return pu
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (pu *ProfileUpdate) SetNillableName(s *string) *ProfileUpdate {
-	if s != nil {
-		pu.SetName(*s)
-	}
-	return pu
-}
-
-// SetTitle sets the "title" field.
-func (pu *ProfileUpdate) SetTitle(s string) *ProfileUpdate {
-	pu.mutation.SetTitle(s)
-	return pu
-}
-
-// SetNillableTitle sets the "title" field if the given value is not nil.
-func (pu *ProfileUpdate) SetNillableTitle(s *string) *ProfileUpdate {
-	if s != nil {
-		pu.SetTitle(*s)
-	}
 	return pu
 }
 
@@ -72,6 +45,272 @@ func (pu *ProfileUpdate) SetNillableUrn(s *string) *ProfileUpdate {
 	return pu
 }
 
+// SetUsername sets the "username" field.
+func (pu *ProfileUpdate) SetUsername(s string) *ProfileUpdate {
+	pu.mutation.SetUsername(s)
+	return pu
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableUsername(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetUsername(*s)
+	}
+	return pu
+}
+
+// ClearUsername clears the value of the "username" field.
+func (pu *ProfileUpdate) ClearUsername() *ProfileUpdate {
+	pu.mutation.ClearUsername()
+	return pu
+}
+
+// SetFirstName sets the "first_name" field.
+func (pu *ProfileUpdate) SetFirstName(s string) *ProfileUpdate {
+	pu.mutation.SetFirstName(s)
+	return pu
+}
+
+// SetNillableFirstName sets the "first_name" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableFirstName(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetFirstName(*s)
+	}
+	return pu
+}
+
+// ClearFirstName clears the value of the "first_name" field.
+func (pu *ProfileUpdate) ClearFirstName() *ProfileUpdate {
+	pu.mutation.ClearFirstName()
+	return pu
+}
+
+// SetLastName sets the "last_name" field.
+func (pu *ProfileUpdate) SetLastName(s string) *ProfileUpdate {
+	pu.mutation.SetLastName(s)
+	return pu
+}
+
+// SetNillableLastName sets the "last_name" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableLastName(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetLastName(*s)
+	}
+	return pu
+}
+
+// ClearLastName clears the value of the "last_name" field.
+func (pu *ProfileUpdate) ClearLastName() *ProfileUpdate {
+	pu.mutation.ClearLastName()
+	return pu
+}
+
+// SetName sets the "name" field.
+func (pu *ProfileUpdate) SetName(s string) *ProfileUpdate {
+	pu.mutation.SetName(s)
+	return pu
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableName(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetName(*s)
+	}
+	return pu
+}
+
+// ClearName clears the value of the "name" field.
+func (pu *ProfileUpdate) ClearName() *ProfileUpdate {
+	pu.mutation.ClearName()
+	return pu
+}
+
+// SetHeadline sets the "headline" field.
+func (pu *ProfileUpdate) SetHeadline(s string) *ProfileUpdate {
+	pu.mutation.SetHeadline(s)
+	return pu
+}
+
+// SetNillableHeadline sets the "headline" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableHeadline(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetHeadline(*s)
+	}
+	return pu
+}
+
+// ClearHeadline clears the value of the "headline" field.
+func (pu *ProfileUpdate) ClearHeadline() *ProfileUpdate {
+	pu.mutation.ClearHeadline()
+	return pu
+}
+
+// SetTitle sets the "title" field.
+func (pu *ProfileUpdate) SetTitle(s string) *ProfileUpdate {
+	pu.mutation.SetTitle(s)
+	return pu
+}
+
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableTitle(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetTitle(*s)
+	}
+	return pu
+}
+
+// ClearTitle clears the value of the "title" field.
+func (pu *ProfileUpdate) ClearTitle() *ProfileUpdate {
+	pu.mutation.ClearTitle()
+	return pu
+}
+
+// SetCountry sets the "country" field.
+func (pu *ProfileUpdate) SetCountry(s string) *ProfileUpdate {
+	pu.mutation.SetCountry(s)
+	return pu
+}
+
+// SetNillableCountry sets the "country" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableCountry(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetCountry(*s)
+	}
+	return pu
+}
+
+// ClearCountry clears the value of the "country" field.
+func (pu *ProfileUpdate) ClearCountry() *ProfileUpdate {
+	pu.mutation.ClearCountry()
+	return pu
+}
+
+// SetCity sets the "city" field.
+func (pu *ProfileUpdate) SetCity(s string) *ProfileUpdate {
+	pu.mutation.SetCity(s)
+	return pu
+}
+
+// SetNillableCity sets the "city" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableCity(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetCity(*s)
+	}
+	return pu
+}
+
+// ClearCity clears the value of the "city" field.
+func (pu *ProfileUpdate) ClearCity() *ProfileUpdate {
+	pu.mutation.ClearCity()
+	return pu
+}
+
+// SetEducations sets the "educations" field.
+func (pu *ProfileUpdate) SetEducations(m []map[string]interface{}) *ProfileUpdate {
+	pu.mutation.SetEducations(m)
+	return pu
+}
+
+// AppendEducations appends m to the "educations" field.
+func (pu *ProfileUpdate) AppendEducations(m []map[string]interface{}) *ProfileUpdate {
+	pu.mutation.AppendEducations(m)
+	return pu
+}
+
+// ClearEducations clears the value of the "educations" field.
+func (pu *ProfileUpdate) ClearEducations() *ProfileUpdate {
+	pu.mutation.ClearEducations()
+	return pu
+}
+
+// SetPositions sets the "positions" field.
+func (pu *ProfileUpdate) SetPositions(m []map[string]interface{}) *ProfileUpdate {
+	pu.mutation.SetPositions(m)
+	return pu
+}
+
+// AppendPositions appends m to the "positions" field.
+func (pu *ProfileUpdate) AppendPositions(m []map[string]interface{}) *ProfileUpdate {
+	pu.mutation.AppendPositions(m)
+	return pu
+}
+
+// ClearPositions clears the value of the "positions" field.
+func (pu *ProfileUpdate) ClearPositions() *ProfileUpdate {
+	pu.mutation.ClearPositions()
+	return pu
+}
+
+// SetSkills sets the "skills" field.
+func (pu *ProfileUpdate) SetSkills(m []map[string]interface{}) *ProfileUpdate {
+	pu.mutation.SetSkills(m)
+	return pu
+}
+
+// AppendSkills appends m to the "skills" field.
+func (pu *ProfileUpdate) AppendSkills(m []map[string]interface{}) *ProfileUpdate {
+	pu.mutation.AppendSkills(m)
+	return pu
+}
+
+// ClearSkills clears the value of the "skills" field.
+func (pu *ProfileUpdate) ClearSkills() *ProfileUpdate {
+	pu.mutation.ClearSkills()
+	return pu
+}
+
+// SetGeoData sets the "geo_data" field.
+func (pu *ProfileUpdate) SetGeoData(m map[string]interface{}) *ProfileUpdate {
+	pu.mutation.SetGeoData(m)
+	return pu
+}
+
+// ClearGeoData clears the value of the "geo_data" field.
+func (pu *ProfileUpdate) ClearGeoData() *ProfileUpdate {
+	pu.mutation.ClearGeoData()
+	return pu
+}
+
+// SetRawDataS3Key sets the "raw_data_s3_key" field.
+func (pu *ProfileUpdate) SetRawDataS3Key(s string) *ProfileUpdate {
+	pu.mutation.SetRawDataS3Key(s)
+	return pu
+}
+
+// SetNillableRawDataS3Key sets the "raw_data_s3_key" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableRawDataS3Key(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetRawDataS3Key(*s)
+	}
+	return pu
+}
+
+// ClearRawDataS3Key clears the value of the "raw_data_s3_key" field.
+func (pu *ProfileUpdate) ClearRawDataS3Key() *ProfileUpdate {
+	pu.mutation.ClearRawDataS3Key()
+	return pu
+}
+
+// SetCleanedDataS3Key sets the "cleaned_data_s3_key" field.
+func (pu *ProfileUpdate) SetCleanedDataS3Key(s string) *ProfileUpdate {
+	pu.mutation.SetCleanedDataS3Key(s)
+	return pu
+}
+
+// SetNillableCleanedDataS3Key sets the "cleaned_data_s3_key" field if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableCleanedDataS3Key(s *string) *ProfileUpdate {
+	if s != nil {
+		pu.SetCleanedDataS3Key(*s)
+	}
+	return pu
+}
+
+// ClearCleanedDataS3Key clears the value of the "cleaned_data_s3_key" field.
+func (pu *ProfileUpdate) ClearCleanedDataS3Key() *ProfileUpdate {
+	pu.mutation.ClearCleanedDataS3Key()
+	return pu
+}
+
 // SetSourceFile sets the "source_file" field.
 func (pu *ProfileUpdate) SetSourceFile(s string) *ProfileUpdate {
 	pu.mutation.SetSourceFile(s)
@@ -86,25 +325,35 @@ func (pu *ProfileUpdate) SetNillableSourceFile(s *string) *ProfileUpdate {
 	return pu
 }
 
+// ClearSourceFile clears the value of the "source_file" field.
+func (pu *ProfileUpdate) ClearSourceFile() *ProfileUpdate {
+	pu.mutation.ClearSourceFile()
+	return pu
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (pu *ProfileUpdate) SetUpdatedAt(t time.Time) *ProfileUpdate {
 	pu.mutation.SetUpdatedAt(t)
 	return pu
 }
 
-// AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
-func (pu *ProfileUpdate) AddTodoIDs(ids ...ulid.ID) *ProfileUpdate {
-	pu.mutation.AddTodoIDs(ids...)
+// SetProfileEntryID sets the "profile_entry" edge to the ProfileEntry entity by ID.
+func (pu *ProfileUpdate) SetProfileEntryID(id ulid.ID) *ProfileUpdate {
+	pu.mutation.SetProfileEntryID(id)
 	return pu
 }
 
-// AddTodos adds the "todos" edges to the Todo entity.
-func (pu *ProfileUpdate) AddTodos(t ...*Todo) *ProfileUpdate {
-	ids := make([]ulid.ID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// SetNillableProfileEntryID sets the "profile_entry" edge to the ProfileEntry entity by ID if the given value is not nil.
+func (pu *ProfileUpdate) SetNillableProfileEntryID(id *ulid.ID) *ProfileUpdate {
+	if id != nil {
+		pu = pu.SetProfileEntryID(*id)
 	}
-	return pu.AddTodoIDs(ids...)
+	return pu
+}
+
+// SetProfileEntry sets the "profile_entry" edge to the ProfileEntry entity.
+func (pu *ProfileUpdate) SetProfileEntry(p *ProfileEntry) *ProfileUpdate {
+	return pu.SetProfileEntryID(p.ID)
 }
 
 // Mutation returns the ProfileMutation object of the builder.
@@ -112,25 +361,10 @@ func (pu *ProfileUpdate) Mutation() *ProfileMutation {
 	return pu.mutation
 }
 
-// ClearTodos clears all "todos" edges to the Todo entity.
-func (pu *ProfileUpdate) ClearTodos() *ProfileUpdate {
-	pu.mutation.ClearTodos()
+// ClearProfileEntry clears the "profile_entry" edge to the ProfileEntry entity.
+func (pu *ProfileUpdate) ClearProfileEntry() *ProfileUpdate {
+	pu.mutation.ClearProfileEntry()
 	return pu
-}
-
-// RemoveTodoIDs removes the "todos" edge to Todo entities by IDs.
-func (pu *ProfileUpdate) RemoveTodoIDs(ids ...ulid.ID) *ProfileUpdate {
-	pu.mutation.RemoveTodoIDs(ids...)
-	return pu
-}
-
-// RemoveTodos removes "todos" edges to Todo entities.
-func (pu *ProfileUpdate) RemoveTodos(t ...*Todo) *ProfileUpdate {
-	ids := make([]ulid.ID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
-	}
-	return pu.RemoveTodoIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -171,19 +405,24 @@ func (pu *ProfileUpdate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (pu *ProfileUpdate) check() error {
-	if v, ok := pu.mutation.Name(); ok {
-		if err := profile.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Profile.name": %w`, err)}
-		}
-	}
 	if v, ok := pu.mutation.Urn(); ok {
 		if err := profile.UrnValidator(v); err != nil {
 			return &ValidationError{Name: "urn", err: fmt.Errorf(`ent: validator failed for field "Profile.urn": %w`, err)}
 		}
 	}
-	if v, ok := pu.mutation.SourceFile(); ok {
-		if err := profile.SourceFileValidator(v); err != nil {
-			return &ValidationError{Name: "source_file", err: fmt.Errorf(`ent: validator failed for field "Profile.source_file": %w`, err)}
+	if v, ok := pu.mutation.Name(); ok {
+		if err := profile.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Profile.name": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.RawDataS3Key(); ok {
+		if err := profile.RawDataS3KeyValidator(v); err != nil {
+			return &ValidationError{Name: "raw_data_s3_key", err: fmt.Errorf(`ent: validator failed for field "Profile.raw_data_s3_key": %w`, err)}
+		}
+	}
+	if v, ok := pu.mutation.CleanedDataS3Key(); ok {
+		if err := profile.CleanedDataS3KeyValidator(v); err != nil {
+			return &ValidationError{Name: "cleaned_data_s3_key", err: fmt.Errorf(`ent: validator failed for field "Profile.cleaned_data_s3_key": %w`, err)}
 		}
 	}
 	return nil
@@ -201,59 +440,139 @@ func (pu *ProfileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			}
 		}
 	}
+	if value, ok := pu.mutation.Urn(); ok {
+		_spec.SetField(profile.FieldUrn, field.TypeString, value)
+	}
+	if value, ok := pu.mutation.Username(); ok {
+		_spec.SetField(profile.FieldUsername, field.TypeString, value)
+	}
+	if pu.mutation.UsernameCleared() {
+		_spec.ClearField(profile.FieldUsername, field.TypeString)
+	}
+	if value, ok := pu.mutation.FirstName(); ok {
+		_spec.SetField(profile.FieldFirstName, field.TypeString, value)
+	}
+	if pu.mutation.FirstNameCleared() {
+		_spec.ClearField(profile.FieldFirstName, field.TypeString)
+	}
+	if value, ok := pu.mutation.LastName(); ok {
+		_spec.SetField(profile.FieldLastName, field.TypeString, value)
+	}
+	if pu.mutation.LastNameCleared() {
+		_spec.ClearField(profile.FieldLastName, field.TypeString)
+	}
 	if value, ok := pu.mutation.Name(); ok {
 		_spec.SetField(profile.FieldName, field.TypeString, value)
+	}
+	if pu.mutation.NameCleared() {
+		_spec.ClearField(profile.FieldName, field.TypeString)
+	}
+	if value, ok := pu.mutation.Headline(); ok {
+		_spec.SetField(profile.FieldHeadline, field.TypeString, value)
+	}
+	if pu.mutation.HeadlineCleared() {
+		_spec.ClearField(profile.FieldHeadline, field.TypeString)
 	}
 	if value, ok := pu.mutation.Title(); ok {
 		_spec.SetField(profile.FieldTitle, field.TypeString, value)
 	}
-	if value, ok := pu.mutation.Urn(); ok {
-		_spec.SetField(profile.FieldUrn, field.TypeString, value)
+	if pu.mutation.TitleCleared() {
+		_spec.ClearField(profile.FieldTitle, field.TypeString)
+	}
+	if value, ok := pu.mutation.Country(); ok {
+		_spec.SetField(profile.FieldCountry, field.TypeString, value)
+	}
+	if pu.mutation.CountryCleared() {
+		_spec.ClearField(profile.FieldCountry, field.TypeString)
+	}
+	if value, ok := pu.mutation.City(); ok {
+		_spec.SetField(profile.FieldCity, field.TypeString, value)
+	}
+	if pu.mutation.CityCleared() {
+		_spec.ClearField(profile.FieldCity, field.TypeString)
+	}
+	if value, ok := pu.mutation.Educations(); ok {
+		_spec.SetField(profile.FieldEducations, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.AppendedEducations(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, profile.FieldEducations, value)
+		})
+	}
+	if pu.mutation.EducationsCleared() {
+		_spec.ClearField(profile.FieldEducations, field.TypeJSON)
+	}
+	if value, ok := pu.mutation.Positions(); ok {
+		_spec.SetField(profile.FieldPositions, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.AppendedPositions(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, profile.FieldPositions, value)
+		})
+	}
+	if pu.mutation.PositionsCleared() {
+		_spec.ClearField(profile.FieldPositions, field.TypeJSON)
+	}
+	if value, ok := pu.mutation.Skills(); ok {
+		_spec.SetField(profile.FieldSkills, field.TypeJSON, value)
+	}
+	if value, ok := pu.mutation.AppendedSkills(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, profile.FieldSkills, value)
+		})
+	}
+	if pu.mutation.SkillsCleared() {
+		_spec.ClearField(profile.FieldSkills, field.TypeJSON)
+	}
+	if value, ok := pu.mutation.GeoData(); ok {
+		_spec.SetField(profile.FieldGeoData, field.TypeJSON, value)
+	}
+	if pu.mutation.GeoDataCleared() {
+		_spec.ClearField(profile.FieldGeoData, field.TypeJSON)
+	}
+	if value, ok := pu.mutation.RawDataS3Key(); ok {
+		_spec.SetField(profile.FieldRawDataS3Key, field.TypeString, value)
+	}
+	if pu.mutation.RawDataS3KeyCleared() {
+		_spec.ClearField(profile.FieldRawDataS3Key, field.TypeString)
+	}
+	if value, ok := pu.mutation.CleanedDataS3Key(); ok {
+		_spec.SetField(profile.FieldCleanedDataS3Key, field.TypeString, value)
+	}
+	if pu.mutation.CleanedDataS3KeyCleared() {
+		_spec.ClearField(profile.FieldCleanedDataS3Key, field.TypeString)
 	}
 	if value, ok := pu.mutation.SourceFile(); ok {
 		_spec.SetField(profile.FieldSourceFile, field.TypeString, value)
 	}
+	if pu.mutation.SourceFileCleared() {
+		_spec.ClearField(profile.FieldSourceFile, field.TypeString)
+	}
 	if value, ok := pu.mutation.UpdatedAt(); ok {
 		_spec.SetField(profile.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if pu.mutation.TodosCleared() {
+	if pu.mutation.ProfileEntryCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   profile.TodosTable,
-			Columns: []string{profile.TodosColumn},
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   profile.ProfileEntryTable,
+			Columns: []string{profile.ProfileEntryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.RemovedTodosIDs(); len(nodes) > 0 && !pu.mutation.TodosCleared() {
+	if nodes := pu.mutation.ProfileEntryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   profile.TodosTable,
-			Columns: []string{profile.TodosColumn},
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   profile.ProfileEntryTable,
+			Columns: []string{profile.ProfileEntryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := pu.mutation.TodosIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   profile.TodosTable,
-			Columns: []string{profile.TodosColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -281,6 +600,80 @@ type ProfileUpdateOne struct {
 	mutation *ProfileMutation
 }
 
+// SetUrn sets the "urn" field.
+func (puo *ProfileUpdateOne) SetUrn(s string) *ProfileUpdateOne {
+	puo.mutation.SetUrn(s)
+	return puo
+}
+
+// SetNillableUrn sets the "urn" field if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableUrn(s *string) *ProfileUpdateOne {
+	if s != nil {
+		puo.SetUrn(*s)
+	}
+	return puo
+}
+
+// SetUsername sets the "username" field.
+func (puo *ProfileUpdateOne) SetUsername(s string) *ProfileUpdateOne {
+	puo.mutation.SetUsername(s)
+	return puo
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableUsername(s *string) *ProfileUpdateOne {
+	if s != nil {
+		puo.SetUsername(*s)
+	}
+	return puo
+}
+
+// ClearUsername clears the value of the "username" field.
+func (puo *ProfileUpdateOne) ClearUsername() *ProfileUpdateOne {
+	puo.mutation.ClearUsername()
+	return puo
+}
+
+// SetFirstName sets the "first_name" field.
+func (puo *ProfileUpdateOne) SetFirstName(s string) *ProfileUpdateOne {
+	puo.mutation.SetFirstName(s)
+	return puo
+}
+
+// SetNillableFirstName sets the "first_name" field if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableFirstName(s *string) *ProfileUpdateOne {
+	if s != nil {
+		puo.SetFirstName(*s)
+	}
+	return puo
+}
+
+// ClearFirstName clears the value of the "first_name" field.
+func (puo *ProfileUpdateOne) ClearFirstName() *ProfileUpdateOne {
+	puo.mutation.ClearFirstName()
+	return puo
+}
+
+// SetLastName sets the "last_name" field.
+func (puo *ProfileUpdateOne) SetLastName(s string) *ProfileUpdateOne {
+	puo.mutation.SetLastName(s)
+	return puo
+}
+
+// SetNillableLastName sets the "last_name" field if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableLastName(s *string) *ProfileUpdateOne {
+	if s != nil {
+		puo.SetLastName(*s)
+	}
+	return puo
+}
+
+// ClearLastName clears the value of the "last_name" field.
+func (puo *ProfileUpdateOne) ClearLastName() *ProfileUpdateOne {
+	puo.mutation.ClearLastName()
+	return puo
+}
+
 // SetName sets the "name" field.
 func (puo *ProfileUpdateOne) SetName(s string) *ProfileUpdateOne {
 	puo.mutation.SetName(s)
@@ -292,6 +685,32 @@ func (puo *ProfileUpdateOne) SetNillableName(s *string) *ProfileUpdateOne {
 	if s != nil {
 		puo.SetName(*s)
 	}
+	return puo
+}
+
+// ClearName clears the value of the "name" field.
+func (puo *ProfileUpdateOne) ClearName() *ProfileUpdateOne {
+	puo.mutation.ClearName()
+	return puo
+}
+
+// SetHeadline sets the "headline" field.
+func (puo *ProfileUpdateOne) SetHeadline(s string) *ProfileUpdateOne {
+	puo.mutation.SetHeadline(s)
+	return puo
+}
+
+// SetNillableHeadline sets the "headline" field if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableHeadline(s *string) *ProfileUpdateOne {
+	if s != nil {
+		puo.SetHeadline(*s)
+	}
+	return puo
+}
+
+// ClearHeadline clears the value of the "headline" field.
+func (puo *ProfileUpdateOne) ClearHeadline() *ProfileUpdateOne {
+	puo.mutation.ClearHeadline()
 	return puo
 }
 
@@ -309,17 +728,155 @@ func (puo *ProfileUpdateOne) SetNillableTitle(s *string) *ProfileUpdateOne {
 	return puo
 }
 
-// SetUrn sets the "urn" field.
-func (puo *ProfileUpdateOne) SetUrn(s string) *ProfileUpdateOne {
-	puo.mutation.SetUrn(s)
+// ClearTitle clears the value of the "title" field.
+func (puo *ProfileUpdateOne) ClearTitle() *ProfileUpdateOne {
+	puo.mutation.ClearTitle()
 	return puo
 }
 
-// SetNillableUrn sets the "urn" field if the given value is not nil.
-func (puo *ProfileUpdateOne) SetNillableUrn(s *string) *ProfileUpdateOne {
+// SetCountry sets the "country" field.
+func (puo *ProfileUpdateOne) SetCountry(s string) *ProfileUpdateOne {
+	puo.mutation.SetCountry(s)
+	return puo
+}
+
+// SetNillableCountry sets the "country" field if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableCountry(s *string) *ProfileUpdateOne {
 	if s != nil {
-		puo.SetUrn(*s)
+		puo.SetCountry(*s)
 	}
+	return puo
+}
+
+// ClearCountry clears the value of the "country" field.
+func (puo *ProfileUpdateOne) ClearCountry() *ProfileUpdateOne {
+	puo.mutation.ClearCountry()
+	return puo
+}
+
+// SetCity sets the "city" field.
+func (puo *ProfileUpdateOne) SetCity(s string) *ProfileUpdateOne {
+	puo.mutation.SetCity(s)
+	return puo
+}
+
+// SetNillableCity sets the "city" field if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableCity(s *string) *ProfileUpdateOne {
+	if s != nil {
+		puo.SetCity(*s)
+	}
+	return puo
+}
+
+// ClearCity clears the value of the "city" field.
+func (puo *ProfileUpdateOne) ClearCity() *ProfileUpdateOne {
+	puo.mutation.ClearCity()
+	return puo
+}
+
+// SetEducations sets the "educations" field.
+func (puo *ProfileUpdateOne) SetEducations(m []map[string]interface{}) *ProfileUpdateOne {
+	puo.mutation.SetEducations(m)
+	return puo
+}
+
+// AppendEducations appends m to the "educations" field.
+func (puo *ProfileUpdateOne) AppendEducations(m []map[string]interface{}) *ProfileUpdateOne {
+	puo.mutation.AppendEducations(m)
+	return puo
+}
+
+// ClearEducations clears the value of the "educations" field.
+func (puo *ProfileUpdateOne) ClearEducations() *ProfileUpdateOne {
+	puo.mutation.ClearEducations()
+	return puo
+}
+
+// SetPositions sets the "positions" field.
+func (puo *ProfileUpdateOne) SetPositions(m []map[string]interface{}) *ProfileUpdateOne {
+	puo.mutation.SetPositions(m)
+	return puo
+}
+
+// AppendPositions appends m to the "positions" field.
+func (puo *ProfileUpdateOne) AppendPositions(m []map[string]interface{}) *ProfileUpdateOne {
+	puo.mutation.AppendPositions(m)
+	return puo
+}
+
+// ClearPositions clears the value of the "positions" field.
+func (puo *ProfileUpdateOne) ClearPositions() *ProfileUpdateOne {
+	puo.mutation.ClearPositions()
+	return puo
+}
+
+// SetSkills sets the "skills" field.
+func (puo *ProfileUpdateOne) SetSkills(m []map[string]interface{}) *ProfileUpdateOne {
+	puo.mutation.SetSkills(m)
+	return puo
+}
+
+// AppendSkills appends m to the "skills" field.
+func (puo *ProfileUpdateOne) AppendSkills(m []map[string]interface{}) *ProfileUpdateOne {
+	puo.mutation.AppendSkills(m)
+	return puo
+}
+
+// ClearSkills clears the value of the "skills" field.
+func (puo *ProfileUpdateOne) ClearSkills() *ProfileUpdateOne {
+	puo.mutation.ClearSkills()
+	return puo
+}
+
+// SetGeoData sets the "geo_data" field.
+func (puo *ProfileUpdateOne) SetGeoData(m map[string]interface{}) *ProfileUpdateOne {
+	puo.mutation.SetGeoData(m)
+	return puo
+}
+
+// ClearGeoData clears the value of the "geo_data" field.
+func (puo *ProfileUpdateOne) ClearGeoData() *ProfileUpdateOne {
+	puo.mutation.ClearGeoData()
+	return puo
+}
+
+// SetRawDataS3Key sets the "raw_data_s3_key" field.
+func (puo *ProfileUpdateOne) SetRawDataS3Key(s string) *ProfileUpdateOne {
+	puo.mutation.SetRawDataS3Key(s)
+	return puo
+}
+
+// SetNillableRawDataS3Key sets the "raw_data_s3_key" field if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableRawDataS3Key(s *string) *ProfileUpdateOne {
+	if s != nil {
+		puo.SetRawDataS3Key(*s)
+	}
+	return puo
+}
+
+// ClearRawDataS3Key clears the value of the "raw_data_s3_key" field.
+func (puo *ProfileUpdateOne) ClearRawDataS3Key() *ProfileUpdateOne {
+	puo.mutation.ClearRawDataS3Key()
+	return puo
+}
+
+// SetCleanedDataS3Key sets the "cleaned_data_s3_key" field.
+func (puo *ProfileUpdateOne) SetCleanedDataS3Key(s string) *ProfileUpdateOne {
+	puo.mutation.SetCleanedDataS3Key(s)
+	return puo
+}
+
+// SetNillableCleanedDataS3Key sets the "cleaned_data_s3_key" field if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableCleanedDataS3Key(s *string) *ProfileUpdateOne {
+	if s != nil {
+		puo.SetCleanedDataS3Key(*s)
+	}
+	return puo
+}
+
+// ClearCleanedDataS3Key clears the value of the "cleaned_data_s3_key" field.
+func (puo *ProfileUpdateOne) ClearCleanedDataS3Key() *ProfileUpdateOne {
+	puo.mutation.ClearCleanedDataS3Key()
 	return puo
 }
 
@@ -337,25 +894,35 @@ func (puo *ProfileUpdateOne) SetNillableSourceFile(s *string) *ProfileUpdateOne 
 	return puo
 }
 
+// ClearSourceFile clears the value of the "source_file" field.
+func (puo *ProfileUpdateOne) ClearSourceFile() *ProfileUpdateOne {
+	puo.mutation.ClearSourceFile()
+	return puo
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (puo *ProfileUpdateOne) SetUpdatedAt(t time.Time) *ProfileUpdateOne {
 	puo.mutation.SetUpdatedAt(t)
 	return puo
 }
 
-// AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
-func (puo *ProfileUpdateOne) AddTodoIDs(ids ...ulid.ID) *ProfileUpdateOne {
-	puo.mutation.AddTodoIDs(ids...)
+// SetProfileEntryID sets the "profile_entry" edge to the ProfileEntry entity by ID.
+func (puo *ProfileUpdateOne) SetProfileEntryID(id ulid.ID) *ProfileUpdateOne {
+	puo.mutation.SetProfileEntryID(id)
 	return puo
 }
 
-// AddTodos adds the "todos" edges to the Todo entity.
-func (puo *ProfileUpdateOne) AddTodos(t ...*Todo) *ProfileUpdateOne {
-	ids := make([]ulid.ID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// SetNillableProfileEntryID sets the "profile_entry" edge to the ProfileEntry entity by ID if the given value is not nil.
+func (puo *ProfileUpdateOne) SetNillableProfileEntryID(id *ulid.ID) *ProfileUpdateOne {
+	if id != nil {
+		puo = puo.SetProfileEntryID(*id)
 	}
-	return puo.AddTodoIDs(ids...)
+	return puo
+}
+
+// SetProfileEntry sets the "profile_entry" edge to the ProfileEntry entity.
+func (puo *ProfileUpdateOne) SetProfileEntry(p *ProfileEntry) *ProfileUpdateOne {
+	return puo.SetProfileEntryID(p.ID)
 }
 
 // Mutation returns the ProfileMutation object of the builder.
@@ -363,25 +930,10 @@ func (puo *ProfileUpdateOne) Mutation() *ProfileMutation {
 	return puo.mutation
 }
 
-// ClearTodos clears all "todos" edges to the Todo entity.
-func (puo *ProfileUpdateOne) ClearTodos() *ProfileUpdateOne {
-	puo.mutation.ClearTodos()
+// ClearProfileEntry clears the "profile_entry" edge to the ProfileEntry entity.
+func (puo *ProfileUpdateOne) ClearProfileEntry() *ProfileUpdateOne {
+	puo.mutation.ClearProfileEntry()
 	return puo
-}
-
-// RemoveTodoIDs removes the "todos" edge to Todo entities by IDs.
-func (puo *ProfileUpdateOne) RemoveTodoIDs(ids ...ulid.ID) *ProfileUpdateOne {
-	puo.mutation.RemoveTodoIDs(ids...)
-	return puo
-}
-
-// RemoveTodos removes "todos" edges to Todo entities.
-func (puo *ProfileUpdateOne) RemoveTodos(t ...*Todo) *ProfileUpdateOne {
-	ids := make([]ulid.ID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
-	}
-	return puo.RemoveTodoIDs(ids...)
 }
 
 // Where appends a list predicates to the ProfileUpdate builder.
@@ -435,19 +987,24 @@ func (puo *ProfileUpdateOne) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (puo *ProfileUpdateOne) check() error {
-	if v, ok := puo.mutation.Name(); ok {
-		if err := profile.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Profile.name": %w`, err)}
-		}
-	}
 	if v, ok := puo.mutation.Urn(); ok {
 		if err := profile.UrnValidator(v); err != nil {
 			return &ValidationError{Name: "urn", err: fmt.Errorf(`ent: validator failed for field "Profile.urn": %w`, err)}
 		}
 	}
-	if v, ok := puo.mutation.SourceFile(); ok {
-		if err := profile.SourceFileValidator(v); err != nil {
-			return &ValidationError{Name: "source_file", err: fmt.Errorf(`ent: validator failed for field "Profile.source_file": %w`, err)}
+	if v, ok := puo.mutation.Name(); ok {
+		if err := profile.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Profile.name": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.RawDataS3Key(); ok {
+		if err := profile.RawDataS3KeyValidator(v); err != nil {
+			return &ValidationError{Name: "raw_data_s3_key", err: fmt.Errorf(`ent: validator failed for field "Profile.raw_data_s3_key": %w`, err)}
+		}
+	}
+	if v, ok := puo.mutation.CleanedDataS3Key(); ok {
+		if err := profile.CleanedDataS3KeyValidator(v); err != nil {
+			return &ValidationError{Name: "cleaned_data_s3_key", err: fmt.Errorf(`ent: validator failed for field "Profile.cleaned_data_s3_key": %w`, err)}
 		}
 	}
 	return nil
@@ -482,59 +1039,139 @@ func (puo *ProfileUpdateOne) sqlSave(ctx context.Context) (_node *Profile, err e
 			}
 		}
 	}
+	if value, ok := puo.mutation.Urn(); ok {
+		_spec.SetField(profile.FieldUrn, field.TypeString, value)
+	}
+	if value, ok := puo.mutation.Username(); ok {
+		_spec.SetField(profile.FieldUsername, field.TypeString, value)
+	}
+	if puo.mutation.UsernameCleared() {
+		_spec.ClearField(profile.FieldUsername, field.TypeString)
+	}
+	if value, ok := puo.mutation.FirstName(); ok {
+		_spec.SetField(profile.FieldFirstName, field.TypeString, value)
+	}
+	if puo.mutation.FirstNameCleared() {
+		_spec.ClearField(profile.FieldFirstName, field.TypeString)
+	}
+	if value, ok := puo.mutation.LastName(); ok {
+		_spec.SetField(profile.FieldLastName, field.TypeString, value)
+	}
+	if puo.mutation.LastNameCleared() {
+		_spec.ClearField(profile.FieldLastName, field.TypeString)
+	}
 	if value, ok := puo.mutation.Name(); ok {
 		_spec.SetField(profile.FieldName, field.TypeString, value)
+	}
+	if puo.mutation.NameCleared() {
+		_spec.ClearField(profile.FieldName, field.TypeString)
+	}
+	if value, ok := puo.mutation.Headline(); ok {
+		_spec.SetField(profile.FieldHeadline, field.TypeString, value)
+	}
+	if puo.mutation.HeadlineCleared() {
+		_spec.ClearField(profile.FieldHeadline, field.TypeString)
 	}
 	if value, ok := puo.mutation.Title(); ok {
 		_spec.SetField(profile.FieldTitle, field.TypeString, value)
 	}
-	if value, ok := puo.mutation.Urn(); ok {
-		_spec.SetField(profile.FieldUrn, field.TypeString, value)
+	if puo.mutation.TitleCleared() {
+		_spec.ClearField(profile.FieldTitle, field.TypeString)
+	}
+	if value, ok := puo.mutation.Country(); ok {
+		_spec.SetField(profile.FieldCountry, field.TypeString, value)
+	}
+	if puo.mutation.CountryCleared() {
+		_spec.ClearField(profile.FieldCountry, field.TypeString)
+	}
+	if value, ok := puo.mutation.City(); ok {
+		_spec.SetField(profile.FieldCity, field.TypeString, value)
+	}
+	if puo.mutation.CityCleared() {
+		_spec.ClearField(profile.FieldCity, field.TypeString)
+	}
+	if value, ok := puo.mutation.Educations(); ok {
+		_spec.SetField(profile.FieldEducations, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.AppendedEducations(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, profile.FieldEducations, value)
+		})
+	}
+	if puo.mutation.EducationsCleared() {
+		_spec.ClearField(profile.FieldEducations, field.TypeJSON)
+	}
+	if value, ok := puo.mutation.Positions(); ok {
+		_spec.SetField(profile.FieldPositions, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.AppendedPositions(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, profile.FieldPositions, value)
+		})
+	}
+	if puo.mutation.PositionsCleared() {
+		_spec.ClearField(profile.FieldPositions, field.TypeJSON)
+	}
+	if value, ok := puo.mutation.Skills(); ok {
+		_spec.SetField(profile.FieldSkills, field.TypeJSON, value)
+	}
+	if value, ok := puo.mutation.AppendedSkills(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, profile.FieldSkills, value)
+		})
+	}
+	if puo.mutation.SkillsCleared() {
+		_spec.ClearField(profile.FieldSkills, field.TypeJSON)
+	}
+	if value, ok := puo.mutation.GeoData(); ok {
+		_spec.SetField(profile.FieldGeoData, field.TypeJSON, value)
+	}
+	if puo.mutation.GeoDataCleared() {
+		_spec.ClearField(profile.FieldGeoData, field.TypeJSON)
+	}
+	if value, ok := puo.mutation.RawDataS3Key(); ok {
+		_spec.SetField(profile.FieldRawDataS3Key, field.TypeString, value)
+	}
+	if puo.mutation.RawDataS3KeyCleared() {
+		_spec.ClearField(profile.FieldRawDataS3Key, field.TypeString)
+	}
+	if value, ok := puo.mutation.CleanedDataS3Key(); ok {
+		_spec.SetField(profile.FieldCleanedDataS3Key, field.TypeString, value)
+	}
+	if puo.mutation.CleanedDataS3KeyCleared() {
+		_spec.ClearField(profile.FieldCleanedDataS3Key, field.TypeString)
 	}
 	if value, ok := puo.mutation.SourceFile(); ok {
 		_spec.SetField(profile.FieldSourceFile, field.TypeString, value)
 	}
+	if puo.mutation.SourceFileCleared() {
+		_spec.ClearField(profile.FieldSourceFile, field.TypeString)
+	}
 	if value, ok := puo.mutation.UpdatedAt(); ok {
 		_spec.SetField(profile.FieldUpdatedAt, field.TypeTime, value)
 	}
-	if puo.mutation.TodosCleared() {
+	if puo.mutation.ProfileEntryCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   profile.TodosTable,
-			Columns: []string{profile.TodosColumn},
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   profile.ProfileEntryTable,
+			Columns: []string{profile.ProfileEntryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.RemovedTodosIDs(); len(nodes) > 0 && !puo.mutation.TodosCleared() {
+	if nodes := puo.mutation.ProfileEntryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   profile.TodosTable,
-			Columns: []string{profile.TodosColumn},
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   profile.ProfileEntryTable,
+			Columns: []string{profile.ProfileEntryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeString),
-			},
-		}
-		for _, k := range nodes {
-			edge.Target.Nodes = append(edge.Target.Nodes, k)
-		}
-		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
-	}
-	if nodes := puo.mutation.TodosIDs(); len(nodes) > 0 {
-		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   profile.TodosTable,
-			Columns: []string{profile.TodosColumn},
-			Bidi:    false,
-			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

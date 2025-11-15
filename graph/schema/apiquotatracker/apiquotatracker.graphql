@@ -1,0 +1,28 @@
+type APIQuotaTracker implements Node {
+  id: ID!
+  month: Int!
+  year: Int!
+  callCount: Int!
+  quotaLimit: Int!
+  quotaExceeded: Boolean!
+  overrideEnabled: Boolean!
+  notificationSent: Boolean!
+  lastCallAt: Time
+  createdAt: Time!
+}
+
+extend type Query {
+  # Get current month's quota status
+  currentQuotaStatus: APIQuotaTracker
+
+  # Get historical quota data
+  quotaHistory(limit: Int): [APIQuotaTracker!]!
+}
+
+extend type Mutation {
+  # Enable/disable quota override
+  setQuotaOverride(enabled: Boolean!): APIQuotaTracker!
+
+  # Update monthly quota limit
+  updateQuotaLimit(limit: Int!): APIQuotaTracker!
+}

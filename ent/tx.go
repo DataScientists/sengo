@@ -12,6 +12,12 @@ import (
 // Tx is a transactional client that is created by calling Client.Tx().
 type Tx struct {
 	config
+	// APIQuotaTracker is the client for interacting with the APIQuotaTracker builders.
+	APIQuotaTracker *APIQuotaTrackerClient
+	// CronJobConfig is the client for interacting with the CronJobConfig builders.
+	CronJobConfig *CronJobConfigClient
+	// JobExecutionHistory is the client for interacting with the JobExecutionHistory builders.
+	JobExecutionHistory *JobExecutionHistoryClient
 	// Profile is the client for interacting with the Profile builders.
 	Profile *ProfileClient
 	// ProfileEntry is the client for interacting with the ProfileEntry builders.
@@ -151,6 +157,9 @@ func (tx *Tx) Client() *Client {
 }
 
 func (tx *Tx) init() {
+	tx.APIQuotaTracker = NewAPIQuotaTrackerClient(tx.config)
+	tx.CronJobConfig = NewCronJobConfigClient(tx.config)
+	tx.JobExecutionHistory = NewJobExecutionHistoryClient(tx.config)
 	tx.Profile = NewProfileClient(tx.config)
 	tx.ProfileEntry = NewProfileEntryClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
@@ -164,7 +173,7 @@ func (tx *Tx) init() {
 // of them in order to commit or rollback the transaction.
 //
 // If a closed transaction is embedded in one of the generated entities, and the entity
-// applies a query, for example: Profile.QueryXXX(), the query will be executed
+// applies a query, for example: APIQuotaTracker.QueryXXX(), the query will be executed
 // through the driver which created this transaction.
 //
 // Note that txDriver is not goroutine safe.

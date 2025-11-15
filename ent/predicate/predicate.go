@@ -6,6 +6,15 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// APIQuotaTracker is the predicate function for apiquotatracker builders.
+type APIQuotaTracker func(*sql.Selector)
+
+// CronJobConfig is the predicate function for cronjobconfig builders.
+type CronJobConfig func(*sql.Selector)
+
+// JobExecutionHistory is the predicate function for jobexecutionhistory builders.
+type JobExecutionHistory func(*sql.Selector)
+
 // Profile is the predicate function for profile builders.
 type Profile func(*sql.Selector)
 

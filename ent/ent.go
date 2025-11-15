@@ -7,6 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sheng-go-backend/ent/apiquotatracker"
+	"sheng-go-backend/ent/cronjobconfig"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/todo"
@@ -76,10 +79,13 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
-			profile.Table:      profile.ValidColumn,
-			profileentry.Table: profileentry.ValidColumn,
-			todo.Table:         todo.ValidColumn,
-			user.Table:         user.ValidColumn,
+			apiquotatracker.Table:     apiquotatracker.ValidColumn,
+			cronjobconfig.Table:       cronjobconfig.ValidColumn,
+			jobexecutionhistory.Table: jobexecutionhistory.ValidColumn,
+			profile.Table:             profile.ValidColumn,
+			profileentry.Table:        profileentry.ValidColumn,
+			todo.Table:                todo.ValidColumn,
+			user.Table:                user.ValidColumn,
 		})
 	})
 	return columnCheck(table, column)

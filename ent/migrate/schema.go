@@ -8,21 +8,194 @@ import (
 )
 
 var (
+	// APIQuotaTrackersColumns holds the columns for the "api_quota_trackers" table.
+	APIQuotaTrackersColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "month", Type: field.TypeInt},
+		{Name: "year", Type: field.TypeInt},
+		{Name: "call_count", Type: field.TypeInt, Default: 0},
+		{Name: "quota_limit", Type: field.TypeInt, Default: 50000},
+		{Name: "quota_exceeded", Type: field.TypeBool, Default: false},
+		{Name: "override_enabled", Type: field.TypeBool, Default: false},
+		{Name: "notification_sent", Type: field.TypeBool, Default: false},
+		{Name: "last_call_at", Type: field.TypeTime, Nullable: true},
+	}
+	// APIQuotaTrackersTable holds the schema information for the "api_quota_trackers" table.
+	APIQuotaTrackersTable = &schema.Table{
+		Name:       "api_quota_trackers",
+		Columns:    APIQuotaTrackersColumns,
+		PrimaryKey: []*schema.Column{APIQuotaTrackersColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "apiquotatracker_month_year",
+				Unique:  true,
+				Columns: []*schema.Column{APIQuotaTrackersColumns[3], APIQuotaTrackersColumns[4]},
+			},
+			{
+				Name:    "apiquotatracker_year_month",
+				Unique:  false,
+				Columns: []*schema.Column{APIQuotaTrackersColumns[4], APIQuotaTrackersColumns[3]},
+			},
+		},
+	}
+	// CronJobConfigsColumns holds the columns for the "cron_job_configs" table.
+	CronJobConfigsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "job_name", Type: field.TypeString, Unique: true, Size: 100},
+		{Name: "job_type", Type: field.TypeEnum, Enums: []string{"PROFILE_FETCHER", "QUOTA_RESET"}},
+		{Name: "schedule", Type: field.TypeString},
+		{Name: "enabled", Type: field.TypeBool, Default: true},
+		{Name: "batch_size", Type: field.TypeInt, Default: 10},
+		{Name: "admin_email", Type: field.TypeString},
+		{Name: "respect_quota", Type: field.TypeBool, Default: true},
+		{Name: "last_run_at", Type: field.TypeTime, Nullable: true},
+		{Name: "next_run_at", Type: field.TypeTime, Nullable: true},
+	}
+	// CronJobConfigsTable holds the schema information for the "cron_job_configs" table.
+	CronJobConfigsTable = &schema.Table{
+		Name:       "cron_job_configs",
+		Columns:    CronJobConfigsColumns,
+		PrimaryKey: []*schema.Column{CronJobConfigsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "cronjobconfig_job_name",
+				Unique:  true,
+				Columns: []*schema.Column{CronJobConfigsColumns[3]},
+			},
+			{
+				Name:    "cronjobconfig_enabled",
+				Unique:  false,
+				Columns: []*schema.Column{CronJobConfigsColumns[6]},
+			},
+			{
+				Name:    "cronjobconfig_job_type",
+				Unique:  false,
+				Columns: []*schema.Column{CronJobConfigsColumns[4]},
+			},
+		},
+	}
+	// JobExecutionHistoriesColumns holds the columns for the "job_execution_histories" table.
+	JobExecutionHistoriesColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "job_name", Type: field.TypeString, Size: 100},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"SUCCESS", "FAILED", "PARTIAL", "QUOTA_EXCEEDED"}},
+		{Name: "started_at", Type: field.TypeTime},
+		{Name: "completed_at", Type: field.TypeTime, Nullable: true},
+		{Name: "duration_seconds", Type: field.TypeInt, Default: 0},
+		{Name: "total_processed", Type: field.TypeInt, Default: 0},
+		{Name: "successful_count", Type: field.TypeInt, Default: 0},
+		{Name: "failed_count", Type: field.TypeInt, Default: 0},
+		{Name: "api_calls_made", Type: field.TypeInt, Default: 0},
+		{Name: "quota_remaining", Type: field.TypeInt, Default: 0},
+		{Name: "error_summary", Type: field.TypeString, Nullable: true, Size: 2147483647},
+	}
+	// JobExecutionHistoriesTable holds the schema information for the "job_execution_histories" table.
+	JobExecutionHistoriesTable = &schema.Table{
+		Name:       "job_execution_histories",
+		Columns:    JobExecutionHistoriesColumns,
+		PrimaryKey: []*schema.Column{JobExecutionHistoriesColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "jobexecutionhistory_job_name",
+				Unique:  false,
+				Columns: []*schema.Column{JobExecutionHistoriesColumns[3]},
+			},
+			{
+				Name:    "jobexecutionhistory_status",
+				Unique:  false,
+				Columns: []*schema.Column{JobExecutionHistoriesColumns[4]},
+			},
+			{
+				Name:    "idx_started_at_desc",
+				Unique:  false,
+				Columns: []*schema.Column{JobExecutionHistoriesColumns[5]},
+			},
+			{
+				Name:    "jobexecutionhistory_job_name_started_at",
+				Unique:  false,
+				Columns: []*schema.Column{JobExecutionHistoriesColumns[3], JobExecutionHistoriesColumns[5]},
+			},
+		},
+	}
 	// ProfilesColumns holds the columns for the "profiles" table.
 	ProfilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
-		{Name: "name", Type: field.TypeString, Size: 255},
-		{Name: "title", Type: field.TypeString},
 		{Name: "urn", Type: field.TypeString, Unique: true},
-		{Name: "source_file", Type: field.TypeString, Unique: true},
+		{Name: "username", Type: field.TypeString, Nullable: true},
+		{Name: "first_name", Type: field.TypeString, Nullable: true},
+		{Name: "last_name", Type: field.TypeString, Nullable: true},
+		{Name: "name", Type: field.TypeString, Nullable: true, Size: 255},
+		{Name: "headline", Type: field.TypeString, Nullable: true},
+		{Name: "title", Type: field.TypeString, Nullable: true},
+		{Name: "country", Type: field.TypeString, Nullable: true},
+		{Name: "city", Type: field.TypeString, Nullable: true},
+		{Name: "educations", Type: field.TypeJSON, Nullable: true},
+		{Name: "positions", Type: field.TypeJSON, Nullable: true},
+		{Name: "skills", Type: field.TypeJSON, Nullable: true},
+		{Name: "geo_data", Type: field.TypeJSON, Nullable: true},
+		{Name: "raw_data_s3_key", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "cleaned_data_s3_key", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "source_file", Type: field.TypeString, Nullable: true},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "profile_entry_profile", Type: field.TypeString, Unique: true, Nullable: true},
 	}
 	// ProfilesTable holds the schema information for the "profiles" table.
 	ProfilesTable = &schema.Table{
 		Name:       "profiles",
 		Columns:    ProfilesColumns,
 		PrimaryKey: []*schema.Column{ProfilesColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "profiles_profile_entries_profile",
+				Columns:    []*schema.Column{ProfilesColumns[19]},
+				RefColumns: []*schema.Column{ProfileEntriesColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "profile_first_name",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilesColumns[3]},
+			},
+			{
+				Name:    "profile_last_name",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilesColumns[4]},
+			},
+			{
+				Name:    "profile_username",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilesColumns[2]},
+			},
+			{
+				Name:    "profile_country",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilesColumns[8]},
+			},
+			{
+				Name:    "profile_city",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilesColumns[9]},
+			},
+			{
+				Name:    "profile_country_city",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilesColumns[8], ProfilesColumns[9]},
+			},
+			{
+				Name:    "profile_urn",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilesColumns[1]},
+			},
+		},
 	}
 	// ProfileEntriesColumns holds the columns for the "profile_entries" table.
 	ProfileEntriesColumns = []*schema.Column{
@@ -75,7 +248,6 @@ var (
 		{Name: "priority", Type: field.TypeInt, Default: 0},
 		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
-		{Name: "profile_todos", Type: field.TypeString, Nullable: true},
 		{Name: "user_id", Type: field.TypeString, Nullable: true},
 	}
 	// TodosTable holds the schema information for the "todos" table.
@@ -85,14 +257,8 @@ var (
 		PrimaryKey: []*schema.Column{TodosColumns[0]},
 		ForeignKeys: []*schema.ForeignKey{
 			{
-				Symbol:     "todos_profiles_todos",
-				Columns:    []*schema.Column{TodosColumns[6]},
-				RefColumns: []*schema.Column{ProfilesColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-			{
 				Symbol:     "todos_users_todos",
-				Columns:    []*schema.Column{TodosColumns[7]},
+				Columns:    []*schema.Column{TodosColumns[6]},
 				RefColumns: []*schema.Column{UsersColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -116,6 +282,9 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		APIQuotaTrackersTable,
+		CronJobConfigsTable,
+		JobExecutionHistoriesTable,
 		ProfilesTable,
 		ProfileEntriesTable,
 		TodosTable,
@@ -124,6 +293,6 @@ var (
 )
 
 func init() {
-	TodosTable.ForeignKeys[0].RefTable = ProfilesTable
-	TodosTable.ForeignKeys[1].RefTable = UsersTable
+	ProfilesTable.ForeignKeys[0].RefTable = ProfileEntriesTable
+	TodosTable.ForeignKeys[0].RefTable = UsersTable
 }

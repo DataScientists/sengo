@@ -4,6 +4,9 @@ package ent
 
 import (
 	"context"
+	"sheng-go-backend/ent/apiquotatracker"
+	"sheng-go-backend/ent/cronjobconfig"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/todo"
@@ -11,6 +14,362 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 )
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (aqt *APIQuotaTrackerQuery) CollectFields(ctx context.Context, satisfies ...string) (*APIQuotaTrackerQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return aqt, nil
+	}
+	if err := aqt.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return aqt, nil
+}
+
+func (aqt *APIQuotaTrackerQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(apiquotatracker.Columns))
+		selectedFields = []string{apiquotatracker.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "createdAt":
+			if _, ok := fieldSeen[apiquotatracker.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldCreatedAt)
+				fieldSeen[apiquotatracker.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[apiquotatracker.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldUpdatedAt)
+				fieldSeen[apiquotatracker.FieldUpdatedAt] = struct{}{}
+			}
+		case "month":
+			if _, ok := fieldSeen[apiquotatracker.FieldMonth]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldMonth)
+				fieldSeen[apiquotatracker.FieldMonth] = struct{}{}
+			}
+		case "year":
+			if _, ok := fieldSeen[apiquotatracker.FieldYear]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldYear)
+				fieldSeen[apiquotatracker.FieldYear] = struct{}{}
+			}
+		case "callCount":
+			if _, ok := fieldSeen[apiquotatracker.FieldCallCount]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldCallCount)
+				fieldSeen[apiquotatracker.FieldCallCount] = struct{}{}
+			}
+		case "quotaLimit":
+			if _, ok := fieldSeen[apiquotatracker.FieldQuotaLimit]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldQuotaLimit)
+				fieldSeen[apiquotatracker.FieldQuotaLimit] = struct{}{}
+			}
+		case "quotaExceeded":
+			if _, ok := fieldSeen[apiquotatracker.FieldQuotaExceeded]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldQuotaExceeded)
+				fieldSeen[apiquotatracker.FieldQuotaExceeded] = struct{}{}
+			}
+		case "overrideEnabled":
+			if _, ok := fieldSeen[apiquotatracker.FieldOverrideEnabled]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldOverrideEnabled)
+				fieldSeen[apiquotatracker.FieldOverrideEnabled] = struct{}{}
+			}
+		case "notificationSent":
+			if _, ok := fieldSeen[apiquotatracker.FieldNotificationSent]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldNotificationSent)
+				fieldSeen[apiquotatracker.FieldNotificationSent] = struct{}{}
+			}
+		case "lastCallAt":
+			if _, ok := fieldSeen[apiquotatracker.FieldLastCallAt]; !ok {
+				selectedFields = append(selectedFields, apiquotatracker.FieldLastCallAt)
+				fieldSeen[apiquotatracker.FieldLastCallAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		aqt.Select(selectedFields...)
+	}
+	return nil
+}
+
+type apiquotatrackerPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []APIQuotaTrackerPaginateOption
+}
+
+func newAPIQuotaTrackerPaginateArgs(rv map[string]any) *apiquotatrackerPaginateArgs {
+	args := &apiquotatrackerPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*APIQuotaTrackerWhereInput); ok {
+		args.opts = append(args.opts, WithAPIQuotaTrackerFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (cjc *CronJobConfigQuery) CollectFields(ctx context.Context, satisfies ...string) (*CronJobConfigQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return cjc, nil
+	}
+	if err := cjc.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return cjc, nil
+}
+
+func (cjc *CronJobConfigQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(cronjobconfig.Columns))
+		selectedFields = []string{cronjobconfig.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "createdAt":
+			if _, ok := fieldSeen[cronjobconfig.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldCreatedAt)
+				fieldSeen[cronjobconfig.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[cronjobconfig.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldUpdatedAt)
+				fieldSeen[cronjobconfig.FieldUpdatedAt] = struct{}{}
+			}
+		case "jobName":
+			if _, ok := fieldSeen[cronjobconfig.FieldJobName]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldJobName)
+				fieldSeen[cronjobconfig.FieldJobName] = struct{}{}
+			}
+		case "jobType":
+			if _, ok := fieldSeen[cronjobconfig.FieldJobType]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldJobType)
+				fieldSeen[cronjobconfig.FieldJobType] = struct{}{}
+			}
+		case "schedule":
+			if _, ok := fieldSeen[cronjobconfig.FieldSchedule]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldSchedule)
+				fieldSeen[cronjobconfig.FieldSchedule] = struct{}{}
+			}
+		case "enabled":
+			if _, ok := fieldSeen[cronjobconfig.FieldEnabled]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldEnabled)
+				fieldSeen[cronjobconfig.FieldEnabled] = struct{}{}
+			}
+		case "batchSize":
+			if _, ok := fieldSeen[cronjobconfig.FieldBatchSize]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldBatchSize)
+				fieldSeen[cronjobconfig.FieldBatchSize] = struct{}{}
+			}
+		case "adminEmail":
+			if _, ok := fieldSeen[cronjobconfig.FieldAdminEmail]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldAdminEmail)
+				fieldSeen[cronjobconfig.FieldAdminEmail] = struct{}{}
+			}
+		case "respectQuota":
+			if _, ok := fieldSeen[cronjobconfig.FieldRespectQuota]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldRespectQuota)
+				fieldSeen[cronjobconfig.FieldRespectQuota] = struct{}{}
+			}
+		case "lastRunAt":
+			if _, ok := fieldSeen[cronjobconfig.FieldLastRunAt]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldLastRunAt)
+				fieldSeen[cronjobconfig.FieldLastRunAt] = struct{}{}
+			}
+		case "nextRunAt":
+			if _, ok := fieldSeen[cronjobconfig.FieldNextRunAt]; !ok {
+				selectedFields = append(selectedFields, cronjobconfig.FieldNextRunAt)
+				fieldSeen[cronjobconfig.FieldNextRunAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		cjc.Select(selectedFields...)
+	}
+	return nil
+}
+
+type cronjobconfigPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []CronJobConfigPaginateOption
+}
+
+func newCronJobConfigPaginateArgs(rv map[string]any) *cronjobconfigPaginateArgs {
+	args := &cronjobconfigPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*CronJobConfigWhereInput); ok {
+		args.opts = append(args.opts, WithCronJobConfigFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (jeh *JobExecutionHistoryQuery) CollectFields(ctx context.Context, satisfies ...string) (*JobExecutionHistoryQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return jeh, nil
+	}
+	if err := jeh.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return jeh, nil
+}
+
+func (jeh *JobExecutionHistoryQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(jobexecutionhistory.Columns))
+		selectedFields = []string{jobexecutionhistory.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+		case "createdAt":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldCreatedAt)
+				fieldSeen[jobexecutionhistory.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldUpdatedAt)
+				fieldSeen[jobexecutionhistory.FieldUpdatedAt] = struct{}{}
+			}
+		case "jobName":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldJobName]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldJobName)
+				fieldSeen[jobexecutionhistory.FieldJobName] = struct{}{}
+			}
+		case "status":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldStatus]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldStatus)
+				fieldSeen[jobexecutionhistory.FieldStatus] = struct{}{}
+			}
+		case "startedAt":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldStartedAt]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldStartedAt)
+				fieldSeen[jobexecutionhistory.FieldStartedAt] = struct{}{}
+			}
+		case "completedAt":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldCompletedAt]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldCompletedAt)
+				fieldSeen[jobexecutionhistory.FieldCompletedAt] = struct{}{}
+			}
+		case "durationSeconds":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldDurationSeconds]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldDurationSeconds)
+				fieldSeen[jobexecutionhistory.FieldDurationSeconds] = struct{}{}
+			}
+		case "totalProcessed":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldTotalProcessed]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldTotalProcessed)
+				fieldSeen[jobexecutionhistory.FieldTotalProcessed] = struct{}{}
+			}
+		case "successfulCount":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldSuccessfulCount]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldSuccessfulCount)
+				fieldSeen[jobexecutionhistory.FieldSuccessfulCount] = struct{}{}
+			}
+		case "failedCount":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldFailedCount]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldFailedCount)
+				fieldSeen[jobexecutionhistory.FieldFailedCount] = struct{}{}
+			}
+		case "apiCallsMade":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldAPICallsMade]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldAPICallsMade)
+				fieldSeen[jobexecutionhistory.FieldAPICallsMade] = struct{}{}
+			}
+		case "quotaRemaining":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldQuotaRemaining]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldQuotaRemaining)
+				fieldSeen[jobexecutionhistory.FieldQuotaRemaining] = struct{}{}
+			}
+		case "errorSummary":
+			if _, ok := fieldSeen[jobexecutionhistory.FieldErrorSummary]; !ok {
+				selectedFields = append(selectedFields, jobexecutionhistory.FieldErrorSummary)
+				fieldSeen[jobexecutionhistory.FieldErrorSummary] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		jeh.Select(selectedFields...)
+	}
+	return nil
+}
+
+type jobexecutionhistoryPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []JobExecutionHistoryPaginateOption
+}
+
+func newJobExecutionHistoryPaginateArgs(rv map[string]any) *jobexecutionhistoryPaginateArgs {
+	args := &jobexecutionhistoryPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*JobExecutionHistoryWhereInput); ok {
+		args.opts = append(args.opts, WithJobExecutionHistoryFilter(v.Filter))
+	}
+	return args
+}
 
 // CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
 func (pr *ProfileQuery) CollectFields(ctx context.Context, satisfies ...string) (*ProfileQuery, error) {
@@ -34,32 +393,90 @@ func (pr *ProfileQuery) collectField(ctx context.Context, oneNode bool, opCtx *g
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
 
-		case "todos":
+		case "profileEntry":
 			var (
 				alias = field.Alias
 				path  = append(path, alias)
-				query = (&TodoClient{config: pr.config}).Query()
+				query = (&ProfileEntryClient{config: pr.config}).Query()
 			)
-			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, todoImplementors)...); err != nil {
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, profileentryImplementors)...); err != nil {
 				return err
 			}
-			pr.WithNamedTodos(alias, func(wq *TodoQuery) {
-				*wq = *query
-			})
+			pr.withProfileEntry = query
+		case "urn":
+			if _, ok := fieldSeen[profile.FieldUrn]; !ok {
+				selectedFields = append(selectedFields, profile.FieldUrn)
+				fieldSeen[profile.FieldUrn] = struct{}{}
+			}
+		case "username":
+			if _, ok := fieldSeen[profile.FieldUsername]; !ok {
+				selectedFields = append(selectedFields, profile.FieldUsername)
+				fieldSeen[profile.FieldUsername] = struct{}{}
+			}
+		case "firstName":
+			if _, ok := fieldSeen[profile.FieldFirstName]; !ok {
+				selectedFields = append(selectedFields, profile.FieldFirstName)
+				fieldSeen[profile.FieldFirstName] = struct{}{}
+			}
+		case "lastName":
+			if _, ok := fieldSeen[profile.FieldLastName]; !ok {
+				selectedFields = append(selectedFields, profile.FieldLastName)
+				fieldSeen[profile.FieldLastName] = struct{}{}
+			}
 		case "name":
 			if _, ok := fieldSeen[profile.FieldName]; !ok {
 				selectedFields = append(selectedFields, profile.FieldName)
 				fieldSeen[profile.FieldName] = struct{}{}
+			}
+		case "headline":
+			if _, ok := fieldSeen[profile.FieldHeadline]; !ok {
+				selectedFields = append(selectedFields, profile.FieldHeadline)
+				fieldSeen[profile.FieldHeadline] = struct{}{}
 			}
 		case "title":
 			if _, ok := fieldSeen[profile.FieldTitle]; !ok {
 				selectedFields = append(selectedFields, profile.FieldTitle)
 				fieldSeen[profile.FieldTitle] = struct{}{}
 			}
-		case "urn":
-			if _, ok := fieldSeen[profile.FieldUrn]; !ok {
-				selectedFields = append(selectedFields, profile.FieldUrn)
-				fieldSeen[profile.FieldUrn] = struct{}{}
+		case "country":
+			if _, ok := fieldSeen[profile.FieldCountry]; !ok {
+				selectedFields = append(selectedFields, profile.FieldCountry)
+				fieldSeen[profile.FieldCountry] = struct{}{}
+			}
+		case "city":
+			if _, ok := fieldSeen[profile.FieldCity]; !ok {
+				selectedFields = append(selectedFields, profile.FieldCity)
+				fieldSeen[profile.FieldCity] = struct{}{}
+			}
+		case "educations":
+			if _, ok := fieldSeen[profile.FieldEducations]; !ok {
+				selectedFields = append(selectedFields, profile.FieldEducations)
+				fieldSeen[profile.FieldEducations] = struct{}{}
+			}
+		case "positions":
+			if _, ok := fieldSeen[profile.FieldPositions]; !ok {
+				selectedFields = append(selectedFields, profile.FieldPositions)
+				fieldSeen[profile.FieldPositions] = struct{}{}
+			}
+		case "skills":
+			if _, ok := fieldSeen[profile.FieldSkills]; !ok {
+				selectedFields = append(selectedFields, profile.FieldSkills)
+				fieldSeen[profile.FieldSkills] = struct{}{}
+			}
+		case "geoData":
+			if _, ok := fieldSeen[profile.FieldGeoData]; !ok {
+				selectedFields = append(selectedFields, profile.FieldGeoData)
+				fieldSeen[profile.FieldGeoData] = struct{}{}
+			}
+		case "rawDataS3Key":
+			if _, ok := fieldSeen[profile.FieldRawDataS3Key]; !ok {
+				selectedFields = append(selectedFields, profile.FieldRawDataS3Key)
+				fieldSeen[profile.FieldRawDataS3Key] = struct{}{}
+			}
+		case "cleanedDataS3Key":
+			if _, ok := fieldSeen[profile.FieldCleanedDataS3Key]; !ok {
+				selectedFields = append(selectedFields, profile.FieldCleanedDataS3Key)
+				fieldSeen[profile.FieldCleanedDataS3Key] = struct{}{}
 			}
 		case "sourceFile":
 			if _, ok := fieldSeen[profile.FieldSourceFile]; !ok {
@@ -138,6 +555,17 @@ func (pe *ProfileEntryQuery) collectField(ctx context.Context, oneNode bool, opC
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+
+		case "profile":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProfileClient{config: pe.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, profileImplementors)...); err != nil {
+				return err
+			}
+			pe.withProfile = query
 		case "createdAt":
 			if _, ok := fieldSeen[profileentry.FieldCreatedAt]; !ok {
 				selectedFields = append(selectedFields, profileentry.FieldCreatedAt)

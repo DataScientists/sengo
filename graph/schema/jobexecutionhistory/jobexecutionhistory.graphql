@@ -1,0 +1,50 @@
+type JobExecutionHistory implements Node {
+  id: ID!
+  jobName: String!
+  status: JobExecutionStatus!
+  startedAt: Time!
+  completedAt: Time
+  durationSeconds: Int!
+  totalProcessed: Int!
+  successfulCount: Int!
+  failedCount: Int!
+  apiCallsMade: Int!
+  quotaRemaining: Int!
+  errorSummary: String
+  createdAt: Time!
+}
+
+enum JobExecutionStatus {
+  SUCCESS
+  FAILED
+  PARTIAL
+  QUOTA_EXCEEDED
+}
+
+type JobStats {
+  totalExecutions: Int!
+  successRate: Float!
+  averageDuration: Int!
+  totalProfiles: Int!
+  totalAPICallsMade: Int!
+}
+
+extend type Query {
+  # Get job execution history with optional filtering
+  jobExecutionHistory(
+    jobName: String
+    limit: Int
+    where: JobExecutionHistoryWhereInput
+  ): [JobExecutionHistory!]!
+
+  # Get the most recent execution for a job
+  latestJobExecution(jobName: String!): JobExecutionHistory
+
+  # Get statistics for a job
+  jobStats(jobName: String!, days: Int): JobStats!
+}
+
+extend type Mutation {
+  # Manually trigger the profile fetch job
+  triggerProfileFetch: JobExecutionHistory!
+}

@@ -7,7 +7,9 @@ import (
 	"errors"
 	"fmt"
 	"sheng-go-backend/ent/predicate"
+	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/schema/ulid"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -195,9 +197,34 @@ func (peu *ProfileEntryUpdate) ClearErrorMessage() *ProfileEntryUpdate {
 	return peu
 }
 
+// SetProfileID sets the "profile" edge to the Profile entity by ID.
+func (peu *ProfileEntryUpdate) SetProfileID(id ulid.ID) *ProfileEntryUpdate {
+	peu.mutation.SetProfileID(id)
+	return peu
+}
+
+// SetNillableProfileID sets the "profile" edge to the Profile entity by ID if the given value is not nil.
+func (peu *ProfileEntryUpdate) SetNillableProfileID(id *ulid.ID) *ProfileEntryUpdate {
+	if id != nil {
+		peu = peu.SetProfileID(*id)
+	}
+	return peu
+}
+
+// SetProfile sets the "profile" edge to the Profile entity.
+func (peu *ProfileEntryUpdate) SetProfile(p *Profile) *ProfileEntryUpdate {
+	return peu.SetProfileID(p.ID)
+}
+
 // Mutation returns the ProfileEntryMutation object of the builder.
 func (peu *ProfileEntryUpdate) Mutation() *ProfileEntryMutation {
 	return peu.mutation
+}
+
+// ClearProfile clears the "profile" edge to the Profile entity.
+func (peu *ProfileEntryUpdate) ClearProfile() *ProfileEntryUpdate {
+	peu.mutation.ClearProfile()
+	return peu
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -328,6 +355,35 @@ func (peu *ProfileEntryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if peu.mutation.ErrorMessageCleared() {
 		_spec.ClearField(profileentry.FieldErrorMessage, field.TypeString)
+	}
+	if peu.mutation.ProfileCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   profileentry.ProfileTable,
+			Columns: []string{profileentry.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := peu.mutation.ProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   profileentry.ProfileTable,
+			Columns: []string{profileentry.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, peu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -516,9 +572,34 @@ func (peuo *ProfileEntryUpdateOne) ClearErrorMessage() *ProfileEntryUpdateOne {
 	return peuo
 }
 
+// SetProfileID sets the "profile" edge to the Profile entity by ID.
+func (peuo *ProfileEntryUpdateOne) SetProfileID(id ulid.ID) *ProfileEntryUpdateOne {
+	peuo.mutation.SetProfileID(id)
+	return peuo
+}
+
+// SetNillableProfileID sets the "profile" edge to the Profile entity by ID if the given value is not nil.
+func (peuo *ProfileEntryUpdateOne) SetNillableProfileID(id *ulid.ID) *ProfileEntryUpdateOne {
+	if id != nil {
+		peuo = peuo.SetProfileID(*id)
+	}
+	return peuo
+}
+
+// SetProfile sets the "profile" edge to the Profile entity.
+func (peuo *ProfileEntryUpdateOne) SetProfile(p *Profile) *ProfileEntryUpdateOne {
+	return peuo.SetProfileID(p.ID)
+}
+
 // Mutation returns the ProfileEntryMutation object of the builder.
 func (peuo *ProfileEntryUpdateOne) Mutation() *ProfileEntryMutation {
 	return peuo.mutation
+}
+
+// ClearProfile clears the "profile" edge to the Profile entity.
+func (peuo *ProfileEntryUpdateOne) ClearProfile() *ProfileEntryUpdateOne {
+	peuo.mutation.ClearProfile()
+	return peuo
 }
 
 // Where appends a list predicates to the ProfileEntryUpdate builder.
@@ -679,6 +760,35 @@ func (peuo *ProfileEntryUpdateOne) sqlSave(ctx context.Context) (_node *ProfileE
 	}
 	if peuo.mutation.ErrorMessageCleared() {
 		_spec.ClearField(profileentry.FieldErrorMessage, field.TypeString)
+	}
+	if peuo.mutation.ProfileCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   profileentry.ProfileTable,
+			Columns: []string{profileentry.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := peuo.mutation.ProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   profileentry.ProfileTable,
+			Columns: []string{profileentry.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &ProfileEntry{config: peuo.config}
 	_spec.Assign = _node.assignValues

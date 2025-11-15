@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"sheng-go-backend/ent/apiquotatracker"
+	"sheng-go-backend/ent/cronjobconfig"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/todo"
@@ -17,10 +20,13 @@ type field struct {
 
 // GlobalIDs maps unique string to tables names.
 type GlobalIDs struct {
-	User         field
-	Todo         field
-	Profile      field
-	ProfileEntry field
+	User                 field
+	Todo                 field
+	Profile              field
+	ProfileEntry         field
+	APIQuotaTracker      field
+	CronJobConfig        field
+	JobExecutionHistory  field
 }
 
 // New generates a map object that is intended to be used as global identification for node interface query.
@@ -38,9 +44,22 @@ func New() GlobalIDs {
 		Profile: field{
 			Prefix: "0AC",
 			Table:  profile.Table,
-		}, ProfileEntry: field{
-			Prefix: "0AC",
+		},
+		ProfileEntry: field{
+			Prefix: "0AD",
 			Table:  profileentry.Table,
+		},
+		APIQuotaTracker: field{
+			Prefix: "0AE",
+			Table:  apiquotatracker.Table,
+		},
+		CronJobConfig: field{
+			Prefix: "0AF",
+			Table:  cronjobconfig.Table,
+		},
+		JobExecutionHistory: field{
+			Prefix: "0AG",
+			Table:  jobexecutionhistory.Table,
 		},
 	}
 }

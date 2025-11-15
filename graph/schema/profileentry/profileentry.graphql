@@ -33,9 +33,9 @@ input CreateProfileEntryInput {
 }
 
 input UpdateProfileEntryInput {
-  id: ID!
   linkedinUrn: String
   gender: String
+  status: ProfileEntryStatus
 }
 
 extend type Query {
@@ -51,5 +51,7 @@ extend type Query {
 
 extend type Mutation {
   createProfileEntry(input: CreateProfileEntryInput!): ProfileEntry!
-  updateProfileEntry(input: UpdateProfileEntryInput!): ProfileEntry!
+  updateProfileEntry(id: ID!, input: UpdateProfileEntryInput!): ProfileEntry!
+  deleteProfileEntry(id: ID!): Boolean!
+  fetchProfileEntry(id: ID!): Boolean!
 }

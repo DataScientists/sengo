@@ -12,6 +12,9 @@ import (
 	"sheng-go-backend/ent/migrate"
 	"sheng-go-backend/ent/schema/ulid"
 
+	"sheng-go-backend/ent/apiquotatracker"
+	"sheng-go-backend/ent/cronjobconfig"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/todo"
@@ -28,6 +31,12 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// APIQuotaTracker is the client for interacting with the APIQuotaTracker builders.
+	APIQuotaTracker *APIQuotaTrackerClient
+	// CronJobConfig is the client for interacting with the CronJobConfig builders.
+	CronJobConfig *CronJobConfigClient
+	// JobExecutionHistory is the client for interacting with the JobExecutionHistory builders.
+	JobExecutionHistory *JobExecutionHistoryClient
 	// Profile is the client for interacting with the Profile builders.
 	Profile *ProfileClient
 	// ProfileEntry is the client for interacting with the ProfileEntry builders.
@@ -47,6 +56,9 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.APIQuotaTracker = NewAPIQuotaTrackerClient(c.config)
+	c.CronJobConfig = NewCronJobConfigClient(c.config)
+	c.JobExecutionHistory = NewJobExecutionHistoryClient(c.config)
 	c.Profile = NewProfileClient(c.config)
 	c.ProfileEntry = NewProfileEntryClient(c.config)
 	c.Todo = NewTodoClient(c.config)
@@ -141,12 +153,15 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Profile:      NewProfileClient(cfg),
-		ProfileEntry: NewProfileEntryClient(cfg),
-		Todo:         NewTodoClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:                 ctx,
+		config:              cfg,
+		APIQuotaTracker:     NewAPIQuotaTrackerClient(cfg),
+		CronJobConfig:       NewCronJobConfigClient(cfg),
+		JobExecutionHistory: NewJobExecutionHistoryClient(cfg),
+		Profile:             NewProfileClient(cfg),
+		ProfileEntry:        NewProfileEntryClient(cfg),
+		Todo:                NewTodoClient(cfg),
+		User:                NewUserClient(cfg),
 	}, nil
 }
 
@@ -164,19 +179,22 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:          ctx,
-		config:       cfg,
-		Profile:      NewProfileClient(cfg),
-		ProfileEntry: NewProfileEntryClient(cfg),
-		Todo:         NewTodoClient(cfg),
-		User:         NewUserClient(cfg),
+		ctx:                 ctx,
+		config:              cfg,
+		APIQuotaTracker:     NewAPIQuotaTrackerClient(cfg),
+		CronJobConfig:       NewCronJobConfigClient(cfg),
+		JobExecutionHistory: NewJobExecutionHistoryClient(cfg),
+		Profile:             NewProfileClient(cfg),
+		ProfileEntry:        NewProfileEntryClient(cfg),
+		Todo:                NewTodoClient(cfg),
+		User:                NewUserClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Profile.
+//		APIQuotaTracker.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -198,24 +216,34 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Profile.Use(hooks...)
-	c.ProfileEntry.Use(hooks...)
-	c.Todo.Use(hooks...)
-	c.User.Use(hooks...)
+	for _, n := range []interface{ Use(...Hook) }{
+		c.APIQuotaTracker, c.CronJobConfig, c.JobExecutionHistory, c.Profile,
+		c.ProfileEntry, c.Todo, c.User,
+	} {
+		n.Use(hooks...)
+	}
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Profile.Intercept(interceptors...)
-	c.ProfileEntry.Intercept(interceptors...)
-	c.Todo.Intercept(interceptors...)
-	c.User.Intercept(interceptors...)
+	for _, n := range []interface{ Intercept(...Interceptor) }{
+		c.APIQuotaTracker, c.CronJobConfig, c.JobExecutionHistory, c.Profile,
+		c.ProfileEntry, c.Todo, c.User,
+	} {
+		n.Intercept(interceptors...)
+	}
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *APIQuotaTrackerMutation:
+		return c.APIQuotaTracker.mutate(ctx, m)
+	case *CronJobConfigMutation:
+		return c.CronJobConfig.mutate(ctx, m)
+	case *JobExecutionHistoryMutation:
+		return c.JobExecutionHistory.mutate(ctx, m)
 	case *ProfileMutation:
 		return c.Profile.mutate(ctx, m)
 	case *ProfileEntryMutation:
@@ -226,6 +254,405 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.User.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("ent: unknown mutation type %T", m)
+	}
+}
+
+// APIQuotaTrackerClient is a client for the APIQuotaTracker schema.
+type APIQuotaTrackerClient struct {
+	config
+}
+
+// NewAPIQuotaTrackerClient returns a client for the APIQuotaTracker from the given config.
+func NewAPIQuotaTrackerClient(c config) *APIQuotaTrackerClient {
+	return &APIQuotaTrackerClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `apiquotatracker.Hooks(f(g(h())))`.
+func (c *APIQuotaTrackerClient) Use(hooks ...Hook) {
+	c.hooks.APIQuotaTracker = append(c.hooks.APIQuotaTracker, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `apiquotatracker.Intercept(f(g(h())))`.
+func (c *APIQuotaTrackerClient) Intercept(interceptors ...Interceptor) {
+	c.inters.APIQuotaTracker = append(c.inters.APIQuotaTracker, interceptors...)
+}
+
+// Create returns a builder for creating a APIQuotaTracker entity.
+func (c *APIQuotaTrackerClient) Create() *APIQuotaTrackerCreate {
+	mutation := newAPIQuotaTrackerMutation(c.config, OpCreate)
+	return &APIQuotaTrackerCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of APIQuotaTracker entities.
+func (c *APIQuotaTrackerClient) CreateBulk(builders ...*APIQuotaTrackerCreate) *APIQuotaTrackerCreateBulk {
+	return &APIQuotaTrackerCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *APIQuotaTrackerClient) MapCreateBulk(slice any, setFunc func(*APIQuotaTrackerCreate, int)) *APIQuotaTrackerCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &APIQuotaTrackerCreateBulk{err: fmt.Errorf("calling to APIQuotaTrackerClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*APIQuotaTrackerCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &APIQuotaTrackerCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for APIQuotaTracker.
+func (c *APIQuotaTrackerClient) Update() *APIQuotaTrackerUpdate {
+	mutation := newAPIQuotaTrackerMutation(c.config, OpUpdate)
+	return &APIQuotaTrackerUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *APIQuotaTrackerClient) UpdateOne(aqt *APIQuotaTracker) *APIQuotaTrackerUpdateOne {
+	mutation := newAPIQuotaTrackerMutation(c.config, OpUpdateOne, withAPIQuotaTracker(aqt))
+	return &APIQuotaTrackerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *APIQuotaTrackerClient) UpdateOneID(id ulid.ID) *APIQuotaTrackerUpdateOne {
+	mutation := newAPIQuotaTrackerMutation(c.config, OpUpdateOne, withAPIQuotaTrackerID(id))
+	return &APIQuotaTrackerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for APIQuotaTracker.
+func (c *APIQuotaTrackerClient) Delete() *APIQuotaTrackerDelete {
+	mutation := newAPIQuotaTrackerMutation(c.config, OpDelete)
+	return &APIQuotaTrackerDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *APIQuotaTrackerClient) DeleteOne(aqt *APIQuotaTracker) *APIQuotaTrackerDeleteOne {
+	return c.DeleteOneID(aqt.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *APIQuotaTrackerClient) DeleteOneID(id ulid.ID) *APIQuotaTrackerDeleteOne {
+	builder := c.Delete().Where(apiquotatracker.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &APIQuotaTrackerDeleteOne{builder}
+}
+
+// Query returns a query builder for APIQuotaTracker.
+func (c *APIQuotaTrackerClient) Query() *APIQuotaTrackerQuery {
+	return &APIQuotaTrackerQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeAPIQuotaTracker},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a APIQuotaTracker entity by its id.
+func (c *APIQuotaTrackerClient) Get(ctx context.Context, id ulid.ID) (*APIQuotaTracker, error) {
+	return c.Query().Where(apiquotatracker.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *APIQuotaTrackerClient) GetX(ctx context.Context, id ulid.ID) *APIQuotaTracker {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *APIQuotaTrackerClient) Hooks() []Hook {
+	return c.hooks.APIQuotaTracker
+}
+
+// Interceptors returns the client interceptors.
+func (c *APIQuotaTrackerClient) Interceptors() []Interceptor {
+	return c.inters.APIQuotaTracker
+}
+
+func (c *APIQuotaTrackerClient) mutate(ctx context.Context, m *APIQuotaTrackerMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&APIQuotaTrackerCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&APIQuotaTrackerUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&APIQuotaTrackerUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&APIQuotaTrackerDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown APIQuotaTracker mutation op: %q", m.Op())
+	}
+}
+
+// CronJobConfigClient is a client for the CronJobConfig schema.
+type CronJobConfigClient struct {
+	config
+}
+
+// NewCronJobConfigClient returns a client for the CronJobConfig from the given config.
+func NewCronJobConfigClient(c config) *CronJobConfigClient {
+	return &CronJobConfigClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `cronjobconfig.Hooks(f(g(h())))`.
+func (c *CronJobConfigClient) Use(hooks ...Hook) {
+	c.hooks.CronJobConfig = append(c.hooks.CronJobConfig, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `cronjobconfig.Intercept(f(g(h())))`.
+func (c *CronJobConfigClient) Intercept(interceptors ...Interceptor) {
+	c.inters.CronJobConfig = append(c.inters.CronJobConfig, interceptors...)
+}
+
+// Create returns a builder for creating a CronJobConfig entity.
+func (c *CronJobConfigClient) Create() *CronJobConfigCreate {
+	mutation := newCronJobConfigMutation(c.config, OpCreate)
+	return &CronJobConfigCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of CronJobConfig entities.
+func (c *CronJobConfigClient) CreateBulk(builders ...*CronJobConfigCreate) *CronJobConfigCreateBulk {
+	return &CronJobConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *CronJobConfigClient) MapCreateBulk(slice any, setFunc func(*CronJobConfigCreate, int)) *CronJobConfigCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &CronJobConfigCreateBulk{err: fmt.Errorf("calling to CronJobConfigClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*CronJobConfigCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &CronJobConfigCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for CronJobConfig.
+func (c *CronJobConfigClient) Update() *CronJobConfigUpdate {
+	mutation := newCronJobConfigMutation(c.config, OpUpdate)
+	return &CronJobConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *CronJobConfigClient) UpdateOne(cjc *CronJobConfig) *CronJobConfigUpdateOne {
+	mutation := newCronJobConfigMutation(c.config, OpUpdateOne, withCronJobConfig(cjc))
+	return &CronJobConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *CronJobConfigClient) UpdateOneID(id ulid.ID) *CronJobConfigUpdateOne {
+	mutation := newCronJobConfigMutation(c.config, OpUpdateOne, withCronJobConfigID(id))
+	return &CronJobConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for CronJobConfig.
+func (c *CronJobConfigClient) Delete() *CronJobConfigDelete {
+	mutation := newCronJobConfigMutation(c.config, OpDelete)
+	return &CronJobConfigDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *CronJobConfigClient) DeleteOne(cjc *CronJobConfig) *CronJobConfigDeleteOne {
+	return c.DeleteOneID(cjc.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *CronJobConfigClient) DeleteOneID(id ulid.ID) *CronJobConfigDeleteOne {
+	builder := c.Delete().Where(cronjobconfig.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &CronJobConfigDeleteOne{builder}
+}
+
+// Query returns a query builder for CronJobConfig.
+func (c *CronJobConfigClient) Query() *CronJobConfigQuery {
+	return &CronJobConfigQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeCronJobConfig},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a CronJobConfig entity by its id.
+func (c *CronJobConfigClient) Get(ctx context.Context, id ulid.ID) (*CronJobConfig, error) {
+	return c.Query().Where(cronjobconfig.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *CronJobConfigClient) GetX(ctx context.Context, id ulid.ID) *CronJobConfig {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *CronJobConfigClient) Hooks() []Hook {
+	return c.hooks.CronJobConfig
+}
+
+// Interceptors returns the client interceptors.
+func (c *CronJobConfigClient) Interceptors() []Interceptor {
+	return c.inters.CronJobConfig
+}
+
+func (c *CronJobConfigClient) mutate(ctx context.Context, m *CronJobConfigMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&CronJobConfigCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&CronJobConfigUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&CronJobConfigUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&CronJobConfigDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown CronJobConfig mutation op: %q", m.Op())
+	}
+}
+
+// JobExecutionHistoryClient is a client for the JobExecutionHistory schema.
+type JobExecutionHistoryClient struct {
+	config
+}
+
+// NewJobExecutionHistoryClient returns a client for the JobExecutionHistory from the given config.
+func NewJobExecutionHistoryClient(c config) *JobExecutionHistoryClient {
+	return &JobExecutionHistoryClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `jobexecutionhistory.Hooks(f(g(h())))`.
+func (c *JobExecutionHistoryClient) Use(hooks ...Hook) {
+	c.hooks.JobExecutionHistory = append(c.hooks.JobExecutionHistory, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `jobexecutionhistory.Intercept(f(g(h())))`.
+func (c *JobExecutionHistoryClient) Intercept(interceptors ...Interceptor) {
+	c.inters.JobExecutionHistory = append(c.inters.JobExecutionHistory, interceptors...)
+}
+
+// Create returns a builder for creating a JobExecutionHistory entity.
+func (c *JobExecutionHistoryClient) Create() *JobExecutionHistoryCreate {
+	mutation := newJobExecutionHistoryMutation(c.config, OpCreate)
+	return &JobExecutionHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of JobExecutionHistory entities.
+func (c *JobExecutionHistoryClient) CreateBulk(builders ...*JobExecutionHistoryCreate) *JobExecutionHistoryCreateBulk {
+	return &JobExecutionHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *JobExecutionHistoryClient) MapCreateBulk(slice any, setFunc func(*JobExecutionHistoryCreate, int)) *JobExecutionHistoryCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &JobExecutionHistoryCreateBulk{err: fmt.Errorf("calling to JobExecutionHistoryClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*JobExecutionHistoryCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &JobExecutionHistoryCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for JobExecutionHistory.
+func (c *JobExecutionHistoryClient) Update() *JobExecutionHistoryUpdate {
+	mutation := newJobExecutionHistoryMutation(c.config, OpUpdate)
+	return &JobExecutionHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *JobExecutionHistoryClient) UpdateOne(jeh *JobExecutionHistory) *JobExecutionHistoryUpdateOne {
+	mutation := newJobExecutionHistoryMutation(c.config, OpUpdateOne, withJobExecutionHistory(jeh))
+	return &JobExecutionHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *JobExecutionHistoryClient) UpdateOneID(id ulid.ID) *JobExecutionHistoryUpdateOne {
+	mutation := newJobExecutionHistoryMutation(c.config, OpUpdateOne, withJobExecutionHistoryID(id))
+	return &JobExecutionHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for JobExecutionHistory.
+func (c *JobExecutionHistoryClient) Delete() *JobExecutionHistoryDelete {
+	mutation := newJobExecutionHistoryMutation(c.config, OpDelete)
+	return &JobExecutionHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *JobExecutionHistoryClient) DeleteOne(jeh *JobExecutionHistory) *JobExecutionHistoryDeleteOne {
+	return c.DeleteOneID(jeh.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *JobExecutionHistoryClient) DeleteOneID(id ulid.ID) *JobExecutionHistoryDeleteOne {
+	builder := c.Delete().Where(jobexecutionhistory.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &JobExecutionHistoryDeleteOne{builder}
+}
+
+// Query returns a query builder for JobExecutionHistory.
+func (c *JobExecutionHistoryClient) Query() *JobExecutionHistoryQuery {
+	return &JobExecutionHistoryQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeJobExecutionHistory},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a JobExecutionHistory entity by its id.
+func (c *JobExecutionHistoryClient) Get(ctx context.Context, id ulid.ID) (*JobExecutionHistory, error) {
+	return c.Query().Where(jobexecutionhistory.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *JobExecutionHistoryClient) GetX(ctx context.Context, id ulid.ID) *JobExecutionHistory {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// Hooks returns the client hooks.
+func (c *JobExecutionHistoryClient) Hooks() []Hook {
+	return c.hooks.JobExecutionHistory
+}
+
+// Interceptors returns the client interceptors.
+func (c *JobExecutionHistoryClient) Interceptors() []Interceptor {
+	return c.inters.JobExecutionHistory
+}
+
+func (c *JobExecutionHistoryClient) mutate(ctx context.Context, m *JobExecutionHistoryMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&JobExecutionHistoryCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&JobExecutionHistoryUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&JobExecutionHistoryUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&JobExecutionHistoryDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown JobExecutionHistory mutation op: %q", m.Op())
 	}
 }
 
@@ -337,15 +764,15 @@ func (c *ProfileClient) GetX(ctx context.Context, id ulid.ID) *Profile {
 	return obj
 }
 
-// QueryTodos queries the todos edge of a Profile.
-func (c *ProfileClient) QueryTodos(pr *Profile) *TodoQuery {
-	query := (&TodoClient{config: c.config}).Query()
+// QueryProfileEntry queries the profile_entry edge of a Profile.
+func (c *ProfileClient) QueryProfileEntry(pr *Profile) *ProfileEntryQuery {
+	query := (&ProfileEntryClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pr.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(profile.Table, profile.FieldID, id),
-			sqlgraph.To(todo.Table, todo.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, profile.TodosTable, profile.TodosColumn),
+			sqlgraph.To(profileentry.Table, profileentry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, profile.ProfileEntryTable, profile.ProfileEntryColumn),
 		)
 		fromV = sqlgraph.Neighbors(pr.driver.Dialect(), step)
 		return fromV, nil
@@ -484,6 +911,22 @@ func (c *ProfileEntryClient) GetX(ctx context.Context, id ulid.ID) *ProfileEntry
 		panic(err)
 	}
 	return obj
+}
+
+// QueryProfile queries the profile edge of a ProfileEntry.
+func (c *ProfileEntryClient) QueryProfile(pe *ProfileEntry) *ProfileQuery {
+	query := (&ProfileClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pe.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileentry.Table, profileentry.FieldID, id),
+			sqlgraph.To(profile.Table, profile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, profileentry.ProfileTable, profileentry.ProfileColumn),
+		)
+		fromV = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
 }
 
 // Hooks returns the client hooks.
@@ -812,9 +1255,11 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Profile, ProfileEntry, Todo, User []ent.Hook
+		APIQuotaTracker, CronJobConfig, JobExecutionHistory, Profile, ProfileEntry,
+		Todo, User []ent.Hook
 	}
 	inters struct {
-		Profile, ProfileEntry, Todo, User []ent.Interceptor
+		APIQuotaTracker, CronJobConfig, JobExecutionHistory, Profile, ProfileEntry,
+		Todo, User []ent.Interceptor
 	}
 )

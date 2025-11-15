@@ -25,7 +25,6 @@ type TodoQuery struct {
 	inters     []Interceptor
 	predicates []predicate.Todo
 	withUser   *UserQuery
-	withFKs    bool
 	modifiers  []func(*sql.Selector)
 	loadTotal  []func(context.Context, []*Todo) error
 	// intermediate query (i.e. traversal path).
@@ -373,15 +372,11 @@ func (tq *TodoQuery) prepareQuery(ctx context.Context) error {
 func (tq *TodoQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Todo, error) {
 	var (
 		nodes       = []*Todo{}
-		withFKs     = tq.withFKs
 		_spec       = tq.querySpec()
 		loadedTypes = [1]bool{
 			tq.withUser != nil,
 		}
 	)
-	if withFKs {
-		_spec.Node.Columns = append(_spec.Node.Columns, todo.ForeignKeys...)
-	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Todo).scanValues(nil, columns)
 	}

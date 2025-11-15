@@ -432,7 +432,6 @@ func (uq *UserQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes []*U
 			init(nodes[i])
 		}
 	}
-	query.withFKs = true
 	if len(query.ctx.Fields) > 0 {
 		query.ctx.AppendFieldOnce(todo.FieldUserID)
 	}

@@ -7,8 +7,8 @@ import (
 	"errors"
 	"fmt"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
-	"sheng-go-backend/ent/todo"
 	"time"
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -22,9 +22,79 @@ type ProfileCreate struct {
 	hooks    []Hook
 }
 
+// SetUrn sets the "urn" field.
+func (pc *ProfileCreate) SetUrn(s string) *ProfileCreate {
+	pc.mutation.SetUrn(s)
+	return pc
+}
+
+// SetUsername sets the "username" field.
+func (pc *ProfileCreate) SetUsername(s string) *ProfileCreate {
+	pc.mutation.SetUsername(s)
+	return pc
+}
+
+// SetNillableUsername sets the "username" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableUsername(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetUsername(*s)
+	}
+	return pc
+}
+
+// SetFirstName sets the "first_name" field.
+func (pc *ProfileCreate) SetFirstName(s string) *ProfileCreate {
+	pc.mutation.SetFirstName(s)
+	return pc
+}
+
+// SetNillableFirstName sets the "first_name" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableFirstName(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetFirstName(*s)
+	}
+	return pc
+}
+
+// SetLastName sets the "last_name" field.
+func (pc *ProfileCreate) SetLastName(s string) *ProfileCreate {
+	pc.mutation.SetLastName(s)
+	return pc
+}
+
+// SetNillableLastName sets the "last_name" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableLastName(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetLastName(*s)
+	}
+	return pc
+}
+
 // SetName sets the "name" field.
 func (pc *ProfileCreate) SetName(s string) *ProfileCreate {
 	pc.mutation.SetName(s)
+	return pc
+}
+
+// SetNillableName sets the "name" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableName(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetName(*s)
+	}
+	return pc
+}
+
+// SetHeadline sets the "headline" field.
+func (pc *ProfileCreate) SetHeadline(s string) *ProfileCreate {
+	pc.mutation.SetHeadline(s)
+	return pc
+}
+
+// SetNillableHeadline sets the "headline" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableHeadline(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetHeadline(*s)
+	}
 	return pc
 }
 
@@ -34,15 +104,105 @@ func (pc *ProfileCreate) SetTitle(s string) *ProfileCreate {
 	return pc
 }
 
-// SetUrn sets the "urn" field.
-func (pc *ProfileCreate) SetUrn(s string) *ProfileCreate {
-	pc.mutation.SetUrn(s)
+// SetNillableTitle sets the "title" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableTitle(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetTitle(*s)
+	}
+	return pc
+}
+
+// SetCountry sets the "country" field.
+func (pc *ProfileCreate) SetCountry(s string) *ProfileCreate {
+	pc.mutation.SetCountry(s)
+	return pc
+}
+
+// SetNillableCountry sets the "country" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableCountry(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetCountry(*s)
+	}
+	return pc
+}
+
+// SetCity sets the "city" field.
+func (pc *ProfileCreate) SetCity(s string) *ProfileCreate {
+	pc.mutation.SetCity(s)
+	return pc
+}
+
+// SetNillableCity sets the "city" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableCity(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetCity(*s)
+	}
+	return pc
+}
+
+// SetEducations sets the "educations" field.
+func (pc *ProfileCreate) SetEducations(m []map[string]interface{}) *ProfileCreate {
+	pc.mutation.SetEducations(m)
+	return pc
+}
+
+// SetPositions sets the "positions" field.
+func (pc *ProfileCreate) SetPositions(m []map[string]interface{}) *ProfileCreate {
+	pc.mutation.SetPositions(m)
+	return pc
+}
+
+// SetSkills sets the "skills" field.
+func (pc *ProfileCreate) SetSkills(m []map[string]interface{}) *ProfileCreate {
+	pc.mutation.SetSkills(m)
+	return pc
+}
+
+// SetGeoData sets the "geo_data" field.
+func (pc *ProfileCreate) SetGeoData(m map[string]interface{}) *ProfileCreate {
+	pc.mutation.SetGeoData(m)
+	return pc
+}
+
+// SetRawDataS3Key sets the "raw_data_s3_key" field.
+func (pc *ProfileCreate) SetRawDataS3Key(s string) *ProfileCreate {
+	pc.mutation.SetRawDataS3Key(s)
+	return pc
+}
+
+// SetNillableRawDataS3Key sets the "raw_data_s3_key" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableRawDataS3Key(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetRawDataS3Key(*s)
+	}
+	return pc
+}
+
+// SetCleanedDataS3Key sets the "cleaned_data_s3_key" field.
+func (pc *ProfileCreate) SetCleanedDataS3Key(s string) *ProfileCreate {
+	pc.mutation.SetCleanedDataS3Key(s)
+	return pc
+}
+
+// SetNillableCleanedDataS3Key sets the "cleaned_data_s3_key" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableCleanedDataS3Key(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetCleanedDataS3Key(*s)
+	}
 	return pc
 }
 
 // SetSourceFile sets the "source_file" field.
 func (pc *ProfileCreate) SetSourceFile(s string) *ProfileCreate {
 	pc.mutation.SetSourceFile(s)
+	return pc
+}
+
+// SetNillableSourceFile sets the "source_file" field if the given value is not nil.
+func (pc *ProfileCreate) SetNillableSourceFile(s *string) *ProfileCreate {
+	if s != nil {
+		pc.SetSourceFile(*s)
+	}
 	return pc
 }
 
@@ -88,19 +248,23 @@ func (pc *ProfileCreate) SetNillableID(u *ulid.ID) *ProfileCreate {
 	return pc
 }
 
-// AddTodoIDs adds the "todos" edge to the Todo entity by IDs.
-func (pc *ProfileCreate) AddTodoIDs(ids ...ulid.ID) *ProfileCreate {
-	pc.mutation.AddTodoIDs(ids...)
+// SetProfileEntryID sets the "profile_entry" edge to the ProfileEntry entity by ID.
+func (pc *ProfileCreate) SetProfileEntryID(id ulid.ID) *ProfileCreate {
+	pc.mutation.SetProfileEntryID(id)
 	return pc
 }
 
-// AddTodos adds the "todos" edges to the Todo entity.
-func (pc *ProfileCreate) AddTodos(t ...*Todo) *ProfileCreate {
-	ids := make([]ulid.ID, len(t))
-	for i := range t {
-		ids[i] = t[i].ID
+// SetNillableProfileEntryID sets the "profile_entry" edge to the ProfileEntry entity by ID if the given value is not nil.
+func (pc *ProfileCreate) SetNillableProfileEntryID(id *ulid.ID) *ProfileCreate {
+	if id != nil {
+		pc = pc.SetProfileEntryID(*id)
 	}
-	return pc.AddTodoIDs(ids...)
+	return pc
+}
+
+// SetProfileEntry sets the "profile_entry" edge to the ProfileEntry entity.
+func (pc *ProfileCreate) SetProfileEntry(p *ProfileEntry) *ProfileCreate {
+	return pc.SetProfileEntryID(p.ID)
 }
 
 // Mutation returns the ProfileMutation object of the builder.
@@ -154,17 +318,6 @@ func (pc *ProfileCreate) defaults() {
 
 // check runs all checks and user-defined validators on the builder.
 func (pc *ProfileCreate) check() error {
-	if _, ok := pc.mutation.Name(); !ok {
-		return &ValidationError{Name: "name", err: errors.New(`ent: missing required field "Profile.name"`)}
-	}
-	if v, ok := pc.mutation.Name(); ok {
-		if err := profile.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Profile.name": %w`, err)}
-		}
-	}
-	if _, ok := pc.mutation.Title(); !ok {
-		return &ValidationError{Name: "title", err: errors.New(`ent: missing required field "Profile.title"`)}
-	}
 	if _, ok := pc.mutation.Urn(); !ok {
 		return &ValidationError{Name: "urn", err: errors.New(`ent: missing required field "Profile.urn"`)}
 	}
@@ -173,12 +326,19 @@ func (pc *ProfileCreate) check() error {
 			return &ValidationError{Name: "urn", err: fmt.Errorf(`ent: validator failed for field "Profile.urn": %w`, err)}
 		}
 	}
-	if _, ok := pc.mutation.SourceFile(); !ok {
-		return &ValidationError{Name: "source_file", err: errors.New(`ent: missing required field "Profile.source_file"`)}
+	if v, ok := pc.mutation.Name(); ok {
+		if err := profile.NameValidator(v); err != nil {
+			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Profile.name": %w`, err)}
+		}
 	}
-	if v, ok := pc.mutation.SourceFile(); ok {
-		if err := profile.SourceFileValidator(v); err != nil {
-			return &ValidationError{Name: "source_file", err: fmt.Errorf(`ent: validator failed for field "Profile.source_file": %w`, err)}
+	if v, ok := pc.mutation.RawDataS3Key(); ok {
+		if err := profile.RawDataS3KeyValidator(v); err != nil {
+			return &ValidationError{Name: "raw_data_s3_key", err: fmt.Errorf(`ent: validator failed for field "Profile.raw_data_s3_key": %w`, err)}
+		}
+	}
+	if v, ok := pc.mutation.CleanedDataS3Key(); ok {
+		if err := profile.CleanedDataS3KeyValidator(v); err != nil {
+			return &ValidationError{Name: "cleaned_data_s3_key", err: fmt.Errorf(`ent: validator failed for field "Profile.cleaned_data_s3_key": %w`, err)}
 		}
 	}
 	if _, ok := pc.mutation.CreatedAt(); !ok {
@@ -222,21 +382,69 @@ func (pc *ProfileCreate) createSpec() (*Profile, *sqlgraph.CreateSpec) {
 		_node.ID = id
 		_spec.ID.Value = &id
 	}
-	if value, ok := pc.mutation.Name(); ok {
-		_spec.SetField(profile.FieldName, field.TypeString, value)
-		_node.Name = value
-	}
-	if value, ok := pc.mutation.Title(); ok {
-		_spec.SetField(profile.FieldTitle, field.TypeString, value)
-		_node.Title = value
-	}
 	if value, ok := pc.mutation.Urn(); ok {
 		_spec.SetField(profile.FieldUrn, field.TypeString, value)
 		_node.Urn = value
 	}
+	if value, ok := pc.mutation.Username(); ok {
+		_spec.SetField(profile.FieldUsername, field.TypeString, value)
+		_node.Username = &value
+	}
+	if value, ok := pc.mutation.FirstName(); ok {
+		_spec.SetField(profile.FieldFirstName, field.TypeString, value)
+		_node.FirstName = &value
+	}
+	if value, ok := pc.mutation.LastName(); ok {
+		_spec.SetField(profile.FieldLastName, field.TypeString, value)
+		_node.LastName = &value
+	}
+	if value, ok := pc.mutation.Name(); ok {
+		_spec.SetField(profile.FieldName, field.TypeString, value)
+		_node.Name = &value
+	}
+	if value, ok := pc.mutation.Headline(); ok {
+		_spec.SetField(profile.FieldHeadline, field.TypeString, value)
+		_node.Headline = &value
+	}
+	if value, ok := pc.mutation.Title(); ok {
+		_spec.SetField(profile.FieldTitle, field.TypeString, value)
+		_node.Title = &value
+	}
+	if value, ok := pc.mutation.Country(); ok {
+		_spec.SetField(profile.FieldCountry, field.TypeString, value)
+		_node.Country = &value
+	}
+	if value, ok := pc.mutation.City(); ok {
+		_spec.SetField(profile.FieldCity, field.TypeString, value)
+		_node.City = &value
+	}
+	if value, ok := pc.mutation.Educations(); ok {
+		_spec.SetField(profile.FieldEducations, field.TypeJSON, value)
+		_node.Educations = value
+	}
+	if value, ok := pc.mutation.Positions(); ok {
+		_spec.SetField(profile.FieldPositions, field.TypeJSON, value)
+		_node.Positions = value
+	}
+	if value, ok := pc.mutation.Skills(); ok {
+		_spec.SetField(profile.FieldSkills, field.TypeJSON, value)
+		_node.Skills = value
+	}
+	if value, ok := pc.mutation.GeoData(); ok {
+		_spec.SetField(profile.FieldGeoData, field.TypeJSON, value)
+		_node.GeoData = value
+	}
+	if value, ok := pc.mutation.RawDataS3Key(); ok {
+		_spec.SetField(profile.FieldRawDataS3Key, field.TypeString, value)
+		_node.RawDataS3Key = &value
+	}
+	if value, ok := pc.mutation.CleanedDataS3Key(); ok {
+		_spec.SetField(profile.FieldCleanedDataS3Key, field.TypeString, value)
+		_node.CleanedDataS3Key = &value
+	}
 	if value, ok := pc.mutation.SourceFile(); ok {
 		_spec.SetField(profile.FieldSourceFile, field.TypeString, value)
-		_node.SourceFile = value
+		_node.SourceFile = &value
 	}
 	if value, ok := pc.mutation.CreatedAt(); ok {
 		_spec.SetField(profile.FieldCreatedAt, field.TypeTime, value)
@@ -246,20 +454,21 @@ func (pc *ProfileCreate) createSpec() (*Profile, *sqlgraph.CreateSpec) {
 		_spec.SetField(profile.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = value
 	}
-	if nodes := pc.mutation.TodosIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.ProfileEntryIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.O2M,
-			Inverse: false,
-			Table:   profile.TodosTable,
-			Columns: []string{profile.TodosColumn},
+			Rel:     sqlgraph.O2O,
+			Inverse: true,
+			Table:   profile.ProfileEntryTable,
+			Columns: []string{profile.ProfileEntryColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(todo.FieldID, field.TypeString),
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
 			edge.Target.Nodes = append(edge.Target.Nodes, k)
 		}
+		_node.profile_entry_profile = &nodes[0]
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec

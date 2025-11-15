@@ -3,37 +3,460 @@
 package ent
 
 import (
+	"sheng-go-backend/ent/cronjobconfig"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"time"
 )
 
-// CreateProfileInput represents a mutation input for creating profiles.
-type CreateProfileInput struct {
-	Name       string
-	Title      string
-	Urn        string
-	SourceFile string
-	CreatedAt  *time.Time
-	UpdatedAt  *time.Time
-	TodoIDs    []ulid.ID
+// CreateAPIQuotaTrackerInput represents a mutation input for creating apiquotatrackers.
+type CreateAPIQuotaTrackerInput struct {
+	CreatedAt        *time.Time
+	UpdatedAt        *time.Time
+	Month            int
+	Year             int
+	CallCount        *int
+	QuotaLimit       *int
+	QuotaExceeded    *bool
+	OverrideEnabled  *bool
+	NotificationSent *bool
+	LastCallAt       *time.Time
 }
 
-// Mutate applies the CreateProfileInput on the ProfileCreate builder.
-func (i *CreateProfileInput) Mutate(m *ProfileCreate) {
-	m.SetName(i.Name)
-	m.SetTitle(i.Title)
-	m.SetUrn(i.Urn)
-	m.SetSourceFile(i.SourceFile)
+// Mutate applies the CreateAPIQuotaTrackerInput on the APIQuotaTrackerCreate builder.
+func (i *CreateAPIQuotaTrackerInput) Mutate(m *APIQuotaTrackerCreate) {
 	if v := i.CreatedAt; v != nil {
 		m.SetCreatedAt(*v)
 	}
 	if v := i.UpdatedAt; v != nil {
 		m.SetUpdatedAt(*v)
 	}
-	if ids := i.TodoIDs; len(ids) > 0 {
-		m.AddTodoIDs(ids...)
+	m.SetMonth(i.Month)
+	m.SetYear(i.Year)
+	if v := i.CallCount; v != nil {
+		m.SetCallCount(*v)
+	}
+	if v := i.QuotaLimit; v != nil {
+		m.SetQuotaLimit(*v)
+	}
+	if v := i.QuotaExceeded; v != nil {
+		m.SetQuotaExceeded(*v)
+	}
+	if v := i.OverrideEnabled; v != nil {
+		m.SetOverrideEnabled(*v)
+	}
+	if v := i.NotificationSent; v != nil {
+		m.SetNotificationSent(*v)
+	}
+	if v := i.LastCallAt; v != nil {
+		m.SetLastCallAt(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateAPIQuotaTrackerInput on the create builder.
+func (c *APIQuotaTrackerCreate) SetInput(i CreateAPIQuotaTrackerInput) *APIQuotaTrackerCreate {
+	i.Mutate(c)
+	return c
+}
+
+// UpdateAPIQuotaTrackerInput represents a mutation input for updating apiquotatrackers.
+type UpdateAPIQuotaTrackerInput struct {
+	ID               ulid.ID
+	UpdatedAt        *time.Time
+	Month            *int
+	Year             *int
+	CallCount        *int
+	QuotaLimit       *int
+	QuotaExceeded    *bool
+	OverrideEnabled  *bool
+	NotificationSent *bool
+	LastCallAt       *time.Time
+	ClearLastCallAt  bool
+}
+
+// Mutate applies the UpdateAPIQuotaTrackerInput on the APIQuotaTrackerMutation.
+func (i *UpdateAPIQuotaTrackerInput) Mutate(m *APIQuotaTrackerMutation) {
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.Month; v != nil {
+		m.SetMonth(*v)
+	}
+	if v := i.Year; v != nil {
+		m.SetYear(*v)
+	}
+	if v := i.CallCount; v != nil {
+		m.SetCallCount(*v)
+	}
+	if v := i.QuotaLimit; v != nil {
+		m.SetQuotaLimit(*v)
+	}
+	if v := i.QuotaExceeded; v != nil {
+		m.SetQuotaExceeded(*v)
+	}
+	if v := i.OverrideEnabled; v != nil {
+		m.SetOverrideEnabled(*v)
+	}
+	if v := i.NotificationSent; v != nil {
+		m.SetNotificationSent(*v)
+	}
+	if i.ClearLastCallAt {
+		m.ClearLastCallAt()
+	}
+	if v := i.LastCallAt; v != nil {
+		m.SetLastCallAt(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateAPIQuotaTrackerInput on the update builder.
+func (u *APIQuotaTrackerUpdate) SetInput(i UpdateAPIQuotaTrackerInput) *APIQuotaTrackerUpdate {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// SetInput applies the change-set in the UpdateAPIQuotaTrackerInput on the update-one builder.
+func (u *APIQuotaTrackerUpdateOne) SetInput(i UpdateAPIQuotaTrackerInput) *APIQuotaTrackerUpdateOne {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// CreateCronJobConfigInput represents a mutation input for creating cronjobconfigs.
+type CreateCronJobConfigInput struct {
+	CreatedAt    *time.Time
+	UpdatedAt    *time.Time
+	JobName      string
+	JobType      cronjobconfig.JobType
+	Schedule     string
+	Enabled      *bool
+	BatchSize    *int
+	AdminEmail   string
+	RespectQuota *bool
+	LastRunAt    *time.Time
+	NextRunAt    *time.Time
+}
+
+// Mutate applies the CreateCronJobConfigInput on the CronJobConfigCreate builder.
+func (i *CreateCronJobConfigInput) Mutate(m *CronJobConfigCreate) {
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	m.SetJobName(i.JobName)
+	m.SetJobType(i.JobType)
+	m.SetSchedule(i.Schedule)
+	if v := i.Enabled; v != nil {
+		m.SetEnabled(*v)
+	}
+	if v := i.BatchSize; v != nil {
+		m.SetBatchSize(*v)
+	}
+	m.SetAdminEmail(i.AdminEmail)
+	if v := i.RespectQuota; v != nil {
+		m.SetRespectQuota(*v)
+	}
+	if v := i.LastRunAt; v != nil {
+		m.SetLastRunAt(*v)
+	}
+	if v := i.NextRunAt; v != nil {
+		m.SetNextRunAt(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateCronJobConfigInput on the create builder.
+func (c *CronJobConfigCreate) SetInput(i CreateCronJobConfigInput) *CronJobConfigCreate {
+	i.Mutate(c)
+	return c
+}
+
+// UpdateCronJobConfigInput represents a mutation input for updating cronjobconfigs.
+type UpdateCronJobConfigInput struct {
+	ID             ulid.ID
+	UpdatedAt      *time.Time
+	JobName        *string
+	JobType        *cronjobconfig.JobType
+	Schedule       *string
+	Enabled        *bool
+	BatchSize      *int
+	AdminEmail     *string
+	RespectQuota   *bool
+	LastRunAt      *time.Time
+	ClearLastRunAt bool
+	NextRunAt      *time.Time
+	ClearNextRunAt bool
+}
+
+// Mutate applies the UpdateCronJobConfigInput on the CronJobConfigMutation.
+func (i *UpdateCronJobConfigInput) Mutate(m *CronJobConfigMutation) {
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.JobName; v != nil {
+		m.SetJobName(*v)
+	}
+	if v := i.JobType; v != nil {
+		m.SetJobType(*v)
+	}
+	if v := i.Schedule; v != nil {
+		m.SetSchedule(*v)
+	}
+	if v := i.Enabled; v != nil {
+		m.SetEnabled(*v)
+	}
+	if v := i.BatchSize; v != nil {
+		m.SetBatchSize(*v)
+	}
+	if v := i.AdminEmail; v != nil {
+		m.SetAdminEmail(*v)
+	}
+	if v := i.RespectQuota; v != nil {
+		m.SetRespectQuota(*v)
+	}
+	if i.ClearLastRunAt {
+		m.ClearLastRunAt()
+	}
+	if v := i.LastRunAt; v != nil {
+		m.SetLastRunAt(*v)
+	}
+	if i.ClearNextRunAt {
+		m.ClearNextRunAt()
+	}
+	if v := i.NextRunAt; v != nil {
+		m.SetNextRunAt(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateCronJobConfigInput on the update builder.
+func (u *CronJobConfigUpdate) SetInput(i UpdateCronJobConfigInput) *CronJobConfigUpdate {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// SetInput applies the change-set in the UpdateCronJobConfigInput on the update-one builder.
+func (u *CronJobConfigUpdateOne) SetInput(i UpdateCronJobConfigInput) *CronJobConfigUpdateOne {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// CreateJobExecutionHistoryInput represents a mutation input for creating jobexecutionhistories.
+type CreateJobExecutionHistoryInput struct {
+	CreatedAt       *time.Time
+	UpdatedAt       *time.Time
+	JobName         string
+	Status          jobexecutionhistory.Status
+	StartedAt       time.Time
+	CompletedAt     *time.Time
+	DurationSeconds *int
+	TotalProcessed  *int
+	SuccessfulCount *int
+	FailedCount     *int
+	APICallsMade    *int
+	QuotaRemaining  *int
+	ErrorSummary    *string
+}
+
+// Mutate applies the CreateJobExecutionHistoryInput on the JobExecutionHistoryCreate builder.
+func (i *CreateJobExecutionHistoryInput) Mutate(m *JobExecutionHistoryCreate) {
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	m.SetJobName(i.JobName)
+	m.SetStatus(i.Status)
+	m.SetStartedAt(i.StartedAt)
+	if v := i.CompletedAt; v != nil {
+		m.SetCompletedAt(*v)
+	}
+	if v := i.DurationSeconds; v != nil {
+		m.SetDurationSeconds(*v)
+	}
+	if v := i.TotalProcessed; v != nil {
+		m.SetTotalProcessed(*v)
+	}
+	if v := i.SuccessfulCount; v != nil {
+		m.SetSuccessfulCount(*v)
+	}
+	if v := i.FailedCount; v != nil {
+		m.SetFailedCount(*v)
+	}
+	if v := i.APICallsMade; v != nil {
+		m.SetAPICallsMade(*v)
+	}
+	if v := i.QuotaRemaining; v != nil {
+		m.SetQuotaRemaining(*v)
+	}
+	if v := i.ErrorSummary; v != nil {
+		m.SetErrorSummary(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateJobExecutionHistoryInput on the create builder.
+func (c *JobExecutionHistoryCreate) SetInput(i CreateJobExecutionHistoryInput) *JobExecutionHistoryCreate {
+	i.Mutate(c)
+	return c
+}
+
+// UpdateJobExecutionHistoryInput represents a mutation input for updating jobexecutionhistories.
+type UpdateJobExecutionHistoryInput struct {
+	ID                ulid.ID
+	UpdatedAt         *time.Time
+	JobName           *string
+	Status            *jobexecutionhistory.Status
+	StartedAt         *time.Time
+	CompletedAt       *time.Time
+	ClearCompletedAt  bool
+	DurationSeconds   *int
+	TotalProcessed    *int
+	SuccessfulCount   *int
+	FailedCount       *int
+	APICallsMade      *int
+	QuotaRemaining    *int
+	ErrorSummary      *string
+	ClearErrorSummary bool
+}
+
+// Mutate applies the UpdateJobExecutionHistoryInput on the JobExecutionHistoryMutation.
+func (i *UpdateJobExecutionHistoryInput) Mutate(m *JobExecutionHistoryMutation) {
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.JobName; v != nil {
+		m.SetJobName(*v)
+	}
+	if v := i.Status; v != nil {
+		m.SetStatus(*v)
+	}
+	if v := i.StartedAt; v != nil {
+		m.SetStartedAt(*v)
+	}
+	if i.ClearCompletedAt {
+		m.ClearCompletedAt()
+	}
+	if v := i.CompletedAt; v != nil {
+		m.SetCompletedAt(*v)
+	}
+	if v := i.DurationSeconds; v != nil {
+		m.SetDurationSeconds(*v)
+	}
+	if v := i.TotalProcessed; v != nil {
+		m.SetTotalProcessed(*v)
+	}
+	if v := i.SuccessfulCount; v != nil {
+		m.SetSuccessfulCount(*v)
+	}
+	if v := i.FailedCount; v != nil {
+		m.SetFailedCount(*v)
+	}
+	if v := i.APICallsMade; v != nil {
+		m.SetAPICallsMade(*v)
+	}
+	if v := i.QuotaRemaining; v != nil {
+		m.SetQuotaRemaining(*v)
+	}
+	if i.ClearErrorSummary {
+		m.ClearErrorSummary()
+	}
+	if v := i.ErrorSummary; v != nil {
+		m.SetErrorSummary(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateJobExecutionHistoryInput on the update builder.
+func (u *JobExecutionHistoryUpdate) SetInput(i UpdateJobExecutionHistoryInput) *JobExecutionHistoryUpdate {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// SetInput applies the change-set in the UpdateJobExecutionHistoryInput on the update-one builder.
+func (u *JobExecutionHistoryUpdateOne) SetInput(i UpdateJobExecutionHistoryInput) *JobExecutionHistoryUpdateOne {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// CreateProfileInput represents a mutation input for creating profiles.
+type CreateProfileInput struct {
+	Urn              string
+	Username         *string
+	FirstName        *string
+	LastName         *string
+	Name             *string
+	Headline         *string
+	Title            *string
+	Country          *string
+	City             *string
+	Educations       *[]map[string]interface{}
+	Positions        *[]map[string]interface{}
+	Skills           *[]map[string]interface{}
+	GeoData          *map[string]interface{}
+	RawDataS3Key     *string
+	CleanedDataS3Key *string
+	SourceFile       *string
+	CreatedAt        *time.Time
+	UpdatedAt        *time.Time
+	ProfileEntryID   *ulid.ID
+}
+
+// Mutate applies the CreateProfileInput on the ProfileCreate builder.
+func (i *CreateProfileInput) Mutate(m *ProfileCreate) {
+	m.SetUrn(i.Urn)
+	if v := i.Username; v != nil {
+		m.SetUsername(*v)
+	}
+	if v := i.FirstName; v != nil {
+		m.SetFirstName(*v)
+	}
+	if v := i.LastName; v != nil {
+		m.SetLastName(*v)
+	}
+	if v := i.Name; v != nil {
+		m.SetName(*v)
+	}
+	if v := i.Headline; v != nil {
+		m.SetHeadline(*v)
+	}
+	if v := i.Title; v != nil {
+		m.SetTitle(*v)
+	}
+	if v := i.Country; v != nil {
+		m.SetCountry(*v)
+	}
+	if v := i.City; v != nil {
+		m.SetCity(*v)
+	}
+	if v := i.Educations; v != nil {
+		m.SetEducations(*v)
+	}
+	if v := i.Positions; v != nil {
+		m.SetPositions(*v)
+	}
+	if v := i.Skills; v != nil {
+		m.SetSkills(*v)
+	}
+	if v := i.GeoData; v != nil {
+		m.SetGeoData(*v)
+	}
+	if v := i.RawDataS3Key; v != nil {
+		m.SetRawDataS3Key(*v)
+	}
+	if v := i.CleanedDataS3Key; v != nil {
+		m.SetCleanedDataS3Key(*v)
+	}
+	if v := i.SourceFile; v != nil {
+		m.SetSourceFile(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.ProfileEntryID; v != nil {
+		m.SetProfileEntryID(*v)
 	}
 }
 
@@ -45,26 +468,134 @@ func (c *ProfileCreate) SetInput(i CreateProfileInput) *ProfileCreate {
 
 // UpdateProfileInput represents a mutation input for updating profiles.
 type UpdateProfileInput struct {
-	ID            ulid.ID
-	Name          *string
-	Title         *string
-	Urn           *string
-	SourceFile    *string
-	UpdatedAt     *time.Time
-	AddTodoIDs    []ulid.ID
-	RemoveTodoIDs []ulid.ID
+	ID                    ulid.ID
+	Urn                   *string
+	Username              *string
+	ClearUsername         bool
+	FirstName             *string
+	ClearFirstName        bool
+	LastName              *string
+	ClearLastName         bool
+	Name                  *string
+	ClearName             bool
+	Headline              *string
+	ClearHeadline         bool
+	Title                 *string
+	ClearTitle            bool
+	Country               *string
+	ClearCountry          bool
+	City                  *string
+	ClearCity             bool
+	Educations            *[]map[string]interface{}
+	ClearEducations       bool
+	Positions             *[]map[string]interface{}
+	ClearPositions        bool
+	Skills                *[]map[string]interface{}
+	ClearSkills           bool
+	GeoData               *map[string]interface{}
+	ClearGeoData          bool
+	RawDataS3Key          *string
+	ClearRawDataS3Key     bool
+	CleanedDataS3Key      *string
+	ClearCleanedDataS3Key bool
+	SourceFile            *string
+	ClearSourceFile       bool
+	UpdatedAt             *time.Time
+	ProfileEntryID        *ulid.ID
+	ClearProfileEntry     bool
 }
 
 // Mutate applies the UpdateProfileInput on the ProfileMutation.
 func (i *UpdateProfileInput) Mutate(m *ProfileMutation) {
+	if v := i.Urn; v != nil {
+		m.SetUrn(*v)
+	}
+	if i.ClearUsername {
+		m.ClearUsername()
+	}
+	if v := i.Username; v != nil {
+		m.SetUsername(*v)
+	}
+	if i.ClearFirstName {
+		m.ClearFirstName()
+	}
+	if v := i.FirstName; v != nil {
+		m.SetFirstName(*v)
+	}
+	if i.ClearLastName {
+		m.ClearLastName()
+	}
+	if v := i.LastName; v != nil {
+		m.SetLastName(*v)
+	}
+	if i.ClearName {
+		m.ClearName()
+	}
 	if v := i.Name; v != nil {
 		m.SetName(*v)
+	}
+	if i.ClearHeadline {
+		m.ClearHeadline()
+	}
+	if v := i.Headline; v != nil {
+		m.SetHeadline(*v)
+	}
+	if i.ClearTitle {
+		m.ClearTitle()
 	}
 	if v := i.Title; v != nil {
 		m.SetTitle(*v)
 	}
-	if v := i.Urn; v != nil {
-		m.SetUrn(*v)
+	if i.ClearCountry {
+		m.ClearCountry()
+	}
+	if v := i.Country; v != nil {
+		m.SetCountry(*v)
+	}
+	if i.ClearCity {
+		m.ClearCity()
+	}
+	if v := i.City; v != nil {
+		m.SetCity(*v)
+	}
+	if i.ClearEducations {
+		m.ClearEducations()
+	}
+	if v := i.Educations; v != nil {
+		m.SetEducations(*v)
+	}
+	if i.ClearPositions {
+		m.ClearPositions()
+	}
+	if v := i.Positions; v != nil {
+		m.SetPositions(*v)
+	}
+	if i.ClearSkills {
+		m.ClearSkills()
+	}
+	if v := i.Skills; v != nil {
+		m.SetSkills(*v)
+	}
+	if i.ClearGeoData {
+		m.ClearGeoData()
+	}
+	if v := i.GeoData; v != nil {
+		m.SetGeoData(*v)
+	}
+	if i.ClearRawDataS3Key {
+		m.ClearRawDataS3Key()
+	}
+	if v := i.RawDataS3Key; v != nil {
+		m.SetRawDataS3Key(*v)
+	}
+	if i.ClearCleanedDataS3Key {
+		m.ClearCleanedDataS3Key()
+	}
+	if v := i.CleanedDataS3Key; v != nil {
+		m.SetCleanedDataS3Key(*v)
+	}
+	if i.ClearSourceFile {
+		m.ClearSourceFile()
 	}
 	if v := i.SourceFile; v != nil {
 		m.SetSourceFile(*v)
@@ -72,11 +603,11 @@ func (i *UpdateProfileInput) Mutate(m *ProfileMutation) {
 	if v := i.UpdatedAt; v != nil {
 		m.SetUpdatedAt(*v)
 	}
-	if ids := i.AddTodoIDs; len(ids) > 0 {
-		m.AddTodoIDs(ids...)
+	if i.ClearProfileEntry {
+		m.ClearProfileEntry()
 	}
-	if ids := i.RemoveTodoIDs; len(ids) > 0 {
-		m.RemoveTodoIDs(ids...)
+	if v := i.ProfileEntryID; v != nil {
+		m.SetProfileEntryID(*v)
 	}
 }
 
@@ -105,6 +636,7 @@ type CreateProfileEntryInput struct {
 	FetchCount        *int
 	LastFetchedAt     *time.Time
 	ErrorMessage      *string
+	ProfileID         *ulid.ID
 }
 
 // Mutate applies the CreateProfileEntryInput on the ProfileEntryCreate builder.
@@ -140,6 +672,9 @@ func (i *CreateProfileEntryInput) Mutate(m *ProfileEntryCreate) {
 	if v := i.ErrorMessage; v != nil {
 		m.SetErrorMessage(*v)
 	}
+	if v := i.ProfileID; v != nil {
+		m.SetProfileID(*v)
+	}
 }
 
 // SetInput applies the change-set in the CreateProfileEntryInput on the create builder.
@@ -167,6 +702,8 @@ type UpdateProfileEntryInput struct {
 	ClearLastFetchedAt     bool
 	ErrorMessage           *string
 	ClearErrorMessage      bool
+	ProfileID              *ulid.ID
+	ClearProfile           bool
 }
 
 // Mutate applies the UpdateProfileEntryInput on the ProfileEntryMutation.
@@ -218,6 +755,12 @@ func (i *UpdateProfileEntryInput) Mutate(m *ProfileEntryMutation) {
 	}
 	if v := i.ErrorMessage; v != nil {
 		m.SetErrorMessage(*v)
+	}
+	if i.ClearProfile {
+		m.ClearProfile()
+	}
+	if v := i.ProfileID; v != nil {
+		m.SetProfileID(*v)
 	}
 }
 

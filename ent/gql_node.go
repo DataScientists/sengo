@@ -5,6 +5,9 @@ package ent
 import (
 	"context"
 	"fmt"
+	"sheng-go-backend/ent/apiquotatracker"
+	"sheng-go-backend/ent/cronjobconfig"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
@@ -20,6 +23,21 @@ import (
 type Noder interface {
 	IsNode()
 }
+
+var apiquotatrackerImplementors = []string{"APIQuotaTracker", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*APIQuotaTracker) IsNode() {}
+
+var cronjobconfigImplementors = []string{"CronJobConfig", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*CronJobConfig) IsNode() {}
+
+var jobexecutionhistoryImplementors = []string{"JobExecutionHistory", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*JobExecutionHistory) IsNode() {}
 
 var profileImplementors = []string{"Profile", "Node"}
 
@@ -99,6 +117,45 @@ func (c *Client) Noder(ctx context.Context, id ulid.ID, opts ...NodeOption) (_ N
 
 func (c *Client) noder(ctx context.Context, table string, id ulid.ID) (Noder, error) {
 	switch table {
+	case apiquotatracker.Table:
+		var uid ulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.APIQuotaTracker.Query().
+			Where(apiquotatracker.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, apiquotatrackerImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case cronjobconfig.Table:
+		var uid ulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.CronJobConfig.Query().
+			Where(cronjobconfig.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, cronjobconfigImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case jobexecutionhistory.Table:
+		var uid ulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.JobExecutionHistory.Query().
+			Where(jobexecutionhistory.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, jobexecutionhistoryImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
 	case profile.Table:
 		var uid ulid.ID
 		if err := uid.UnmarshalGQL(id); err != nil {
@@ -224,6 +281,54 @@ func (c *Client) noders(ctx context.Context, table string, ids []ulid.ID) ([]Nod
 		idmap[id] = append(idmap[id], &noders[i])
 	}
 	switch table {
+	case apiquotatracker.Table:
+		query := c.APIQuotaTracker.Query().
+			Where(apiquotatracker.IDIn(ids...))
+		query, err := query.CollectFields(ctx, apiquotatrackerImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case cronjobconfig.Table:
+		query := c.CronJobConfig.Query().
+			Where(cronjobconfig.IDIn(ids...))
+		query, err := query.CollectFields(ctx, cronjobconfigImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case jobexecutionhistory.Table:
+		query := c.JobExecutionHistory.Query().
+			Where(jobexecutionhistory.IDIn(ids...))
+		query, err := query.CollectFields(ctx, jobexecutionhistoryImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
 	case profile.Table:
 		query := c.Profile.Query().
 			Where(profile.IDIn(ids...))

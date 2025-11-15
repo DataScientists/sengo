@@ -33,9 +33,8 @@ type Todo struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the TodoQuery when eager-loading is set.
-	Edges         TodoEdges `json:"edges"`
-	profile_todos *ulid.ID
-	selectValues  sql.SelectValues
+	Edges        TodoEdges `json:"edges"`
+	selectValues sql.SelectValues
 }
 
 // TodoEdges holds the relations/edges for other nodes in the graph.
@@ -73,8 +72,6 @@ func (*Todo) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullTime)
 		case todo.FieldID, todo.FieldUserID:
 			values[i] = new(ulid.ID)
-		case todo.ForeignKeys[0]: // profile_todos
-			values[i] = &sql.NullScanner{S: new(ulid.ID)}
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -131,13 +128,6 @@ func (t *Todo) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field updated_at", values[i])
 			} else if value.Valid {
 				t.UpdatedAt = value.Time
-			}
-		case todo.ForeignKeys[0]:
-			if value, ok := values[i].(*sql.NullScanner); !ok {
-				return fmt.Errorf("unexpected type %T for field profile_todos", values[i])
-			} else if value.Valid {
-				t.profile_todos = new(ulid.ID)
-				*t.profile_todos = *value.S.(*ulid.ID)
 			}
 		default:
 			t.selectValues.Set(columns[i], values[i])

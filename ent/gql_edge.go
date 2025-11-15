@@ -8,16 +8,20 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-func (pr *Profile) Todos(ctx context.Context) (result []*Todo, err error) {
-	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
-		result, err = pr.NamedTodos(graphql.GetFieldContext(ctx).Field.Alias)
-	} else {
-		result, err = pr.Edges.TodosOrErr()
-	}
+func (pr *Profile) ProfileEntry(ctx context.Context) (*ProfileEntry, error) {
+	result, err := pr.Edges.ProfileEntryOrErr()
 	if IsNotLoaded(err) {
-		result, err = pr.QueryTodos().All(ctx)
+		result, err = pr.QueryProfileEntry().Only(ctx)
 	}
-	return result, err
+	return result, MaskNotFound(err)
+}
+
+func (pe *ProfileEntry) Profile(ctx context.Context) (*Profile, error) {
+	result, err := pe.Edges.ProfileOrErr()
+	if IsNotLoaded(err) {
+		result, err = pe.QueryProfile().Only(ctx)
+	}
+	return result, MaskNotFound(err)
 }
 
 func (t *Todo) User(ctx context.Context) (*User, error) {

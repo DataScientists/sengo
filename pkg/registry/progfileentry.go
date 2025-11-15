@@ -10,5 +10,5 @@ func (r *registry) NewProfileEntryController() controller.ProfileEntry {
 	repo := profileentryrepository.NewprofileentryRepository(r.client)
 	u := usecase.NewProfileEntryUseCase(repo)
 
-	return controller.NewProfileEntryController(u)
+	return controller.NewProfileEntryController(u, r.profileFetcher)
 }

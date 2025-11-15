@@ -4,13 +4,12 @@ package ent
 
 import (
 	"context"
-	"database/sql/driver"
 	"fmt"
 	"math"
 	"sheng-go-backend/ent/predicate"
 	"sheng-go-backend/ent/profile"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
-	"sheng-go-backend/ent/todo"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -21,14 +20,14 @@ import (
 // ProfileQuery is the builder for querying Profile entities.
 type ProfileQuery struct {
 	config
-	ctx            *QueryContext
-	order          []profile.OrderOption
-	inters         []Interceptor
-	predicates     []predicate.Profile
-	withTodos      *TodoQuery
-	modifiers      []func(*sql.Selector)
-	loadTotal      []func(context.Context, []*Profile) error
-	withNamedTodos map[string]*TodoQuery
+	ctx              *QueryContext
+	order            []profile.OrderOption
+	inters           []Interceptor
+	predicates       []predicate.Profile
+	withProfileEntry *ProfileEntryQuery
+	withFKs          bool
+	modifiers        []func(*sql.Selector)
+	loadTotal        []func(context.Context, []*Profile) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -65,9 +64,9 @@ func (pq *ProfileQuery) Order(o ...profile.OrderOption) *ProfileQuery {
 	return pq
 }
 
-// QueryTodos chains the current query on the "todos" edge.
-func (pq *ProfileQuery) QueryTodos() *TodoQuery {
-	query := (&TodoClient{config: pq.config}).Query()
+// QueryProfileEntry chains the current query on the "profile_entry" edge.
+func (pq *ProfileQuery) QueryProfileEntry() *ProfileEntryQuery {
+	query := (&ProfileEntryClient{config: pq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := pq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -78,8 +77,8 @@ func (pq *ProfileQuery) QueryTodos() *TodoQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(profile.Table, profile.FieldID, selector),
-			sqlgraph.To(todo.Table, todo.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, false, profile.TodosTable, profile.TodosColumn),
+			sqlgraph.To(profileentry.Table, profileentry.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, true, profile.ProfileEntryTable, profile.ProfileEntryColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(pq.driver.Dialect(), step)
 		return fromU, nil
@@ -274,26 +273,26 @@ func (pq *ProfileQuery) Clone() *ProfileQuery {
 		return nil
 	}
 	return &ProfileQuery{
-		config:     pq.config,
-		ctx:        pq.ctx.Clone(),
-		order:      append([]profile.OrderOption{}, pq.order...),
-		inters:     append([]Interceptor{}, pq.inters...),
-		predicates: append([]predicate.Profile{}, pq.predicates...),
-		withTodos:  pq.withTodos.Clone(),
+		config:           pq.config,
+		ctx:              pq.ctx.Clone(),
+		order:            append([]profile.OrderOption{}, pq.order...),
+		inters:           append([]Interceptor{}, pq.inters...),
+		predicates:       append([]predicate.Profile{}, pq.predicates...),
+		withProfileEntry: pq.withProfileEntry.Clone(),
 		// clone intermediate query.
 		sql:  pq.sql.Clone(),
 		path: pq.path,
 	}
 }
 
-// WithTodos tells the query-builder to eager-load the nodes that are connected to
-// the "todos" edge. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProfileQuery) WithTodos(opts ...func(*TodoQuery)) *ProfileQuery {
-	query := (&TodoClient{config: pq.config}).Query()
+// WithProfileEntry tells the query-builder to eager-load the nodes that are connected to
+// the "profile_entry" edge. The optional arguments are used to configure the query builder of the edge.
+func (pq *ProfileQuery) WithProfileEntry(opts ...func(*ProfileEntryQuery)) *ProfileQuery {
+	query := (&ProfileEntryClient{config: pq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
-	pq.withTodos = query
+	pq.withProfileEntry = query
 	return pq
 }
 
@@ -303,12 +302,12 @@ func (pq *ProfileQuery) WithTodos(opts ...func(*TodoQuery)) *ProfileQuery {
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Urn string `json:"urn,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.Profile.Query().
-//		GroupBy(profile.FieldName).
+//		GroupBy(profile.FieldUrn).
 //		Aggregate(ent.Count()).
 //		Scan(ctx, &v)
 func (pq *ProfileQuery) GroupBy(field string, fields ...string) *ProfileGroupBy {
@@ -326,11 +325,11 @@ func (pq *ProfileQuery) GroupBy(field string, fields ...string) *ProfileGroupBy 
 // Example:
 //
 //	var v []struct {
-//		Name string `json:"name,omitempty"`
+//		Urn string `json:"urn,omitempty"`
 //	}
 //
 //	client.Profile.Query().
-//		Select(profile.FieldName).
+//		Select(profile.FieldUrn).
 //		Scan(ctx, &v)
 func (pq *ProfileQuery) Select(fields ...string) *ProfileSelect {
 	pq.ctx.Fields = append(pq.ctx.Fields, fields...)
@@ -374,11 +373,18 @@ func (pq *ProfileQuery) prepareQuery(ctx context.Context) error {
 func (pq *ProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Profile, error) {
 	var (
 		nodes       = []*Profile{}
+		withFKs     = pq.withFKs
 		_spec       = pq.querySpec()
 		loadedTypes = [1]bool{
-			pq.withTodos != nil,
+			pq.withProfileEntry != nil,
 		}
 	)
+	if pq.withProfileEntry != nil {
+		withFKs = true
+	}
+	if withFKs {
+		_spec.Node.Columns = append(_spec.Node.Columns, profile.ForeignKeys...)
+	}
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Profile).scanValues(nil, columns)
 	}
@@ -400,17 +406,9 @@ func (pq *ProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prof
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
-	if query := pq.withTodos; query != nil {
-		if err := pq.loadTodos(ctx, query, nodes,
-			func(n *Profile) { n.Edges.Todos = []*Todo{} },
-			func(n *Profile, e *Todo) { n.Edges.Todos = append(n.Edges.Todos, e) }); err != nil {
-			return nil, err
-		}
-	}
-	for name, query := range pq.withNamedTodos {
-		if err := pq.loadTodos(ctx, query, nodes,
-			func(n *Profile) { n.appendNamedTodos(name) },
-			func(n *Profile, e *Todo) { n.appendNamedTodos(name, e) }); err != nil {
+	if query := pq.withProfileEntry; query != nil {
+		if err := pq.loadProfileEntry(ctx, query, nodes, nil,
+			func(n *Profile, e *ProfileEntry) { n.Edges.ProfileEntry = e }); err != nil {
 			return nil, err
 		}
 	}
@@ -422,34 +420,35 @@ func (pq *ProfileQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Prof
 	return nodes, nil
 }
 
-func (pq *ProfileQuery) loadTodos(ctx context.Context, query *TodoQuery, nodes []*Profile, init func(*Profile), assign func(*Profile, *Todo)) error {
-	fks := make([]driver.Value, 0, len(nodes))
-	nodeids := make(map[ulid.ID]*Profile)
+func (pq *ProfileQuery) loadProfileEntry(ctx context.Context, query *ProfileEntryQuery, nodes []*Profile, init func(*Profile), assign func(*Profile, *ProfileEntry)) error {
+	ids := make([]ulid.ID, 0, len(nodes))
+	nodeids := make(map[ulid.ID][]*Profile)
 	for i := range nodes {
-		fks = append(fks, nodes[i].ID)
-		nodeids[nodes[i].ID] = nodes[i]
-		if init != nil {
-			init(nodes[i])
+		if nodes[i].profile_entry_profile == nil {
+			continue
 		}
+		fk := *nodes[i].profile_entry_profile
+		if _, ok := nodeids[fk]; !ok {
+			ids = append(ids, fk)
+		}
+		nodeids[fk] = append(nodeids[fk], nodes[i])
 	}
-	query.withFKs = true
-	query.Where(predicate.Todo(func(s *sql.Selector) {
-		s.Where(sql.InValues(s.C(profile.TodosColumn), fks...))
-	}))
+	if len(ids) == 0 {
+		return nil
+	}
+	query.Where(profileentry.IDIn(ids...))
 	neighbors, err := query.All(ctx)
 	if err != nil {
 		return err
 	}
 	for _, n := range neighbors {
-		fk := n.profile_todos
-		if fk == nil {
-			return fmt.Errorf(`foreign-key "profile_todos" is nil for node %v`, n.ID)
-		}
-		node, ok := nodeids[*fk]
+		nodes, ok := nodeids[n.ID]
 		if !ok {
-			return fmt.Errorf(`unexpected referenced foreign-key "profile_todos" returned %v for node %v`, *fk, n.ID)
+			return fmt.Errorf(`unexpected foreign-key "profile_entry_profile" returned %v`, n.ID)
 		}
-		assign(node, n)
+		for i := range nodes {
+			assign(nodes[i], n)
+		}
 	}
 	return nil
 }
@@ -536,20 +535,6 @@ func (pq *ProfileQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
-}
-
-// WithNamedTodos tells the query-builder to eager-load the nodes that are connected to the "todos"
-// edge with the given name. The optional arguments are used to configure the query builder of the edge.
-func (pq *ProfileQuery) WithNamedTodos(name string, opts ...func(*TodoQuery)) *ProfileQuery {
-	query := (&TodoClient{config: pq.config}).Query()
-	for _, opt := range opts {
-		opt(query)
-	}
-	if pq.withNamedTodos == nil {
-		pq.withNamedTodos = make(map[string]*TodoQuery)
-	}
-	pq.withNamedTodos[name] = query
-	return pq
 }
 
 // ProfileGroupBy is the group-by builder for Profile entities.

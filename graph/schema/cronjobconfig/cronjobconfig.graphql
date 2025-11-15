@@ -1,0 +1,43 @@
+type CronJobConfig implements Node {
+  id: ID!
+  jobName: String!
+  jobType: CronJobType!
+  schedule: String!
+  enabled: Boolean!
+  batchSize: Int!
+  adminEmail: String!
+  respectQuota: Boolean!
+  lastRunAt: Time
+  nextRunAt: Time
+  createdAt: Time!
+  updatedAt: Time!
+}
+
+enum CronJobType {
+  PROFILE_FETCHER
+  QUOTA_RESET
+}
+
+input UpdateCronJobConfigInput {
+  schedule: String
+  enabled: Boolean
+  batchSize: Int
+  adminEmail: String
+  respectQuota: Boolean
+}
+
+extend type Query {
+  # Get all cron job configurations
+  cronJobConfigs: [CronJobConfig!]!
+
+  # Get a specific cron job configuration by name
+  cronJobConfig(jobName: String!): CronJobConfig
+}
+
+extend type Mutation {
+  # Update cron job configuration
+  updateCronJobConfig(jobName: String!, input: UpdateCronJobConfigInput!): CronJobConfig!
+
+  # Toggle cron job enabled status
+  toggleCronJob(jobName: String!, enabled: Boolean!): CronJobConfig!
+}

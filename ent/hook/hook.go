@@ -8,6 +8,42 @@ import (
 	"sheng-go-backend/ent"
 )
 
+// The APIQuotaTrackerFunc type is an adapter to allow the use of ordinary
+// function as APIQuotaTracker mutator.
+type APIQuotaTrackerFunc func(context.Context, *ent.APIQuotaTrackerMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f APIQuotaTrackerFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.APIQuotaTrackerMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.APIQuotaTrackerMutation", m)
+}
+
+// The CronJobConfigFunc type is an adapter to allow the use of ordinary
+// function as CronJobConfig mutator.
+type CronJobConfigFunc func(context.Context, *ent.CronJobConfigMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f CronJobConfigFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.CronJobConfigMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.CronJobConfigMutation", m)
+}
+
+// The JobExecutionHistoryFunc type is an adapter to allow the use of ordinary
+// function as JobExecutionHistory mutator.
+type JobExecutionHistoryFunc func(context.Context, *ent.JobExecutionHistoryMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f JobExecutionHistoryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.JobExecutionHistoryMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.JobExecutionHistoryMutation", m)
+}
+
 // The ProfileFunc type is an adapter to allow the use of ordinary
 // function as Profile mutator.
 type ProfileFunc func(context.Context, *ent.ProfileMutation) (ent.Value, error)

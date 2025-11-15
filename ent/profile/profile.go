@@ -15,40 +15,82 @@ const (
 	Label = "profile"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
-	// FieldTitle holds the string denoting the title field in the database.
-	FieldTitle = "title"
 	// FieldUrn holds the string denoting the urn field in the database.
 	FieldUrn = "urn"
+	// FieldUsername holds the string denoting the username field in the database.
+	FieldUsername = "username"
+	// FieldFirstName holds the string denoting the first_name field in the database.
+	FieldFirstName = "first_name"
+	// FieldLastName holds the string denoting the last_name field in the database.
+	FieldLastName = "last_name"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
+	// FieldHeadline holds the string denoting the headline field in the database.
+	FieldHeadline = "headline"
+	// FieldTitle holds the string denoting the title field in the database.
+	FieldTitle = "title"
+	// FieldCountry holds the string denoting the country field in the database.
+	FieldCountry = "country"
+	// FieldCity holds the string denoting the city field in the database.
+	FieldCity = "city"
+	// FieldEducations holds the string denoting the educations field in the database.
+	FieldEducations = "educations"
+	// FieldPositions holds the string denoting the positions field in the database.
+	FieldPositions = "positions"
+	// FieldSkills holds the string denoting the skills field in the database.
+	FieldSkills = "skills"
+	// FieldGeoData holds the string denoting the geo_data field in the database.
+	FieldGeoData = "geo_data"
+	// FieldRawDataS3Key holds the string denoting the raw_data_s3_key field in the database.
+	FieldRawDataS3Key = "raw_data_s3_key"
+	// FieldCleanedDataS3Key holds the string denoting the cleaned_data_s3_key field in the database.
+	FieldCleanedDataS3Key = "cleaned_data_s3_key"
 	// FieldSourceFile holds the string denoting the source_file field in the database.
 	FieldSourceFile = "source_file"
 	// FieldCreatedAt holds the string denoting the created_at field in the database.
 	FieldCreatedAt = "created_at"
 	// FieldUpdatedAt holds the string denoting the updated_at field in the database.
 	FieldUpdatedAt = "updated_at"
-	// EdgeTodos holds the string denoting the todos edge name in mutations.
-	EdgeTodos = "todos"
+	// EdgeProfileEntry holds the string denoting the profile_entry edge name in mutations.
+	EdgeProfileEntry = "profile_entry"
 	// Table holds the table name of the profile in the database.
 	Table = "profiles"
-	// TodosTable is the table that holds the todos relation/edge.
-	TodosTable = "todos"
-	// TodosInverseTable is the table name for the Todo entity.
-	// It exists in this package in order to avoid circular dependency with the "todo" package.
-	TodosInverseTable = "todos"
-	// TodosColumn is the table column denoting the todos relation/edge.
-	TodosColumn = "profile_todos"
+	// ProfileEntryTable is the table that holds the profile_entry relation/edge.
+	ProfileEntryTable = "profiles"
+	// ProfileEntryInverseTable is the table name for the ProfileEntry entity.
+	// It exists in this package in order to avoid circular dependency with the "profileentry" package.
+	ProfileEntryInverseTable = "profile_entries"
+	// ProfileEntryColumn is the table column denoting the profile_entry relation/edge.
+	ProfileEntryColumn = "profile_entry_profile"
 )
 
 // Columns holds all SQL columns for profile fields.
 var Columns = []string{
 	FieldID,
-	FieldName,
-	FieldTitle,
 	FieldUrn,
+	FieldUsername,
+	FieldFirstName,
+	FieldLastName,
+	FieldName,
+	FieldHeadline,
+	FieldTitle,
+	FieldCountry,
+	FieldCity,
+	FieldEducations,
+	FieldPositions,
+	FieldSkills,
+	FieldGeoData,
+	FieldRawDataS3Key,
+	FieldCleanedDataS3Key,
 	FieldSourceFile,
 	FieldCreatedAt,
 	FieldUpdatedAt,
+}
+
+// ForeignKeys holds the SQL foreign-keys that are owned by the "profiles"
+// table and are not defined as standalone fields in the schema.
+var ForeignKeys = []string{
+	"profile_entry_profile",
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -58,16 +100,23 @@ func ValidColumn(column string) bool {
 			return true
 		}
 	}
+	for i := range ForeignKeys {
+		if column == ForeignKeys[i] {
+			return true
+		}
+	}
 	return false
 }
 
 var (
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
 	// UrnValidator is a validator for the "urn" field. It is called by the builders before save.
 	UrnValidator func(string) error
-	// SourceFileValidator is a validator for the "source_file" field. It is called by the builders before save.
-	SourceFileValidator func(string) error
+	// NameValidator is a validator for the "name" field. It is called by the builders before save.
+	NameValidator func(string) error
+	// RawDataS3KeyValidator is a validator for the "raw_data_s3_key" field. It is called by the builders before save.
+	RawDataS3KeyValidator func(string) error
+	// CleanedDataS3KeyValidator is a validator for the "cleaned_data_s3_key" field. It is called by the builders before save.
+	CleanedDataS3KeyValidator func(string) error
 	// DefaultCreatedAt holds the default value on creation for the "created_at" field.
 	DefaultCreatedAt func() time.Time
 	// DefaultUpdatedAt holds the default value on creation for the "updated_at" field.
@@ -86,9 +135,34 @@ func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
 }
 
+// ByUrn orders the results by the urn field.
+func ByUrn(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUrn, opts...).ToFunc()
+}
+
+// ByUsername orders the results by the username field.
+func ByUsername(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldUsername, opts...).ToFunc()
+}
+
+// ByFirstName orders the results by the first_name field.
+func ByFirstName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldFirstName, opts...).ToFunc()
+}
+
+// ByLastName orders the results by the last_name field.
+func ByLastName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldLastName, opts...).ToFunc()
+}
+
 // ByName orders the results by the name field.
 func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
+}
+
+// ByHeadline orders the results by the headline field.
+func ByHeadline(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldHeadline, opts...).ToFunc()
 }
 
 // ByTitle orders the results by the title field.
@@ -96,9 +170,24 @@ func ByTitle(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldTitle, opts...).ToFunc()
 }
 
-// ByUrn orders the results by the urn field.
-func ByUrn(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldUrn, opts...).ToFunc()
+// ByCountry orders the results by the country field.
+func ByCountry(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCountry, opts...).ToFunc()
+}
+
+// ByCity orders the results by the city field.
+func ByCity(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCity, opts...).ToFunc()
+}
+
+// ByRawDataS3Key orders the results by the raw_data_s3_key field.
+func ByRawDataS3Key(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldRawDataS3Key, opts...).ToFunc()
+}
+
+// ByCleanedDataS3Key orders the results by the cleaned_data_s3_key field.
+func ByCleanedDataS3Key(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCleanedDataS3Key, opts...).ToFunc()
 }
 
 // BySourceFile orders the results by the source_file field.
@@ -116,23 +205,16 @@ func ByUpdatedAt(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldUpdatedAt, opts...).ToFunc()
 }
 
-// ByTodosCount orders the results by todos count.
-func ByTodosCount(opts ...sql.OrderTermOption) OrderOption {
+// ByProfileEntryField orders the results by profile_entry field.
+func ByProfileEntryField(field string, opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newTodosStep(), opts...)
+		sqlgraph.OrderByNeighborTerms(s, newProfileEntryStep(), sql.OrderByField(field, opts...))
 	}
 }
-
-// ByTodos orders the results by todos terms.
-func ByTodos(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
-	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newTodosStep(), append([]sql.OrderTerm{term}, terms...)...)
-	}
-}
-func newTodosStep() *sqlgraph.Step {
+func newProfileEntryStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(TodosInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.O2M, false, TodosTable, TodosColumn),
+		sqlgraph.To(ProfileEntryInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2O, true, ProfileEntryTable, ProfileEntryColumn),
 	)
 }

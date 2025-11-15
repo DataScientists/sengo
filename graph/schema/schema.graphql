@@ -17,4 +17,5 @@ interface Node {
 type Query {
   node(id: ID!): Node
 }
+
 type Mutation

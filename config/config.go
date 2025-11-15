@@ -36,6 +36,31 @@ type config struct {
 	Server             struct {
 		Address string
 	}
+	AWS struct {
+		Region          string
+		S3Bucket        string
+		AccessKeyID     string
+		SecretAccessKey string
+	}
+	RapidAPI struct {
+		APIKey        string
+		BaseURL       string
+		MonthlyQuota  int
+		TimeoutSeconds int
+	}
+	Email struct {
+		SMTPHost     string
+		SMTPPort     int
+		Username     string
+		Password     string
+		FromAddress  string
+		AdminEmail   string
+	}
+	Cron struct {
+		ProfileFetcherSchedule string
+		QuotaResetSchedule     string
+		BatchSize              int
+	}
 }
 
 // C is config variable

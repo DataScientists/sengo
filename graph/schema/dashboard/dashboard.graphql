@@ -1,0 +1,23 @@
+type ProfileEntryStats {
+  totalCount: Int!
+  pendingCount: Int!
+  fetchingCount: Int!
+  completedCount: Int!
+  failedCount: Int!
+}
+
+type DashboardOverview {
+  quotaStatus: APIQuotaTracker
+  pendingProfilesCount: Int!
+  recentJobExecutions: [JobExecutionHistory!]!
+  cronJobsStatus: [CronJobConfig!]!
+  profileEntryStats: ProfileEntryStats!
+}
+
+extend type Query {
+  # Get profile entry statistics
+  profileEntryStats: ProfileEntryStats!
+
+  # Get dashboard overview with all key metrics
+  dashboardOverview: DashboardOverview!
+}

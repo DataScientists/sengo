@@ -23,12 +23,31 @@ func (r *mutationResolver) CreateProfileEntry(ctx context.Context, input ent.Cre
 }
 
 // UpdateProfileEntry is the resolver for the updateProfileEntry field.
-func (r *mutationResolver) UpdateProfileEntry(ctx context.Context, input ent.UpdateProfileEntryInput) (*ent.ProfileEntry, error) {
+func (r *mutationResolver) UpdateProfileEntry(ctx context.Context, id ulid.ID, input ent.UpdateProfileEntryInput) (*ent.ProfileEntry, error) {
 	pe, err := r.controller.ProfileEntry.Update(ctx, input)
 	if err != nil {
 		return nil, handler.HandleGraphQLError(ctx, err)
 	}
 	return pe, nil
+}
+
+// DeleteProfileEntry is the resolver for the deleteProfileEntry field.
+func (r *mutationResolver) DeleteProfileEntry(ctx context.Context, id ulid.ID) (bool, error) {
+	err := r.controller.ProfileEntry.Delete(ctx, &id)
+	if err != nil {
+		return false, handler.HandleGraphQLError(ctx, err)
+	}
+	return true, nil
+}
+
+// FetchProfileEntry is the resolver for the fetchProfileEntry field.
+func (r *mutationResolver) FetchProfileEntry(ctx context.Context, id ulid.ID) (bool, error) {
+	err := r.controller.ProfileEntry.FetchProfileEntry(ctx, id)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 // ProfileEntry is the resolver for the profileEntry field.
@@ -48,28 +67,3 @@ func (r *queryResolver) ProfileEntries(ctx context.Context, after *entgql.Cursor
 	}
 	return pec, err
 }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-/*
-	func (r *createProfileEntryInputResolver) Urn(ctx context.Context, obj *ent.CreateProfileEntryInput, data string) error {
-	panic(fmt.Errorf("not implemented: Urn - urn"))
-}
-func (r *updateProfileEntryInputResolver) Urn(ctx context.Context, obj *ent.UpdateProfileEntryInput, data *string) error {
-	panic(fmt.Errorf("not implemented: Urn - urn"))
-}
-func (r *Resolver) CreateProfileEntryInput() generated.CreateProfileEntryInputResolver {
-	return &createProfileEntryInputResolver{r}
-}
-func (r *Resolver) UpdateProfileEntryInput() generated.UpdateProfileEntryInputResolver {
-	return &updateProfileEntryInputResolver{r}
-}
-type (
-	createProfileEntryInputResolver struct{ *Resolver }
-	updateProfileEntryInputResolver struct{ *Resolver }
-)
-*/

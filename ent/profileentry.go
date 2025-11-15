@@ -5,6 +5,7 @@ package ent
 import (
 	"encoding/json"
 	"fmt"
+	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"strings"
@@ -41,7 +42,32 @@ type ProfileEntry struct {
 	LastFetchedAt *time.Time `json:"last_fetched_at,omitempty"`
 	// Error message if fetch failed
 	ErrorMessage *string `json:"error_message,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the ProfileEntryQuery when eager-loading is set.
+	Edges        ProfileEntryEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// ProfileEntryEdges holds the relations/edges for other nodes in the graph.
+type ProfileEntryEdges struct {
+	// Linked Profile after successful fetch
+	Profile *Profile `json:"profile,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+}
+
+// ProfileOrErr returns the Profile value or an error if the edge
+// was not loaded in eager-loading, or loaded but was not found.
+func (e ProfileEntryEdges) ProfileOrErr() (*Profile, error) {
+	if e.Profile != nil {
+		return e.Profile, nil
+	} else if e.loadedTypes[0] {
+		return nil, &NotFoundError{label: profile.Label}
+	}
+	return nil, &NotLoadedError{edge: "profile"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -164,6 +190,11 @@ func (pe *ProfileEntry) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (pe *ProfileEntry) Value(name string) (ent.Value, error) {
 	return pe.selectValues.Get(name)
+}
+
+// QueryProfile queries the "profile" edge of the ProfileEntry entity.
+func (pe *ProfileEntry) QueryProfile() *ProfileQuery {
+	return NewProfileEntryClient(pe.config).QueryProfile(pe)
 }
 
 // Update returns a builder for updating this ProfileEntry.

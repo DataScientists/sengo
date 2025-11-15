@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"time"
@@ -171,6 +172,25 @@ func (pec *ProfileEntryCreate) SetNillableID(u *ulid.ID) *ProfileEntryCreate {
 		pec.SetID(*u)
 	}
 	return pec
+}
+
+// SetProfileID sets the "profile" edge to the Profile entity by ID.
+func (pec *ProfileEntryCreate) SetProfileID(id ulid.ID) *ProfileEntryCreate {
+	pec.mutation.SetProfileID(id)
+	return pec
+}
+
+// SetNillableProfileID sets the "profile" edge to the Profile entity by ID if the given value is not nil.
+func (pec *ProfileEntryCreate) SetNillableProfileID(id *ulid.ID) *ProfileEntryCreate {
+	if id != nil {
+		pec = pec.SetProfileID(*id)
+	}
+	return pec
+}
+
+// SetProfile sets the "profile" edge to the Profile entity.
+func (pec *ProfileEntryCreate) SetProfile(p *Profile) *ProfileEntryCreate {
+	return pec.SetProfileID(p.ID)
 }
 
 // Mutation returns the ProfileEntryMutation object of the builder.
@@ -350,6 +370,22 @@ func (pec *ProfileEntryCreate) createSpec() (*ProfileEntry, *sqlgraph.CreateSpec
 	if value, ok := pec.mutation.ErrorMessage(); ok {
 		_spec.SetField(profileentry.FieldErrorMessage, field.TypeString, value)
 		_node.ErrorMessage = &value
+	}
+	if nodes := pec.mutation.ProfileIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2O,
+			Inverse: false,
+			Table:   profileentry.ProfileTable,
+			Columns: []string{profileentry.ProfileColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

@@ -4,9 +4,11 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"sheng-go-backend/ent/predicate"
+	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 
@@ -19,12 +21,13 @@ import (
 // ProfileEntryQuery is the builder for querying ProfileEntry entities.
 type ProfileEntryQuery struct {
 	config
-	ctx        *QueryContext
-	order      []profileentry.OrderOption
-	inters     []Interceptor
-	predicates []predicate.ProfileEntry
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*ProfileEntry) error
+	ctx         *QueryContext
+	order       []profileentry.OrderOption
+	inters      []Interceptor
+	predicates  []predicate.ProfileEntry
+	withProfile *ProfileQuery
+	modifiers   []func(*sql.Selector)
+	loadTotal   []func(context.Context, []*ProfileEntry) error
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +62,28 @@ func (peq *ProfileEntryQuery) Unique(unique bool) *ProfileEntryQuery {
 func (peq *ProfileEntryQuery) Order(o ...profileentry.OrderOption) *ProfileEntryQuery {
 	peq.order = append(peq.order, o...)
 	return peq
+}
+
+// QueryProfile chains the current query on the "profile" edge.
+func (peq *ProfileEntryQuery) QueryProfile() *ProfileQuery {
+	query := (&ProfileClient{config: peq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := peq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := peq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileentry.Table, profileentry.FieldID, selector),
+			sqlgraph.To(profile.Table, profile.FieldID),
+			sqlgraph.Edge(sqlgraph.O2O, false, profileentry.ProfileTable, profileentry.ProfileColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(peq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first ProfileEntry entity from the query.
@@ -248,15 +273,27 @@ func (peq *ProfileEntryQuery) Clone() *ProfileEntryQuery {
 		return nil
 	}
 	return &ProfileEntryQuery{
-		config:     peq.config,
-		ctx:        peq.ctx.Clone(),
-		order:      append([]profileentry.OrderOption{}, peq.order...),
-		inters:     append([]Interceptor{}, peq.inters...),
-		predicates: append([]predicate.ProfileEntry{}, peq.predicates...),
+		config:      peq.config,
+		ctx:         peq.ctx.Clone(),
+		order:       append([]profileentry.OrderOption{}, peq.order...),
+		inters:      append([]Interceptor{}, peq.inters...),
+		predicates:  append([]predicate.ProfileEntry{}, peq.predicates...),
+		withProfile: peq.withProfile.Clone(),
 		// clone intermediate query.
 		sql:  peq.sql.Clone(),
 		path: peq.path,
 	}
+}
+
+// WithProfile tells the query-builder to eager-load the nodes that are connected to
+// the "profile" edge. The optional arguments are used to configure the query builder of the edge.
+func (peq *ProfileEntryQuery) WithProfile(opts ...func(*ProfileQuery)) *ProfileEntryQuery {
+	query := (&ProfileClient{config: peq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	peq.withProfile = query
+	return peq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -335,8 +372,11 @@ func (peq *ProfileEntryQuery) prepareQuery(ctx context.Context) error {
 
 func (peq *ProfileEntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*ProfileEntry, error) {
 	var (
-		nodes = []*ProfileEntry{}
-		_spec = peq.querySpec()
+		nodes       = []*ProfileEntry{}
+		_spec       = peq.querySpec()
+		loadedTypes = [1]bool{
+			peq.withProfile != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*ProfileEntry).scanValues(nil, columns)
@@ -344,6 +384,7 @@ func (peq *ProfileEntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &ProfileEntry{config: peq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(peq.modifiers) > 0 {
@@ -358,12 +399,47 @@ func (peq *ProfileEntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := peq.withProfile; query != nil {
+		if err := peq.loadProfile(ctx, query, nodes, nil,
+			func(n *ProfileEntry, e *Profile) { n.Edges.Profile = e }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range peq.loadTotal {
 		if err := peq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (peq *ProfileEntryQuery) loadProfile(ctx context.Context, query *ProfileQuery, nodes []*ProfileEntry, init func(*ProfileEntry), assign func(*ProfileEntry, *Profile)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[ulid.ID]*ProfileEntry)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+	}
+	query.withFKs = true
+	query.Where(predicate.Profile(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(profileentry.ProfileColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.profile_entry_profile
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "profile_entry_profile" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "profile_entry_profile" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (peq *ProfileEntryQuery) sqlCount(ctx context.Context) (int, error) {

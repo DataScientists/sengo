@@ -3,6 +3,9 @@
 package ent
 
 import (
+	"sheng-go-backend/ent/apiquotatracker"
+	"sheng-go-backend/ent/cronjobconfig"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema"
@@ -16,6 +19,195 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	apiquotatrackerMixin := schema.APIQuotaTracker{}.Mixin()
+	apiquotatrackerMixinFields0 := apiquotatrackerMixin[0].Fields()
+	_ = apiquotatrackerMixinFields0
+	apiquotatrackerMixinFields2 := apiquotatrackerMixin[2].Fields()
+	_ = apiquotatrackerMixinFields2
+	apiquotatrackerFields := schema.APIQuotaTracker{}.Fields()
+	_ = apiquotatrackerFields
+	// apiquotatrackerDescCreatedAt is the schema descriptor for created_at field.
+	apiquotatrackerDescCreatedAt := apiquotatrackerMixinFields2[0].Descriptor()
+	// apiquotatracker.DefaultCreatedAt holds the default value on creation for the created_at field.
+	apiquotatracker.DefaultCreatedAt = apiquotatrackerDescCreatedAt.Default.(func() time.Time)
+	// apiquotatrackerDescUpdatedAt is the schema descriptor for updated_at field.
+	apiquotatrackerDescUpdatedAt := apiquotatrackerMixinFields2[1].Descriptor()
+	// apiquotatracker.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	apiquotatracker.DefaultUpdatedAt = apiquotatrackerDescUpdatedAt.Default.(func() time.Time)
+	// apiquotatracker.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	apiquotatracker.UpdateDefaultUpdatedAt = apiquotatrackerDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// apiquotatrackerDescMonth is the schema descriptor for month field.
+	apiquotatrackerDescMonth := apiquotatrackerFields[0].Descriptor()
+	// apiquotatracker.MonthValidator is a validator for the "month" field. It is called by the builders before save.
+	apiquotatracker.MonthValidator = apiquotatrackerDescMonth.Validators[0].(func(int) error)
+	// apiquotatrackerDescYear is the schema descriptor for year field.
+	apiquotatrackerDescYear := apiquotatrackerFields[1].Descriptor()
+	// apiquotatracker.YearValidator is a validator for the "year" field. It is called by the builders before save.
+	apiquotatracker.YearValidator = apiquotatrackerDescYear.Validators[0].(func(int) error)
+	// apiquotatrackerDescCallCount is the schema descriptor for call_count field.
+	apiquotatrackerDescCallCount := apiquotatrackerFields[2].Descriptor()
+	// apiquotatracker.DefaultCallCount holds the default value on creation for the call_count field.
+	apiquotatracker.DefaultCallCount = apiquotatrackerDescCallCount.Default.(int)
+	// apiquotatracker.CallCountValidator is a validator for the "call_count" field. It is called by the builders before save.
+	apiquotatracker.CallCountValidator = apiquotatrackerDescCallCount.Validators[0].(func(int) error)
+	// apiquotatrackerDescQuotaLimit is the schema descriptor for quota_limit field.
+	apiquotatrackerDescQuotaLimit := apiquotatrackerFields[3].Descriptor()
+	// apiquotatracker.DefaultQuotaLimit holds the default value on creation for the quota_limit field.
+	apiquotatracker.DefaultQuotaLimit = apiquotatrackerDescQuotaLimit.Default.(int)
+	// apiquotatracker.QuotaLimitValidator is a validator for the "quota_limit" field. It is called by the builders before save.
+	apiquotatracker.QuotaLimitValidator = apiquotatrackerDescQuotaLimit.Validators[0].(func(int) error)
+	// apiquotatrackerDescQuotaExceeded is the schema descriptor for quota_exceeded field.
+	apiquotatrackerDescQuotaExceeded := apiquotatrackerFields[4].Descriptor()
+	// apiquotatracker.DefaultQuotaExceeded holds the default value on creation for the quota_exceeded field.
+	apiquotatracker.DefaultQuotaExceeded = apiquotatrackerDescQuotaExceeded.Default.(bool)
+	// apiquotatrackerDescOverrideEnabled is the schema descriptor for override_enabled field.
+	apiquotatrackerDescOverrideEnabled := apiquotatrackerFields[5].Descriptor()
+	// apiquotatracker.DefaultOverrideEnabled holds the default value on creation for the override_enabled field.
+	apiquotatracker.DefaultOverrideEnabled = apiquotatrackerDescOverrideEnabled.Default.(bool)
+	// apiquotatrackerDescNotificationSent is the schema descriptor for notification_sent field.
+	apiquotatrackerDescNotificationSent := apiquotatrackerFields[6].Descriptor()
+	// apiquotatracker.DefaultNotificationSent holds the default value on creation for the notification_sent field.
+	apiquotatracker.DefaultNotificationSent = apiquotatrackerDescNotificationSent.Default.(bool)
+	// apiquotatrackerDescID is the schema descriptor for id field.
+	apiquotatrackerDescID := apiquotatrackerMixinFields0[0].Descriptor()
+	// apiquotatracker.DefaultID holds the default value on creation for the id field.
+	apiquotatracker.DefaultID = apiquotatrackerDescID.Default.(func() ulid.ID)
+	cronjobconfigMixin := schema.CronJobConfig{}.Mixin()
+	cronjobconfigMixinFields0 := cronjobconfigMixin[0].Fields()
+	_ = cronjobconfigMixinFields0
+	cronjobconfigMixinFields2 := cronjobconfigMixin[2].Fields()
+	_ = cronjobconfigMixinFields2
+	cronjobconfigFields := schema.CronJobConfig{}.Fields()
+	_ = cronjobconfigFields
+	// cronjobconfigDescCreatedAt is the schema descriptor for created_at field.
+	cronjobconfigDescCreatedAt := cronjobconfigMixinFields2[0].Descriptor()
+	// cronjobconfig.DefaultCreatedAt holds the default value on creation for the created_at field.
+	cronjobconfig.DefaultCreatedAt = cronjobconfigDescCreatedAt.Default.(func() time.Time)
+	// cronjobconfigDescUpdatedAt is the schema descriptor for updated_at field.
+	cronjobconfigDescUpdatedAt := cronjobconfigMixinFields2[1].Descriptor()
+	// cronjobconfig.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	cronjobconfig.DefaultUpdatedAt = cronjobconfigDescUpdatedAt.Default.(func() time.Time)
+	// cronjobconfig.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	cronjobconfig.UpdateDefaultUpdatedAt = cronjobconfigDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// cronjobconfigDescJobName is the schema descriptor for job_name field.
+	cronjobconfigDescJobName := cronjobconfigFields[0].Descriptor()
+	// cronjobconfig.JobNameValidator is a validator for the "job_name" field. It is called by the builders before save.
+	cronjobconfig.JobNameValidator = func() func(string) error {
+		validators := cronjobconfigDescJobName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(job_name string) error {
+			for _, fn := range fns {
+				if err := fn(job_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// cronjobconfigDescSchedule is the schema descriptor for schedule field.
+	cronjobconfigDescSchedule := cronjobconfigFields[2].Descriptor()
+	// cronjobconfig.ScheduleValidator is a validator for the "schedule" field. It is called by the builders before save.
+	cronjobconfig.ScheduleValidator = cronjobconfigDescSchedule.Validators[0].(func(string) error)
+	// cronjobconfigDescEnabled is the schema descriptor for enabled field.
+	cronjobconfigDescEnabled := cronjobconfigFields[3].Descriptor()
+	// cronjobconfig.DefaultEnabled holds the default value on creation for the enabled field.
+	cronjobconfig.DefaultEnabled = cronjobconfigDescEnabled.Default.(bool)
+	// cronjobconfigDescBatchSize is the schema descriptor for batch_size field.
+	cronjobconfigDescBatchSize := cronjobconfigFields[4].Descriptor()
+	// cronjobconfig.DefaultBatchSize holds the default value on creation for the batch_size field.
+	cronjobconfig.DefaultBatchSize = cronjobconfigDescBatchSize.Default.(int)
+	// cronjobconfig.BatchSizeValidator is a validator for the "batch_size" field. It is called by the builders before save.
+	cronjobconfig.BatchSizeValidator = cronjobconfigDescBatchSize.Validators[0].(func(int) error)
+	// cronjobconfigDescAdminEmail is the schema descriptor for admin_email field.
+	cronjobconfigDescAdminEmail := cronjobconfigFields[5].Descriptor()
+	// cronjobconfig.AdminEmailValidator is a validator for the "admin_email" field. It is called by the builders before save.
+	cronjobconfig.AdminEmailValidator = cronjobconfigDescAdminEmail.Validators[0].(func(string) error)
+	// cronjobconfigDescRespectQuota is the schema descriptor for respect_quota field.
+	cronjobconfigDescRespectQuota := cronjobconfigFields[6].Descriptor()
+	// cronjobconfig.DefaultRespectQuota holds the default value on creation for the respect_quota field.
+	cronjobconfig.DefaultRespectQuota = cronjobconfigDescRespectQuota.Default.(bool)
+	// cronjobconfigDescID is the schema descriptor for id field.
+	cronjobconfigDescID := cronjobconfigMixinFields0[0].Descriptor()
+	// cronjobconfig.DefaultID holds the default value on creation for the id field.
+	cronjobconfig.DefaultID = cronjobconfigDescID.Default.(func() ulid.ID)
+	jobexecutionhistoryMixin := schema.JobExecutionHistory{}.Mixin()
+	jobexecutionhistoryMixinFields0 := jobexecutionhistoryMixin[0].Fields()
+	_ = jobexecutionhistoryMixinFields0
+	jobexecutionhistoryMixinFields2 := jobexecutionhistoryMixin[2].Fields()
+	_ = jobexecutionhistoryMixinFields2
+	jobexecutionhistoryFields := schema.JobExecutionHistory{}.Fields()
+	_ = jobexecutionhistoryFields
+	// jobexecutionhistoryDescCreatedAt is the schema descriptor for created_at field.
+	jobexecutionhistoryDescCreatedAt := jobexecutionhistoryMixinFields2[0].Descriptor()
+	// jobexecutionhistory.DefaultCreatedAt holds the default value on creation for the created_at field.
+	jobexecutionhistory.DefaultCreatedAt = jobexecutionhistoryDescCreatedAt.Default.(func() time.Time)
+	// jobexecutionhistoryDescUpdatedAt is the schema descriptor for updated_at field.
+	jobexecutionhistoryDescUpdatedAt := jobexecutionhistoryMixinFields2[1].Descriptor()
+	// jobexecutionhistory.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	jobexecutionhistory.DefaultUpdatedAt = jobexecutionhistoryDescUpdatedAt.Default.(func() time.Time)
+	// jobexecutionhistory.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	jobexecutionhistory.UpdateDefaultUpdatedAt = jobexecutionhistoryDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// jobexecutionhistoryDescJobName is the schema descriptor for job_name field.
+	jobexecutionhistoryDescJobName := jobexecutionhistoryFields[0].Descriptor()
+	// jobexecutionhistory.JobNameValidator is a validator for the "job_name" field. It is called by the builders before save.
+	jobexecutionhistory.JobNameValidator = func() func(string) error {
+		validators := jobexecutionhistoryDescJobName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(job_name string) error {
+			for _, fn := range fns {
+				if err := fn(job_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// jobexecutionhistoryDescDurationSeconds is the schema descriptor for duration_seconds field.
+	jobexecutionhistoryDescDurationSeconds := jobexecutionhistoryFields[4].Descriptor()
+	// jobexecutionhistory.DefaultDurationSeconds holds the default value on creation for the duration_seconds field.
+	jobexecutionhistory.DefaultDurationSeconds = jobexecutionhistoryDescDurationSeconds.Default.(int)
+	// jobexecutionhistory.DurationSecondsValidator is a validator for the "duration_seconds" field. It is called by the builders before save.
+	jobexecutionhistory.DurationSecondsValidator = jobexecutionhistoryDescDurationSeconds.Validators[0].(func(int) error)
+	// jobexecutionhistoryDescTotalProcessed is the schema descriptor for total_processed field.
+	jobexecutionhistoryDescTotalProcessed := jobexecutionhistoryFields[5].Descriptor()
+	// jobexecutionhistory.DefaultTotalProcessed holds the default value on creation for the total_processed field.
+	jobexecutionhistory.DefaultTotalProcessed = jobexecutionhistoryDescTotalProcessed.Default.(int)
+	// jobexecutionhistory.TotalProcessedValidator is a validator for the "total_processed" field. It is called by the builders before save.
+	jobexecutionhistory.TotalProcessedValidator = jobexecutionhistoryDescTotalProcessed.Validators[0].(func(int) error)
+	// jobexecutionhistoryDescSuccessfulCount is the schema descriptor for successful_count field.
+	jobexecutionhistoryDescSuccessfulCount := jobexecutionhistoryFields[6].Descriptor()
+	// jobexecutionhistory.DefaultSuccessfulCount holds the default value on creation for the successful_count field.
+	jobexecutionhistory.DefaultSuccessfulCount = jobexecutionhistoryDescSuccessfulCount.Default.(int)
+	// jobexecutionhistory.SuccessfulCountValidator is a validator for the "successful_count" field. It is called by the builders before save.
+	jobexecutionhistory.SuccessfulCountValidator = jobexecutionhistoryDescSuccessfulCount.Validators[0].(func(int) error)
+	// jobexecutionhistoryDescFailedCount is the schema descriptor for failed_count field.
+	jobexecutionhistoryDescFailedCount := jobexecutionhistoryFields[7].Descriptor()
+	// jobexecutionhistory.DefaultFailedCount holds the default value on creation for the failed_count field.
+	jobexecutionhistory.DefaultFailedCount = jobexecutionhistoryDescFailedCount.Default.(int)
+	// jobexecutionhistory.FailedCountValidator is a validator for the "failed_count" field. It is called by the builders before save.
+	jobexecutionhistory.FailedCountValidator = jobexecutionhistoryDescFailedCount.Validators[0].(func(int) error)
+	// jobexecutionhistoryDescAPICallsMade is the schema descriptor for api_calls_made field.
+	jobexecutionhistoryDescAPICallsMade := jobexecutionhistoryFields[8].Descriptor()
+	// jobexecutionhistory.DefaultAPICallsMade holds the default value on creation for the api_calls_made field.
+	jobexecutionhistory.DefaultAPICallsMade = jobexecutionhistoryDescAPICallsMade.Default.(int)
+	// jobexecutionhistory.APICallsMadeValidator is a validator for the "api_calls_made" field. It is called by the builders before save.
+	jobexecutionhistory.APICallsMadeValidator = jobexecutionhistoryDescAPICallsMade.Validators[0].(func(int) error)
+	// jobexecutionhistoryDescQuotaRemaining is the schema descriptor for quota_remaining field.
+	jobexecutionhistoryDescQuotaRemaining := jobexecutionhistoryFields[9].Descriptor()
+	// jobexecutionhistory.DefaultQuotaRemaining holds the default value on creation for the quota_remaining field.
+	jobexecutionhistory.DefaultQuotaRemaining = jobexecutionhistoryDescQuotaRemaining.Default.(int)
+	// jobexecutionhistory.QuotaRemainingValidator is a validator for the "quota_remaining" field. It is called by the builders before save.
+	jobexecutionhistory.QuotaRemainingValidator = jobexecutionhistoryDescQuotaRemaining.Validators[0].(func(int) error)
+	// jobexecutionhistoryDescID is the schema descriptor for id field.
+	jobexecutionhistoryDescID := jobexecutionhistoryMixinFields0[0].Descriptor()
+	// jobexecutionhistory.DefaultID holds the default value on creation for the id field.
+	jobexecutionhistory.DefaultID = jobexecutionhistoryDescID.Default.(func() ulid.ID)
 	profileMixin := schema.Profile{}.Mixin()
 	profileMixinFields0 := profileMixin[0].Fields()
 	_ = profileMixinFields0
@@ -25,32 +217,22 @@ func init() {
 	_ = profileMixinFields2
 	profileFields := schema.Profile{}.Fields()
 	_ = profileFields
-	// profileDescName is the schema descriptor for name field.
-	profileDescName := profileMixinFields1[0].Descriptor()
-	// profile.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	profile.NameValidator = func() func(string) error {
-		validators := profileDescName.Validators
-		fns := [...]func(string) error{
-			validators[0].(func(string) error),
-			validators[1].(func(string) error),
-		}
-		return func(name string) error {
-			for _, fn := range fns {
-				if err := fn(name); err != nil {
-					return err
-				}
-			}
-			return nil
-		}
-	}()
 	// profileDescUrn is the schema descriptor for urn field.
-	profileDescUrn := profileMixinFields1[2].Descriptor()
+	profileDescUrn := profileMixinFields1[0].Descriptor()
 	// profile.UrnValidator is a validator for the "urn" field. It is called by the builders before save.
 	profile.UrnValidator = profileDescUrn.Validators[0].(func(string) error)
-	// profileDescSourceFile is the schema descriptor for source_file field.
-	profileDescSourceFile := profileMixinFields1[3].Descriptor()
-	// profile.SourceFileValidator is a validator for the "source_file" field. It is called by the builders before save.
-	profile.SourceFileValidator = profileDescSourceFile.Validators[0].(func(string) error)
+	// profileDescName is the schema descriptor for name field.
+	profileDescName := profileMixinFields1[4].Descriptor()
+	// profile.NameValidator is a validator for the "name" field. It is called by the builders before save.
+	profile.NameValidator = profileDescName.Validators[0].(func(string) error)
+	// profileDescRawDataS3Key is the schema descriptor for raw_data_s3_key field.
+	profileDescRawDataS3Key := profileMixinFields1[13].Descriptor()
+	// profile.RawDataS3KeyValidator is a validator for the "raw_data_s3_key" field. It is called by the builders before save.
+	profile.RawDataS3KeyValidator = profileDescRawDataS3Key.Validators[0].(func(string) error)
+	// profileDescCleanedDataS3Key is the schema descriptor for cleaned_data_s3_key field.
+	profileDescCleanedDataS3Key := profileMixinFields1[14].Descriptor()
+	// profile.CleanedDataS3KeyValidator is a validator for the "cleaned_data_s3_key" field. It is called by the builders before save.
+	profile.CleanedDataS3KeyValidator = profileDescCleanedDataS3Key.Validators[0].(func(string) error)
 	// profileDescCreatedAt is the schema descriptor for created_at field.
 	profileDescCreatedAt := profileMixinFields2[0].Descriptor()
 	// profile.DefaultCreatedAt holds the default value on creation for the created_at field.

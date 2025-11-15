@@ -26,8 +26,8 @@ exec:
 
 # Where should any generated models go?
 #model:
-#   filename: graph/model/models_gen.go
-#   package: model
+#  filename: graph/model/models_gen.go
+#  package: model
 
 # Optional: Pass in a path to a new gotpl template to use for generating the models
 # model_template: [your/path/model.gotpl]
@@ -169,3 +169,18 @@ models:
   ProfileEntryStatus:
     model:
       - sheng-go-backend/ent/profileentry.Status
+  CronJobType:
+    model:
+      - sheng-go-backend/ent/cronjobconfig.JobType
+  JobExecutionStatus:
+    model:
+      - sheng-go-backend/ent/jobexecutionhistory.Status
+  ProfileEntryStats:
+    model:
+      - sheng-go-backend/pkg/entity/model.ProfileEntryStats
+  JobStats:
+    model:
+      - sheng-go-backend/pkg/entity/model.JobStats
+  DashboardOverview:
+    model:
+      - sheng-go-backend/pkg/entity/model.DashboardOverview
