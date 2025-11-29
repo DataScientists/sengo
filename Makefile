@@ -36,4 +36,19 @@ generate_repo_mocks:
 gqlgen:
 	go run github.com/99designs/gqlgen generate
 
-.PHONY: setup_db setup_db_test setup_db_e2e start migrate_schema test_e2e test_repository generate_ent generate_repo_mocks gqlgen
+seed:
+	docker exec -it go_app  go run ./cmd/seed/main.go
+
+seed_dev:
+	APP_ENV=development go run ./cmd/seed/main.go
+
+seed_test:
+	APP_ENV=test go run ./cmd/seed/main.go
+
+seed_e2e:
+	APP_ENV=e2e go run ./cmd/seed/main.go
+
+seed_truncate:
+	docker exec -it go_app go run ./cmd/seed/main.go -truncate
+
+.PHONY: setup_db setup_db_test setup_db_e2e start migrate_schema test_e2e test_repository generate_ent generate_repo_mocks gqlgen seed seed_dev seed_test seed_e2e seed_truncate

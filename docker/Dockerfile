@@ -1,5 +1,5 @@
 # Use the official Golang image as the base image
-FROM golang:1.23.4
+FROM golang:1.25.4
 
 # Install required files
 RUN go install github.com/air-verse/air@latest
