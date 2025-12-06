@@ -51,8 +51,8 @@ func (r *profileResolver) UpdatedAt(ctx context.Context, obj *ent.Profile) (stri
 }
 
 // Profile is the resolver for the profile field.
-func (r *queryResolver) Profile(ctx context.Context, input *ent.ProfileWhereInput) (*ent.Profile, error) {
-	profile, err := r.controller.Profile.Get(ctx, input)
+func (r *queryResolver) Profile(ctx context.Context, id ulid.ID) (*ent.Profile, error) {
+	profile, err := r.controller.Profile.Get(ctx, id)
 	if err != nil {
 		return nil, err
 	}
