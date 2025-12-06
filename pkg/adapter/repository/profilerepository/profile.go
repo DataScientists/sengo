@@ -36,8 +36,26 @@ func (r *profileRepository) GetByURN(ctx context.Context, urn string) (*ent.Prof
 
 // Upsert creates or updates a profile
 func (r *profileRepository) Upsert(ctx context.Context, p *ent.Profile) (*ent.Profile, error) {
-	// Try to find existing profile by URN
-	existing, err := r.GetByURN(ctx, p.Urn)
+	// Try to find existing profile by URN or username (if provided)
+	var existing *ent.Profile
+	var err error
+	if p.Username != nil && *p.Username != "" {
+		existing, err = r.client.Profile.
+			Query().
+			Where(
+				profile.Or(
+					profile.UrnEQ(p.Urn),
+					profile.UsernameEQ(*p.Username),
+				),
+			).
+			First(ctx)
+	} else {
+		existing, err = r.client.Profile.
+			Query().
+			Where(profile.UrnEQ(p.Urn)).
+			First(ctx)
+	}
+
 	if err != nil && !ent.IsNotFound(err) {
 		return nil, err
 	}

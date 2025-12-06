@@ -36,9 +36,21 @@ func main() {
 	// Parse command line flags
 	env := flag.String("env", "", "Environment (development, test, e2e, staging, production)")
 	truncate := flag.Bool("truncate", false, "Truncate data (delete all users)")
-	profileFile := flag.String("profiles-file", "test-data/profiles.sql", "Path to profiles SQL dump")
-	profileLimit := flag.Int("profiles-limit", 33, "Number of profile entries to seed from the dump")
-	profileGender := flag.String("profiles-gender", "Male", "Gender to set for seeded profile entries")
+	profileFile := flag.String(
+		"profiles-file",
+		"test-data/profiles.sql",
+		"Path to profiles SQL dump",
+	)
+	profileLimit := flag.Int(
+		"profiles-limit",
+		33,
+		"Number of profile entries to seed from the dump",
+	)
+	profileGender := flag.String(
+		"profiles-gender",
+		"Male",
+		"Gender to set for seeded profile entries",
+	)
 	skipProfiles := flag.Bool("skip-profiles", false, "Skip seeding profile entries")
 	flag.Parse()
 
@@ -90,6 +102,12 @@ func truncateData(ctx context.Context, client *ent.Client) error {
 		return fmt.Errorf("failed to delete users: %w", err)
 	}
 
+	log.Println("Truncating profiles table...")
+	// Delete all users
+	if _, err := client.Profile.Delete().Exec(ctx); err != nil {
+		return fmt.Errorf("failed to delete users: %w", err)
+	}
+
 	log.Println("Truncating profile entries table...")
 	if _, err := client.ProfileEntry.Delete().Exec(ctx); err != nil {
 		return fmt.Errorf("failed to delete profile entries: %w", err)
@@ -138,7 +156,13 @@ func seedUsersData(ctx context.Context, client *ent.Client) error {
 	return nil
 }
 
-func seedProfileEntries(ctx context.Context, client *ent.Client, sqlPath string, limit int, gender string) error {
+func seedProfileEntries(
+	ctx context.Context,
+	client *ent.Client,
+	sqlPath string,
+	limit int,
+	gender string,
+) error {
 	log.Printf("Seeding profile entries from %s (limit=%d)...", sqlPath, limit)
 
 	urns, err := loadURNs(sqlPath, limit)

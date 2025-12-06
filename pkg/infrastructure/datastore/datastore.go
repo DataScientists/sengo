@@ -19,10 +19,14 @@ func NewDSN() string {
 	return dsn
 }
 
-// Create a new Ent client using pgxpool
+// NewClient creates a new Ent client using pgxpool and the default DSN from config.
 func NewClient() (*ent.Client, error) {
+	return NewClientWithDSN(NewDSN())
+}
+
+// Create a new Ent client using pgxpool
+func NewClientWithDSN(dsn string) (*ent.Client, error) {
 	// Create pgx connection pool
-	dsn := NewDSN()
 	poolConfig, err := pgxpool.ParseConfig(dsn)
 	if err != nil {
 		return nil, fmt.Errorf("Failed to create pool config: %w", err)

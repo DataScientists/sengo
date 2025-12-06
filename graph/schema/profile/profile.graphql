@@ -15,7 +15,7 @@ type Profile implements Node {
   cleanedDataS3Key: String
   profileEntry: ProfileEntry
 
-  sourceFile: String!
+  sourceFile: String
   createdAt: String!
   updatedAt: String!
 }

@@ -2970,7 +2970,7 @@ extend type Mutation {
   cleanedDataS3Key: String
   profileEntry: ProfileEntry
 
-  sourceFile: String!
+  sourceFile: String
   createdAt: String!
   updatedAt: String!
 }
@@ -8395,14 +8395,11 @@ func (ec *executionContext) _Profile_sourceFile(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
 	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Profile_sourceFile(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -20838,9 +20835,6 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "sourceFile":
 			out.Values[i] = ec._Profile_sourceFile(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
-			}
 		case "createdAt":
 			field := field
 

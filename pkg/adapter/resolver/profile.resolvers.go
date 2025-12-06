@@ -37,7 +37,7 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input ent.UpdatePr
 
 // Name is the resolver for the name field.
 func (r *profileResolver) Name(ctx context.Context, obj *ent.Profile) (string, error) {
-	return *obj.FirstName + *obj.Username, nil
+	return *obj.FirstName + *obj.LastName, nil
 }
 
 // Educations is the resolver for the educations field.

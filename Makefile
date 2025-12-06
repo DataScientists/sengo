@@ -51,4 +51,7 @@ seed_e2e:
 seed_truncate:
 	docker exec -it go_app go run ./cmd/seed/main.go -truncate
 
-.PHONY: setup_db setup_db_test setup_db_e2e start migrate_schema test_e2e test_repository generate_ent generate_repo_mocks gqlgen seed seed_dev seed_test seed_e2e seed_truncate
+manual_fetch:
+	docker exec -it go_app go run ./cmd/job/main.go 
+
+.PHONY: setup_db setup_db_test setup_db_e2e start migrate_schema test_e2e test_repository generate_ent generate_repo_mocks gqlgen seed seed_dev seed_test seed_e2e seed_truncate manual_fetch
