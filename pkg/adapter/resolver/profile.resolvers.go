@@ -116,8 +116,6 @@ func (r *Resolver) UpdateProfileInput() generated.UpdateProfileInputResolver {
 	return &updateProfileInputResolver{r}
 }
 
-type (
-	profileResolver            struct{ *Resolver }
-	createProfileInputResolver struct{ *Resolver }
-	updateProfileInputResolver struct{ *Resolver }
-)
+type profileResolver struct{ *Resolver }
+type createProfileInputResolver struct{ *Resolver }
+type updateProfileInputResolver struct{ *Resolver }

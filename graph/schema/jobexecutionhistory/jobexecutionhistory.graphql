@@ -41,9 +41,10 @@ type JobExecutionHistoryEdge {
 }
 
 extend type Query {
+  jobExecutionHistory(id: ID!): JobExecutionHistory
+
   # Get job execution history with optional filtering
-  jobExecutionHistory(
-    jobName: String
+  jobExecutionHistoryList(
     after: Cursor
     first: Int
     before: Cursor

@@ -121,6 +121,21 @@ func (r *JobExecutionHistoryRepository) List(
 	return jhc, nil
 }
 
+// Get retrieves a single job execution history by ID.
+func (r *JobExecutionHistoryRepository) Get(
+	ctx context.Context,
+	id model.ID,
+) (*ent.JobExecutionHistory, error) {
+	h, err := r.client.JobExecutionHistory.Get(ctx, id)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			return nil, nil
+		}
+		return nil, model.NewDBError(err)
+	}
+	return h, nil
+}
+
 // GetStats retrieves statistics for a job
 func (r *JobExecutionHistoryRepository) GetStats(
 	ctx context.Context,

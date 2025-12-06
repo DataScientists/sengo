@@ -24,7 +24,16 @@ func (r *mutationResolver) TriggerProfileFetch(ctx context.Context) (*ent.JobExe
 }
 
 // JobExecutionHistory is the resolver for the jobExecutionHistory field.
-func (r *queryResolver) JobExecutionHistory(ctx context.Context, jobName *string, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.JobExecutionHistoryWhereInput) (*ent.JobExecutionHistoryConnection, error) {
+func (r *queryResolver) JobExecutionHistory(ctx context.Context, id ulid.ID) (*ent.JobExecutionHistory, error) {
+	h, err := r.controller.JobExecution.Get(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get job execution history: %w", err)
+	}
+	return h, nil
+}
+
+// JobExecutionHistoryList is the resolver for the jobExecutionHistoryList field.
+func (r *queryResolver) JobExecutionHistoryList(ctx context.Context, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.JobExecutionHistoryWhereInput) (*ent.JobExecutionHistoryConnection, error) {
 	conn, err := r.controller.JobExecution.List(ctx, after, first, before, last, where)
 	if err != nil {
 		return nil, err

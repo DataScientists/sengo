@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"sheng-go-backend/ent"
-	"sheng-go-backend/pkg/adapter/repository/jobexecutionhistoryrepository"
 	"sheng-go-backend/pkg/entity/model"
+	"sheng-go-backend/pkg/usecase/usecase/jobexecutionhistory"
 	"sheng-go-backend/pkg/usecase/usecase/profilefetcher"
 )
 
@@ -17,22 +17,23 @@ type JobExecution interface {
 		last *int,
 		where *ent.JobExecutionHistoryWhereInput,
 	) (*ent.JobExecutionHistoryConnection, error)
+	Get(ctx context.Context, id model.ID) (*ent.JobExecutionHistory, error)
 	GetLatest(ctx context.Context, jobName string) (*ent.JobExecutionHistory, error)
 	GetStats(ctx context.Context, jobName string, days int) (*model.JobStats, error)
 	TriggerProfileFetch(ctx context.Context) (*ent.JobExecutionHistory, error)
 }
 
 type jobExecutionController struct {
-	repo           *jobexecutionhistoryrepository.JobExecutionHistoryRepository
+	usecase        jobexecutionhistory.UseCase
 	profileFetcher *profilefetcher.ProfileFetcher
 }
 
 func NewJobExecutionController(
-	repo *jobexecutionhistoryrepository.JobExecutionHistoryRepository,
+	usecase jobexecutionhistory.UseCase,
 	profileFetcher *profilefetcher.ProfileFetcher,
 ) JobExecution {
 	return &jobExecutionController{
-		repo:           repo,
+		usecase:        usecase,
 		profileFetcher: profileFetcher,
 	}
 }
@@ -45,14 +46,25 @@ func (c *jobExecutionController) List(
 	last *int,
 	where *ent.JobExecutionHistoryWhereInput,
 ) (*ent.JobExecutionHistoryConnection, error) {
-	return c.repo.List(ctx, after, first, before, last, where)
+	return c.usecase.List(ctx, after, first, before, last, where)
+}
+
+func (c *jobExecutionController) Get(
+	ctx context.Context,
+	id model.ID,
+) (*ent.JobExecutionHistory, error) {
+	h, err := c.usecase.Get(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get job execution history: %w", err)
+	}
+	return h, nil
 }
 
 func (c *jobExecutionController) GetLatest(
 	ctx context.Context,
 	jobName string,
 ) (*ent.JobExecutionHistory, error) {
-	history, err := c.repo.GetLatestByJobName(ctx, jobName)
+	history, err := c.usecase.GetLatest(ctx, jobName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get latest execution: %w", err)
 	}
@@ -64,7 +76,7 @@ func (c *jobExecutionController) GetStats(
 	jobName string,
 	days int,
 ) (*model.JobStats, error) {
-	statsMap, err := c.repo.GetStats(ctx, jobName, days)
+	statsMap, err := c.usecase.GetStats(ctx, jobName, days)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get job stats: %w", err)
 	}
