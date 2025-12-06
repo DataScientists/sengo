@@ -40,6 +40,21 @@ func (r *profileResolver) Name(ctx context.Context, obj *ent.Profile) (string, e
 	return *obj.FirstName + *obj.Username, nil
 }
 
+// Educations is the resolver for the educations field.
+func (r *profileResolver) Educations(ctx context.Context, obj *ent.Profile) (map[string]any, error) {
+	return map[string]any{"items": obj.Educations}, nil
+}
+
+// Positions is the resolver for the positions field.
+func (r *profileResolver) Positions(ctx context.Context, obj *ent.Profile) (map[string]any, error) {
+	return map[string]any{"items": obj.Positions}, nil
+}
+
+// Skills is the resolver for the skills field.
+func (r *profileResolver) Skills(ctx context.Context, obj *ent.Profile) (map[string]any, error) {
+	return map[string]any{"items": obj.Skills}, nil
+}
+
 // CreatedAt is the resolver for the createdAt field.
 func (r *profileResolver) CreatedAt(ctx context.Context, obj *ent.Profile) (string, error) {
 	return datetime.FormatDate(obj.CreatedAt), nil
