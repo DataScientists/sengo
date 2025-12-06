@@ -55,9 +55,6 @@ func (r *profileRepository) Upsert(ctx context.Context, p *ent.Profile) (*ent.Pr
 		if p.LastName != nil {
 			updateBuilder = updateBuilder.SetLastName(*p.LastName)
 		}
-		if p.Name != nil {
-			updateBuilder = updateBuilder.SetName(*p.Name)
-		}
 		if p.Headline != nil {
 			updateBuilder = updateBuilder.SetHeadline(*p.Headline)
 		}
@@ -106,9 +103,7 @@ func (r *profileRepository) Upsert(ctx context.Context, p *ent.Profile) (*ent.Pr
 	if p.LastName != nil {
 		createBuilder = createBuilder.SetLastName(*p.LastName)
 	}
-	if p.Name != nil {
-		createBuilder = createBuilder.SetName(*p.Name)
-	}
+
 	if p.Headline != nil {
 		createBuilder = createBuilder.SetHeadline(*p.Headline)
 	}

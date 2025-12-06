@@ -221,16 +221,12 @@ func init() {
 	profileDescUrn := profileMixinFields1[0].Descriptor()
 	// profile.UrnValidator is a validator for the "urn" field. It is called by the builders before save.
 	profile.UrnValidator = profileDescUrn.Validators[0].(func(string) error)
-	// profileDescName is the schema descriptor for name field.
-	profileDescName := profileMixinFields1[4].Descriptor()
-	// profile.NameValidator is a validator for the "name" field. It is called by the builders before save.
-	profile.NameValidator = profileDescName.Validators[0].(func(string) error)
 	// profileDescRawDataS3Key is the schema descriptor for raw_data_s3_key field.
-	profileDescRawDataS3Key := profileMixinFields1[13].Descriptor()
+	profileDescRawDataS3Key := profileMixinFields1[12].Descriptor()
 	// profile.RawDataS3KeyValidator is a validator for the "raw_data_s3_key" field. It is called by the builders before save.
 	profile.RawDataS3KeyValidator = profileDescRawDataS3Key.Validators[0].(func(string) error)
 	// profileDescCleanedDataS3Key is the schema descriptor for cleaned_data_s3_key field.
-	profileDescCleanedDataS3Key := profileMixinFields1[14].Descriptor()
+	profileDescCleanedDataS3Key := profileMixinFields1[13].Descriptor()
 	// profile.CleanedDataS3KeyValidator is a validator for the "cleaned_data_s3_key" field. It is called by the builders before save.
 	profile.CleanedDataS3KeyValidator = profileDescCleanedDataS3Key.Validators[0].(func(string) error)
 	// profileDescCreatedAt is the schema descriptor for created_at field.

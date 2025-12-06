@@ -51,18 +51,18 @@ func (mr *MockProfileMockRecorder) Create(ctx, input interface{}) *gomock.Call {
 }
 
 // Get mocks base method.
-func (m *MockProfile) Get(ctx context.Context, where *model.ProfileWhereInput) (*model.Profile, error) {
+func (m *MockProfile) Get(ctx context.Context, id model.ID) (*model.Profile, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "Get", ctx, where)
+	ret := m.ctrl.Call(m, "Get", ctx, id)
 	ret0, _ := ret[0].(*model.Profile)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // Get indicates an expected call of Get.
-func (mr *MockProfileMockRecorder) Get(ctx, where interface{}) *gomock.Call {
+func (mr *MockProfileMockRecorder) Get(ctx, id interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockProfile)(nil).Get), ctx, where)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockProfile)(nil).Get), ctx, id)
 }
 
 // GroupByTitle mocks base method.

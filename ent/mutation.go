@@ -3196,7 +3196,6 @@ type ProfileMutation struct {
 	username             *string
 	first_name           *string
 	last_name            *string
-	name                 *string
 	headline             *string
 	title                *string
 	country              *string
@@ -3506,55 +3505,6 @@ func (m *ProfileMutation) LastNameCleared() bool {
 func (m *ProfileMutation) ResetLastName() {
 	m.last_name = nil
 	delete(m.clearedFields, profile.FieldLastName)
-}
-
-// SetName sets the "name" field.
-func (m *ProfileMutation) SetName(s string) {
-	m.name = &s
-}
-
-// Name returns the value of the "name" field in the mutation.
-func (m *ProfileMutation) Name() (r string, exists bool) {
-	v := m.name
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldName returns the old "name" field's value of the Profile entity.
-// If the Profile object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *ProfileMutation) OldName(ctx context.Context) (v *string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldName is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldName requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldName: %w", err)
-	}
-	return oldValue.Name, nil
-}
-
-// ClearName clears the value of the "name" field.
-func (m *ProfileMutation) ClearName() {
-	m.name = nil
-	m.clearedFields[profile.FieldName] = struct{}{}
-}
-
-// NameCleared returns if the "name" field was cleared in this mutation.
-func (m *ProfileMutation) NameCleared() bool {
-	_, ok := m.clearedFields[profile.FieldName]
-	return ok
-}
-
-// ResetName resets all changes to the "name" field.
-func (m *ProfileMutation) ResetName() {
-	m.name = nil
-	delete(m.clearedFields, profile.FieldName)
 }
 
 // SetHeadline sets the "headline" field.
@@ -4289,7 +4239,7 @@ func (m *ProfileMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *ProfileMutation) Fields() []string {
-	fields := make([]string, 0, 18)
+	fields := make([]string, 0, 17)
 	if m.urn != nil {
 		fields = append(fields, profile.FieldUrn)
 	}
@@ -4301,9 +4251,6 @@ func (m *ProfileMutation) Fields() []string {
 	}
 	if m.last_name != nil {
 		fields = append(fields, profile.FieldLastName)
-	}
-	if m.name != nil {
-		fields = append(fields, profile.FieldName)
 	}
 	if m.headline != nil {
 		fields = append(fields, profile.FieldHeadline)
@@ -4360,8 +4307,6 @@ func (m *ProfileMutation) Field(name string) (ent.Value, bool) {
 		return m.FirstName()
 	case profile.FieldLastName:
 		return m.LastName()
-	case profile.FieldName:
-		return m.Name()
 	case profile.FieldHeadline:
 		return m.Headline()
 	case profile.FieldTitle:
@@ -4405,8 +4350,6 @@ func (m *ProfileMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldFirstName(ctx)
 	case profile.FieldLastName:
 		return m.OldLastName(ctx)
-	case profile.FieldName:
-		return m.OldName(ctx)
 	case profile.FieldHeadline:
 		return m.OldHeadline(ctx)
 	case profile.FieldTitle:
@@ -4469,13 +4412,6 @@ func (m *ProfileMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetLastName(v)
-		return nil
-	case profile.FieldName:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetName(v)
 		return nil
 	case profile.FieldHeadline:
 		v, ok := value.(string)
@@ -4607,9 +4543,6 @@ func (m *ProfileMutation) ClearedFields() []string {
 	if m.FieldCleared(profile.FieldLastName) {
 		fields = append(fields, profile.FieldLastName)
 	}
-	if m.FieldCleared(profile.FieldName) {
-		fields = append(fields, profile.FieldName)
-	}
 	if m.FieldCleared(profile.FieldHeadline) {
 		fields = append(fields, profile.FieldHeadline)
 	}
@@ -4666,9 +4599,6 @@ func (m *ProfileMutation) ClearField(name string) error {
 	case profile.FieldLastName:
 		m.ClearLastName()
 		return nil
-	case profile.FieldName:
-		m.ClearName()
-		return nil
 	case profile.FieldHeadline:
 		m.ClearHeadline()
 		return nil
@@ -4721,9 +4651,6 @@ func (m *ProfileMutation) ResetField(name string) error {
 		return nil
 	case profile.FieldLastName:
 		m.ResetLastName()
-		return nil
-	case profile.FieldName:
-		m.ResetName()
 		return nil
 	case profile.FieldHeadline:
 		m.ResetHeadline()

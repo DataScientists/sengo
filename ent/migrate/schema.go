@@ -130,7 +130,6 @@ var (
 		{Name: "username", Type: field.TypeString, Nullable: true},
 		{Name: "first_name", Type: field.TypeString, Nullable: true},
 		{Name: "last_name", Type: field.TypeString, Nullable: true},
-		{Name: "name", Type: field.TypeString, Nullable: true, Size: 255},
 		{Name: "headline", Type: field.TypeString, Nullable: true},
 		{Name: "title", Type: field.TypeString, Nullable: true},
 		{Name: "country", Type: field.TypeString, Nullable: true},
@@ -154,7 +153,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "profiles_profile_entries_profile",
-				Columns:    []*schema.Column{ProfilesColumns[19]},
+				Columns:    []*schema.Column{ProfilesColumns[18]},
 				RefColumns: []*schema.Column{ProfileEntriesColumns[0]},
 				OnDelete:   schema.SetNull,
 			},
@@ -178,17 +177,17 @@ var (
 			{
 				Name:    "profile_country",
 				Unique:  false,
-				Columns: []*schema.Column{ProfilesColumns[8]},
+				Columns: []*schema.Column{ProfilesColumns[7]},
 			},
 			{
 				Name:    "profile_city",
 				Unique:  false,
-				Columns: []*schema.Column{ProfilesColumns[9]},
+				Columns: []*schema.Column{ProfilesColumns[8]},
 			},
 			{
 				Name:    "profile_country_city",
 				Unique:  false,
-				Columns: []*schema.Column{ProfilesColumns[8], ProfilesColumns[9]},
+				Columns: []*schema.Column{ProfilesColumns[7], ProfilesColumns[8]},
 			},
 			{
 				Name:    "profile_urn",

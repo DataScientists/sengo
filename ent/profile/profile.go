@@ -23,8 +23,6 @@ const (
 	FieldFirstName = "first_name"
 	// FieldLastName holds the string denoting the last_name field in the database.
 	FieldLastName = "last_name"
-	// FieldName holds the string denoting the name field in the database.
-	FieldName = "name"
 	// FieldHeadline holds the string denoting the headline field in the database.
 	FieldHeadline = "headline"
 	// FieldTitle holds the string denoting the title field in the database.
@@ -71,7 +69,6 @@ var Columns = []string{
 	FieldUsername,
 	FieldFirstName,
 	FieldLastName,
-	FieldName,
 	FieldHeadline,
 	FieldTitle,
 	FieldCountry,
@@ -111,8 +108,6 @@ func ValidColumn(column string) bool {
 var (
 	// UrnValidator is a validator for the "urn" field. It is called by the builders before save.
 	UrnValidator func(string) error
-	// NameValidator is a validator for the "name" field. It is called by the builders before save.
-	NameValidator func(string) error
 	// RawDataS3KeyValidator is a validator for the "raw_data_s3_key" field. It is called by the builders before save.
 	RawDataS3KeyValidator func(string) error
 	// CleanedDataS3KeyValidator is a validator for the "cleaned_data_s3_key" field. It is called by the builders before save.
@@ -153,11 +148,6 @@ func ByFirstName(opts ...sql.OrderTermOption) OrderOption {
 // ByLastName orders the results by the last_name field.
 func ByLastName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldLastName, opts...).ToFunc()
-}
-
-// ByName orders the results by the name field.
-func ByName(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByHeadline orders the results by the headline field.

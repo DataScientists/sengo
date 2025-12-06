@@ -70,20 +70,6 @@ func (pc *ProfileCreate) SetNillableLastName(s *string) *ProfileCreate {
 	return pc
 }
 
-// SetName sets the "name" field.
-func (pc *ProfileCreate) SetName(s string) *ProfileCreate {
-	pc.mutation.SetName(s)
-	return pc
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (pc *ProfileCreate) SetNillableName(s *string) *ProfileCreate {
-	if s != nil {
-		pc.SetName(*s)
-	}
-	return pc
-}
-
 // SetHeadline sets the "headline" field.
 func (pc *ProfileCreate) SetHeadline(s string) *ProfileCreate {
 	pc.mutation.SetHeadline(s)
@@ -326,11 +312,6 @@ func (pc *ProfileCreate) check() error {
 			return &ValidationError{Name: "urn", err: fmt.Errorf(`ent: validator failed for field "Profile.urn": %w`, err)}
 		}
 	}
-	if v, ok := pc.mutation.Name(); ok {
-		if err := profile.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Profile.name": %w`, err)}
-		}
-	}
 	if v, ok := pc.mutation.RawDataS3Key(); ok {
 		if err := profile.RawDataS3KeyValidator(v); err != nil {
 			return &ValidationError{Name: "raw_data_s3_key", err: fmt.Errorf(`ent: validator failed for field "Profile.raw_data_s3_key": %w`, err)}
@@ -397,10 +378,6 @@ func (pc *ProfileCreate) createSpec() (*Profile, *sqlgraph.CreateSpec) {
 	if value, ok := pc.mutation.LastName(); ok {
 		_spec.SetField(profile.FieldLastName, field.TypeString, value)
 		_node.LastName = &value
-	}
-	if value, ok := pc.mutation.Name(); ok {
-		_spec.SetField(profile.FieldName, field.TypeString, value)
-		_node.Name = &value
 	}
 	if value, ok := pc.mutation.Headline(); ok {
 		_spec.SetField(profile.FieldHeadline, field.TypeString, value)

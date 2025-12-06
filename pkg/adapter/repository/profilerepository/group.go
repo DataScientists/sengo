@@ -20,7 +20,8 @@ func (r *profileRepository) GroupByTitle(
 	if searchTerm != nil && *searchTerm != "" {
 		query = query.Where(
 			profile.Or(
-				profile.NameContainsFold(*searchTerm),
+				profile.FirstNameContainsFold(*searchTerm),
+				profile.LastNameContainsFold(*searchTerm),
 				profile.TitleContainsFold(*searchTerm),
 			),
 		)

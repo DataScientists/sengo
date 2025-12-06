@@ -3,7 +3,9 @@ package profilefetcher
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"sheng-go-backend/config"
 	"sheng-go-backend/ent"
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profileentry"
@@ -66,135 +68,152 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 	}
 
 	// Check quota
-	allowedBatchSize, err := pf.quotaManager.CheckAndReserveQuota(ctx, jobConfig.BatchSize)
-	if err != nil {
-		if jobConfig.RespectQuota {
-			// Create history record for quota exceeded
-			history := &ent.JobExecutionHistory{
-				JobName:         "profile_fetcher",
-				Status:          jobexecutionhistory.StatusQuotaExceeded,
-				StartedAt:       startTime,
-				CompletedAt:     ptr(time.Now()),
-				TotalProcessed:  0,
-				SuccessfulCount: 0,
-				FailedCount:     0,
-				APICallsMade:    0,
-				DurationSeconds: int(time.Since(startTime).Seconds()),
-			}
-			errMsg := err.Error()
-			history.ErrorSummary = &errMsg
-
-			savedHistory, _ := pf.jobHistoryRepo.Create(ctx, history)
-			return savedHistory, err
-		}
-		// If not respecting quota, log warning but continue
-		fmt.Printf("Warning: Quota check failed but respect_quota is false: %v\n", err)
-		allowedBatchSize = jobConfig.BatchSize
-	}
-
-	// Get pending profile entries
-	pendingEntries, err := pf.profileEntryRepo.GetPendingBatch(ctx, allowedBatchSize)
-	if err != nil {
-		return nil, fmt.Errorf("failed to get pending entries: %w", err)
-	}
-
 	// Initialize tracking
 	successCount := 0
 	failedCount := 0
 	apiCallsMade := 0
+	totalProcessed := 0
+	quotaLimited := false
 	var errors []string
 
-	// Process each entry
-	for _, entry := range pendingEntries {
-		// Update status to FETCHING
-		_, _ = pf.profileEntryRepo.UpdateStatus(
-			ctx,
-			string(entry.ID),
-			profileentry.StatusFetching,
-			nil,
-		)
-
-		// Fetch profile from RapidAPI
-		profile, rawData, err := pf.linkedinClient.FetchProfileByURN(ctx, entry.LinkedinUrn)
-		apiCallsMade++
-
+	for {
+		allowedBatchSize, err := pf.quotaManager.CheckAndReserveQuota(ctx, jobConfig.BatchSize)
 		if err != nil {
-			// Handle error
-			errMsg := err.Error()
+			if totalProcessed == 0 && jobConfig.RespectQuota {
+				// Create history record for quota exceeded
+				history := &ent.JobExecutionHistory{
+					JobName:         "profile_fetcher",
+					Status:          jobexecutionhistory.StatusQuotaExceeded,
+					StartedAt:       startTime,
+					CompletedAt:     ptr(time.Now()),
+					TotalProcessed:  0,
+					SuccessfulCount: 0,
+					FailedCount:     0,
+					APICallsMade:    0,
+					DurationSeconds: int(time.Since(startTime).Seconds()),
+				}
+				errMsg := err.Error()
+				history.ErrorSummary = &errMsg
+
+				savedHistory, _ := pf.jobHistoryRepo.Create(ctx, history)
+				return savedHistory, err
+			}
+
+			if jobConfig.RespectQuota {
+				quotaLimited = true
+				errors = append(errors, fmt.Sprintf("Stopped due to quota: %v", err))
+				break
+			}
+
+			// If not respecting quota, log warning but continue
+			fmt.Printf("Warning: Quota check failed but respect_quota is false: %v\n", err)
+			allowedBatchSize = jobConfig.BatchSize
+		}
+
+		// Get pending profile entries for this batch
+		pendingEntries, err := pf.profileEntryRepo.GetPendingBatch(ctx, allowedBatchSize)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get pending entries: %w", err)
+		}
+
+		if len(pendingEntries) == 0 {
+			break
+		}
+
+		// Process each entry in the batch
+		for _, entry := range pendingEntries {
+			// Update status to FETCHING
 			_, _ = pf.profileEntryRepo.UpdateStatus(
 				ctx,
 				string(entry.ID),
-				profileentry.StatusFAILED,
-				&errMsg,
+				profileentry.StatusFetching,
+				nil,
 			)
-			errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, err.Error()))
-			failedCount++
-			continue
+
+			// Fetch profile from RapidAPI
+			profile, rawData, attempts, err := pf.fetchProfileWithRetry(ctx, entry.LinkedinUrn)
+			apiCallsMade += attempts
+
+			if err != nil {
+				// Handle error
+				errMsg := err.Error()
+				_, _ = pf.profileEntryRepo.UpdateStatus(
+					ctx,
+					string(entry.ID),
+					profileentry.StatusFAILED,
+					&errMsg,
+				)
+				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, err.Error()))
+				failedCount++
+				continue
+			}
+
+			// Increment quota
+			if err := pf.quotaManager.IncrementCallCount(ctx, 1); err != nil {
+				fmt.Printf("Warning: Failed to increment quota: %v\n", err)
+			}
+
+			// Generate S3 keys
+			timestamp := time.Now().Unix()
+			rawS3Key := fmt.Sprintf("profiles/%s-%d-raw.json", entry.LinkedinUrn, timestamp)
+			cleanedS3Key := fmt.Sprintf("profiles/%s-%d-cleaned.json", entry.LinkedinUrn, timestamp)
+
+			// Upload raw JSON to S3
+			if err := pf.s3Service.UploadJSON(ctx, rawS3Key, rawData); err != nil {
+				errMsg := fmt.Sprintf("S3 upload failed: %v", err)
+				_, _ = pf.profileEntryRepo.UpdateStatus(
+					ctx,
+					string(entry.ID),
+					profileentry.StatusFAILED,
+					&errMsg,
+				)
+				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
+				failedCount++
+				continue
+			}
+
+			// Extract and clean data
+			cleanedData := pf.extractProfileData(profile)
+			cleanedJSON, _ := json.Marshal(cleanedData)
+
+			// Upload cleaned JSON to S3
+			if err := pf.s3Service.UploadJSON(ctx, cleanedS3Key, cleanedJSON); err != nil {
+				errMsg := fmt.Sprintf("S3 upload failed: %v", err)
+				_, _ = pf.profileEntryRepo.UpdateStatus(
+					ctx,
+					string(entry.ID),
+					profileentry.StatusFAILED,
+					&errMsg,
+				)
+				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
+				failedCount++
+				continue
+			}
+
+			// Upsert profile in database
+			dbProfile := pf.convertToDBProfile(profile, rawS3Key, cleanedS3Key)
+			if _, err := pf.profileRepo.Upsert(ctx, dbProfile); err != nil {
+				errMsg := fmt.Sprintf("DB upsert failed: %v", err)
+				_, _ = pf.profileEntryRepo.UpdateStatus(
+					ctx,
+					string(entry.ID),
+					profileentry.StatusFAILED,
+					&errMsg,
+				)
+				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
+				failedCount++
+				continue
+			}
+
+			// Update profile entry as completed
+			if _, err := pf.profileEntryRepo.UpdateAfterFetch(ctx, string(entry.ID), rawS3Key, cleanedS3Key); err != nil {
+				fmt.Printf("Warning: Failed to update profile entry: %v\n", err)
+			}
+
+			successCount++
 		}
 
-		// Increment quota
-		if err := pf.quotaManager.IncrementCallCount(ctx, 1); err != nil {
-			fmt.Printf("Warning: Failed to increment quota: %v\n", err)
-		}
-
-		// Generate S3 keys
-		timestamp := time.Now().Unix()
-		rawS3Key := fmt.Sprintf("profiles/%s-%d-raw.json", entry.LinkedinUrn, timestamp)
-		cleanedS3Key := fmt.Sprintf("profiles/%s-%d-cleaned.json", entry.LinkedinUrn, timestamp)
-
-		// Upload raw JSON to S3
-		if err := pf.s3Service.UploadJSON(ctx, rawS3Key, rawData); err != nil {
-			errMsg := fmt.Sprintf("S3 upload failed: %v", err)
-			_, _ = pf.profileEntryRepo.UpdateStatus(
-				ctx,
-				string(entry.ID),
-				profileentry.StatusFAILED,
-				&errMsg,
-			)
-			errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
-			failedCount++
-			continue
-		}
-
-		// Extract and clean data
-		cleanedData := pf.extractProfileData(profile)
-		cleanedJSON, _ := json.Marshal(cleanedData)
-
-		// Upload cleaned JSON to S3
-		if err := pf.s3Service.UploadJSON(ctx, cleanedS3Key, cleanedJSON); err != nil {
-			errMsg := fmt.Sprintf("S3 upload failed: %v", err)
-			_, _ = pf.profileEntryRepo.UpdateStatus(
-				ctx,
-				string(entry.ID),
-				profileentry.StatusFAILED,
-				&errMsg,
-			)
-			errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
-			failedCount++
-			continue
-		}
-
-		// Upsert profile in database
-		dbProfile := pf.convertToDBProfile(profile, rawS3Key, cleanedS3Key)
-		if _, err := pf.profileRepo.Upsert(ctx, dbProfile); err != nil {
-			errMsg := fmt.Sprintf("DB upsert failed: %v", err)
-			_, _ = pf.profileEntryRepo.UpdateStatus(
-				ctx,
-				string(entry.ID),
-				profileentry.StatusFAILED,
-				&errMsg,
-			)
-			errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
-			failedCount++
-			continue
-		}
-
-		// Update profile entry as completed
-		if _, err := pf.profileEntryRepo.UpdateAfterFetch(ctx, string(entry.ID), rawS3Key, cleanedS3Key); err != nil {
-			fmt.Printf("Warning: Failed to update profile entry: %v\n", err)
-		}
-
-		successCount++
+		totalProcessed += len(pendingEntries)
 	}
 
 	// Get current quota status
@@ -211,7 +230,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 	status := jobexecutionhistory.StatusSuccess
 	if failedCount > 0 && successCount == 0 {
 		status = jobexecutionhistory.StatusFailed
-	} else if failedCount > 0 {
+	} else if failedCount > 0 || quotaLimited {
 		status = jobexecutionhistory.StatusPartial
 	}
 
@@ -220,7 +239,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		Status:          status,
 		StartedAt:       startTime,
 		CompletedAt:     &completedAt,
-		TotalProcessed:  len(pendingEntries),
+		TotalProcessed:  totalProcessed,
 		SuccessfulCount: successCount,
 		FailedCount:     failedCount,
 		APICallsMade:    apiCallsMade,
@@ -243,7 +262,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 	if err := pf.emailService.SendJobCompletionSummary(
 		"Profile Fetcher",
 		duration,
-		len(pendingEntries),
+		totalProcessed,
 		successCount,
 		failedCount,
 		apiCallsMade,
@@ -255,6 +274,96 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 	}
 
 	return savedHistory, nil
+}
+
+func (pf *ProfileFetcher) fetchProfileWithRetry(
+	ctx context.Context,
+	urn string,
+) (*rapidapi.LinkedInProfile, []byte, int, error) {
+	cfg := config.C.RapidAPI
+
+	maxRetries := cfg.RateLimitMaxRetries
+	if maxRetries <= 0 {
+		maxRetries = 3
+	}
+
+	backoff := time.Duration(cfg.RateLimitBackoffMs) * time.Millisecond
+	if backoff <= 0 {
+		backoff = time.Second
+	}
+
+	maxBackoff := time.Duration(cfg.RateLimitBackoffMaxMs) * time.Millisecond
+	if maxBackoff <= 0 {
+		maxBackoff = 8 * time.Second
+	}
+
+	attempts := 0
+	var lastErr error
+
+	for attempt := 0; attempt <= maxRetries; attempt++ {
+		attempts++
+
+		profile, rawData, err := pf.linkedinClient.FetchProfileByURN(ctx, urn)
+		if err == nil {
+			return profile, rawData, attempts, nil
+		}
+
+		lastErr = err
+
+		var rateErr *rapidapi.RateLimitError
+		if errors.As(err, &rateErr) {
+			if attempt == maxRetries {
+				break
+			}
+
+			sleep := backoff
+			if rateErr.RetryAfter > 0 && rateErr.RetryAfter > sleep {
+				sleep = rateErr.RetryAfter
+			}
+			if maxBackoff > 0 && sleep > maxBackoff {
+				sleep = maxBackoff
+			}
+
+			fmt.Printf(
+				"Rate limited for URN %s, retrying in %v (attempt %d of %d)\n",
+				urn,
+				sleep,
+				attempt+1,
+				maxRetries,
+			)
+			if err := sleepWithContext(ctx, sleep); err != nil {
+				return nil, nil, attempts, err
+			}
+
+			backoff *= 2
+			if maxBackoff > 0 && backoff > maxBackoff {
+				backoff = maxBackoff
+			}
+
+			continue
+		}
+
+		// Non-rate-limit error, return immediately
+		return nil, nil, attempts, err
+	}
+
+	return nil, nil, attempts, lastErr
+}
+
+func sleepWithContext(ctx context.Context, d time.Duration) error {
+	if d <= 0 {
+		return nil
+	}
+
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
 }
 
 // extractProfileData extracts relevant fields from RapidAPI profile
@@ -285,6 +394,7 @@ func (pf *ProfileFetcher) convertToDBProfile(
 		FirstName:        &profile.FirstName,
 		LastName:         &profile.LastName,
 		Headline:         &profile.Headline,
+		Title:            &profile.Headline,
 		Educations:       profile.Educations,
 		Positions:        profile.FullPositions,
 		Skills:           profile.Skills,
@@ -317,7 +427,7 @@ func (pf *ProfileFetcher) fetchSingleProfileEntry(
 	_, _ = pf.profileEntryRepo.UpdateStatus(ctx, string(entry.ID), profileentry.StatusFetching, nil)
 
 	// Fetch profile from RapidAPI
-	profile, rawData, err := pf.linkedinClient.FetchProfileByURN(ctx, entry.LinkedinUrn)
+	profile, rawData, _, err := pf.fetchProfileWithRetry(ctx, entry.LinkedinUrn)
 	if err != nil {
 		// Handle error
 		errMsg := err.Error()

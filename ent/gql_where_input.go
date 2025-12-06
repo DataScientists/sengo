@@ -1514,23 +1514,6 @@ type ProfileWhereInput struct {
 	LastNameEqualFold    *string  `json:"lastNameEqualFold,omitempty"`
 	LastNameContainsFold *string  `json:"lastNameContainsFold,omitempty"`
 
-	// "name" field predicates.
-	Name             *string  `json:"name,omitempty"`
-	NameNEQ          *string  `json:"nameNEQ,omitempty"`
-	NameIn           []string `json:"nameIn,omitempty"`
-	NameNotIn        []string `json:"nameNotIn,omitempty"`
-	NameGT           *string  `json:"nameGT,omitempty"`
-	NameGTE          *string  `json:"nameGTE,omitempty"`
-	NameLT           *string  `json:"nameLT,omitempty"`
-	NameLTE          *string  `json:"nameLTE,omitempty"`
-	NameContains     *string  `json:"nameContains,omitempty"`
-	NameHasPrefix    *string  `json:"nameHasPrefix,omitempty"`
-	NameHasSuffix    *string  `json:"nameHasSuffix,omitempty"`
-	NameIsNil        bool     `json:"nameIsNil,omitempty"`
-	NameNotNil       bool     `json:"nameNotNil,omitempty"`
-	NameEqualFold    *string  `json:"nameEqualFold,omitempty"`
-	NameContainsFold *string  `json:"nameContainsFold,omitempty"`
-
 	// "headline" field predicates.
 	Headline             *string  `json:"headline,omitempty"`
 	HeadlineNEQ          *string  `json:"headlineNEQ,omitempty"`
@@ -1933,51 +1916,6 @@ func (i *ProfileWhereInput) P() (predicate.Profile, error) {
 	}
 	if i.LastNameContainsFold != nil {
 		predicates = append(predicates, profile.LastNameContainsFold(*i.LastNameContainsFold))
-	}
-	if i.Name != nil {
-		predicates = append(predicates, profile.NameEQ(*i.Name))
-	}
-	if i.NameNEQ != nil {
-		predicates = append(predicates, profile.NameNEQ(*i.NameNEQ))
-	}
-	if len(i.NameIn) > 0 {
-		predicates = append(predicates, profile.NameIn(i.NameIn...))
-	}
-	if len(i.NameNotIn) > 0 {
-		predicates = append(predicates, profile.NameNotIn(i.NameNotIn...))
-	}
-	if i.NameGT != nil {
-		predicates = append(predicates, profile.NameGT(*i.NameGT))
-	}
-	if i.NameGTE != nil {
-		predicates = append(predicates, profile.NameGTE(*i.NameGTE))
-	}
-	if i.NameLT != nil {
-		predicates = append(predicates, profile.NameLT(*i.NameLT))
-	}
-	if i.NameLTE != nil {
-		predicates = append(predicates, profile.NameLTE(*i.NameLTE))
-	}
-	if i.NameContains != nil {
-		predicates = append(predicates, profile.NameContains(*i.NameContains))
-	}
-	if i.NameHasPrefix != nil {
-		predicates = append(predicates, profile.NameHasPrefix(*i.NameHasPrefix))
-	}
-	if i.NameHasSuffix != nil {
-		predicates = append(predicates, profile.NameHasSuffix(*i.NameHasSuffix))
-	}
-	if i.NameIsNil {
-		predicates = append(predicates, profile.NameIsNil())
-	}
-	if i.NameNotNil {
-		predicates = append(predicates, profile.NameNotNil())
-	}
-	if i.NameEqualFold != nil {
-		predicates = append(predicates, profile.NameEqualFold(*i.NameEqualFold))
-	}
-	if i.NameContainsFold != nil {
-		predicates = append(predicates, profile.NameContainsFold(*i.NameContainsFold))
 	}
 	if i.Headline != nil {
 		predicates = append(predicates, profile.HeadlineEQ(*i.Headline))

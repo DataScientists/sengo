@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 	"sheng-go-backend/config"
 	"time"
 )
@@ -42,6 +43,23 @@ type APIErrorResponse struct {
 	Success bool        `json:"success"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"`
+}
+
+// RateLimitError represents a RapidAPI rate limit response (e.g., HTTP 429)
+type RateLimitError struct {
+	RetryAfter time.Duration
+	StatusCode int
+	Message    string
+}
+
+func (e *RateLimitError) Error() string {
+	if e == nil {
+		return ""
+	}
+	if e.RetryAfter > 0 {
+		return fmt.Sprintf("rate limited (status=%d, retry after %v): %s", e.StatusCode, e.RetryAfter, e.Message)
+	}
+	return fmt.Sprintf("rate limited (status=%d): %s", e.StatusCode, e.Message)
 }
 
 // LinkedInClient handles RapidAPI LinkedIn requests
@@ -167,6 +185,16 @@ func (c *LinkedInClient) FetchProfileByURN(
 	log.Printf("RapidAPI Response body length: %d bytes", len(body))
 
 	// Check status code
+	if resp.StatusCode == http.StatusTooManyRequests {
+		retryAfter := parseRetryAfter(resp.Header.Get("Retry-After"))
+		log.Printf("RapidAPI rate limit response: status=429 retryAfter=%v body=%s", retryAfter, string(body))
+		return nil, body, &RateLimitError{
+			RetryAfter: retryAfter,
+			StatusCode: resp.StatusCode,
+			Message:    string(body),
+		}
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		log.Printf("RapidAPI Error response: %s", string(body))
 		return nil, body, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
@@ -254,4 +282,17 @@ func (c *LinkedInClient) FetchProfileByURL(
 
 	// Parse response using the multi-format handler
 	return parseAPIResponse(body)
+}
+
+func parseRetryAfter(value string) time.Duration {
+	if value == "" {
+		return 0
+	}
+
+	seconds, err := strconv.Atoi(value)
+	if err != nil || seconds <= 0 {
+		return 0
+	}
+
+	return time.Duration(seconds) * time.Second
 }

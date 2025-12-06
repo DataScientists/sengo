@@ -43,10 +43,13 @@ type config struct {
 		SecretAccessKey string
 	}
 	RapidAPI struct {
-		APIKey        string
-		BaseURL       string
-		MonthlyQuota  int
-		TimeoutSeconds int
+		APIKey               string
+		BaseURL              string
+		MonthlyQuota         int
+		TimeoutSeconds       int
+		RateLimitMaxRetries  int
+		RateLimitBackoffMs   int
+		RateLimitBackoffMaxMs int
 	}
 	Email struct {
 		SMTPHost     string

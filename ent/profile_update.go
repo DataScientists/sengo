@@ -105,26 +105,6 @@ func (pu *ProfileUpdate) ClearLastName() *ProfileUpdate {
 	return pu
 }
 
-// SetName sets the "name" field.
-func (pu *ProfileUpdate) SetName(s string) *ProfileUpdate {
-	pu.mutation.SetName(s)
-	return pu
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (pu *ProfileUpdate) SetNillableName(s *string) *ProfileUpdate {
-	if s != nil {
-		pu.SetName(*s)
-	}
-	return pu
-}
-
-// ClearName clears the value of the "name" field.
-func (pu *ProfileUpdate) ClearName() *ProfileUpdate {
-	pu.mutation.ClearName()
-	return pu
-}
-
 // SetHeadline sets the "headline" field.
 func (pu *ProfileUpdate) SetHeadline(s string) *ProfileUpdate {
 	pu.mutation.SetHeadline(s)
@@ -410,11 +390,6 @@ func (pu *ProfileUpdate) check() error {
 			return &ValidationError{Name: "urn", err: fmt.Errorf(`ent: validator failed for field "Profile.urn": %w`, err)}
 		}
 	}
-	if v, ok := pu.mutation.Name(); ok {
-		if err := profile.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Profile.name": %w`, err)}
-		}
-	}
 	if v, ok := pu.mutation.RawDataS3Key(); ok {
 		if err := profile.RawDataS3KeyValidator(v); err != nil {
 			return &ValidationError{Name: "raw_data_s3_key", err: fmt.Errorf(`ent: validator failed for field "Profile.raw_data_s3_key": %w`, err)}
@@ -460,12 +435,6 @@ func (pu *ProfileUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if pu.mutation.LastNameCleared() {
 		_spec.ClearField(profile.FieldLastName, field.TypeString)
-	}
-	if value, ok := pu.mutation.Name(); ok {
-		_spec.SetField(profile.FieldName, field.TypeString, value)
-	}
-	if pu.mutation.NameCleared() {
-		_spec.ClearField(profile.FieldName, field.TypeString)
 	}
 	if value, ok := pu.mutation.Headline(); ok {
 		_spec.SetField(profile.FieldHeadline, field.TypeString, value)
@@ -671,26 +640,6 @@ func (puo *ProfileUpdateOne) SetNillableLastName(s *string) *ProfileUpdateOne {
 // ClearLastName clears the value of the "last_name" field.
 func (puo *ProfileUpdateOne) ClearLastName() *ProfileUpdateOne {
 	puo.mutation.ClearLastName()
-	return puo
-}
-
-// SetName sets the "name" field.
-func (puo *ProfileUpdateOne) SetName(s string) *ProfileUpdateOne {
-	puo.mutation.SetName(s)
-	return puo
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (puo *ProfileUpdateOne) SetNillableName(s *string) *ProfileUpdateOne {
-	if s != nil {
-		puo.SetName(*s)
-	}
-	return puo
-}
-
-// ClearName clears the value of the "name" field.
-func (puo *ProfileUpdateOne) ClearName() *ProfileUpdateOne {
-	puo.mutation.ClearName()
 	return puo
 }
 
@@ -992,11 +941,6 @@ func (puo *ProfileUpdateOne) check() error {
 			return &ValidationError{Name: "urn", err: fmt.Errorf(`ent: validator failed for field "Profile.urn": %w`, err)}
 		}
 	}
-	if v, ok := puo.mutation.Name(); ok {
-		if err := profile.NameValidator(v); err != nil {
-			return &ValidationError{Name: "name", err: fmt.Errorf(`ent: validator failed for field "Profile.name": %w`, err)}
-		}
-	}
 	if v, ok := puo.mutation.RawDataS3Key(); ok {
 		if err := profile.RawDataS3KeyValidator(v); err != nil {
 			return &ValidationError{Name: "raw_data_s3_key", err: fmt.Errorf(`ent: validator failed for field "Profile.raw_data_s3_key": %w`, err)}
@@ -1059,12 +1003,6 @@ func (puo *ProfileUpdateOne) sqlSave(ctx context.Context) (_node *Profile, err e
 	}
 	if puo.mutation.LastNameCleared() {
 		_spec.ClearField(profile.FieldLastName, field.TypeString)
-	}
-	if value, ok := puo.mutation.Name(); ok {
-		_spec.SetField(profile.FieldName, field.TypeString, value)
-	}
-	if puo.mutation.NameCleared() {
-		_spec.ClearField(profile.FieldName, field.TypeString)
 	}
 	if value, ok := puo.mutation.Headline(); ok {
 		_spec.SetField(profile.FieldHeadline, field.TypeString, value)

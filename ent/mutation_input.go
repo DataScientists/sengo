@@ -384,7 +384,6 @@ type CreateProfileInput struct {
 	Username         *string
 	FirstName        *string
 	LastName         *string
-	Name             *string
 	Headline         *string
 	Title            *string
 	Country          *string
@@ -412,9 +411,6 @@ func (i *CreateProfileInput) Mutate(m *ProfileCreate) {
 	}
 	if v := i.LastName; v != nil {
 		m.SetLastName(*v)
-	}
-	if v := i.Name; v != nil {
-		m.SetName(*v)
 	}
 	if v := i.Headline; v != nil {
 		m.SetHeadline(*v)
@@ -476,8 +472,6 @@ type UpdateProfileInput struct {
 	ClearFirstName        bool
 	LastName              *string
 	ClearLastName         bool
-	Name                  *string
-	ClearName             bool
 	Headline              *string
 	ClearHeadline         bool
 	Title                 *string
@@ -527,12 +521,6 @@ func (i *UpdateProfileInput) Mutate(m *ProfileMutation) {
 	}
 	if v := i.LastName; v != nil {
 		m.SetLastName(*v)
-	}
-	if i.ClearName {
-		m.ClearName()
-	}
-	if v := i.Name; v != nil {
-		m.SetName(*v)
 	}
 	if i.ClearHeadline {
 		m.ClearHeadline()

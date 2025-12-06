@@ -7,7 +7,7 @@ import (
 )
 
 type Profile interface {
-	Get(ctx context.Context, where *model.ProfileWhereInput) (*model.Profile, error)
+	Get(ctx context.Context, id model.ID) (*model.Profile, error)
 	Create(ctx context.Context, input model.CreateProfileInput) (*model.Profile, error)
 	Update(ctx context.Context, input model.UpdateProfileInput) (*model.Profile, error)
 	List(ctx context.Context,
@@ -32,9 +32,9 @@ func NewProfileController(pu usecase.Profile) Profile {
 
 func (pc *profileController) Get(
 	ctx context.Context,
-	where *model.ProfileWhereInput,
+	id model.ID,
 ) (*model.Profile, error) {
-	return pc.profileUseCase.Get(ctx, where)
+	return pc.profileUseCase.Get(ctx, id)
 }
 
 func (pc *profileController) Create(

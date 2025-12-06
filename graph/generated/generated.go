@@ -51,6 +51,8 @@ type ResolverRoot interface {
 	Query() QueryResolver
 	Todo() TodoResolver
 	User() UserResolver
+	CreateProfileInput() CreateProfileInputResolver
+	UpdateProfileInput() UpdateProfileInputResolver
 }
 
 type DirectiveRoot struct {
@@ -153,13 +155,24 @@ type ComplexityRoot struct {
 	}
 
 	Profile struct {
-		CreatedAt  func(childComplexity int) int
-		ID         func(childComplexity int) int
-		Name       func(childComplexity int) int
-		SourceFile func(childComplexity int) int
-		Title      func(childComplexity int) int
-		UpdatedAt  func(childComplexity int) int
-		Urn        func(childComplexity int) int
+		City             func(childComplexity int) int
+		CleanedDataS3Key func(childComplexity int) int
+		Country          func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		Educations       func(childComplexity int) int
+		FirstName        func(childComplexity int) int
+		GeoData          func(childComplexity int) int
+		ID               func(childComplexity int) int
+		LastName         func(childComplexity int) int
+		Name             func(childComplexity int) int
+		Positions        func(childComplexity int) int
+		ProfileEntry     func(childComplexity int) int
+		RawDataS3Key     func(childComplexity int) int
+		Skills           func(childComplexity int) int
+		SourceFile       func(childComplexity int) int
+		Title            func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
+		Urn              func(childComplexity int) int
 	}
 
 	ProfileConnection struct {
@@ -218,7 +231,7 @@ type ComplexityRoot struct {
 		JobStats            func(childComplexity int, jobName string, days *int) int
 		LatestJobExecution  func(childComplexity int, jobName string) int
 		Node                func(childComplexity int, id ulid.ID) int
-		Profile             func(childComplexity int, input *ent.ProfileWhereInput) int
+		Profile             func(childComplexity int, id ulid.ID) int
 		ProfileEntries      func(childComplexity int, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.ProfileEntryWhereInput) int
 		ProfileEntry        func(childComplexity int, id ulid.ID) int
 		ProfileEntryStats   func(childComplexity int) int
@@ -299,6 +312,12 @@ type MutationResolver interface {
 	UpdateUser(ctx context.Context, input ent.UpdateUserInput) (*ent.User, error)
 }
 type ProfileResolver interface {
+	Name(ctx context.Context, obj *ent.Profile) (string, error)
+
+	Educations(ctx context.Context, obj *ent.Profile) (map[string]any, error)
+	Positions(ctx context.Context, obj *ent.Profile) (map[string]any, error)
+	Skills(ctx context.Context, obj *ent.Profile) (map[string]any, error)
+
 	CreatedAt(ctx context.Context, obj *ent.Profile) (string, error)
 	UpdatedAt(ctx context.Context, obj *ent.Profile) (string, error)
 }
@@ -313,7 +332,7 @@ type QueryResolver interface {
 	JobExecutionHistory(ctx context.Context, jobName *string, limit *int, where *ent.JobExecutionHistoryWhereInput) ([]*ent.JobExecutionHistory, error)
 	LatestJobExecution(ctx context.Context, jobName string) (*ent.JobExecutionHistory, error)
 	JobStats(ctx context.Context, jobName string, days *int) (*model.JobStats, error)
-	Profile(ctx context.Context, input *ent.ProfileWhereInput) (*ent.Profile, error)
+	Profile(ctx context.Context, id ulid.ID) (*ent.Profile, error)
 	Profiles(ctx context.Context, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.ProfileWhereInput) (*ent.ProfileConnection, error)
 	ProfilesByTitle(ctx context.Context, searchTerm *string, minCount int) ([]*model.ProfileTitleGroup, error)
 	ProfileEntry(ctx context.Context, id ulid.ID) (*ent.ProfileEntry, error)
@@ -331,6 +350,13 @@ type UserResolver interface {
 	CreatedAt(ctx context.Context, obj *ent.User) (string, error)
 
 	UpdatedAt(ctx context.Context, obj *ent.User) (string, error)
+}
+
+type CreateProfileInputResolver interface {
+	Name(ctx context.Context, obj *ent.CreateProfileInput, data string) error
+}
+type UpdateProfileInputResolver interface {
+	Name(ctx context.Context, obj *ent.UpdateProfileInput, data *string) error
 }
 
 type executableSchema struct {
@@ -910,12 +936,54 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
 
+	case "Profile.city":
+		if e.complexity.Profile.City == nil {
+			break
+		}
+
+		return e.complexity.Profile.City(childComplexity), true
+
+	case "Profile.cleanedDataS3Key":
+		if e.complexity.Profile.CleanedDataS3Key == nil {
+			break
+		}
+
+		return e.complexity.Profile.CleanedDataS3Key(childComplexity), true
+
+	case "Profile.country":
+		if e.complexity.Profile.Country == nil {
+			break
+		}
+
+		return e.complexity.Profile.Country(childComplexity), true
+
 	case "Profile.createdAt":
 		if e.complexity.Profile.CreatedAt == nil {
 			break
 		}
 
 		return e.complexity.Profile.CreatedAt(childComplexity), true
+
+	case "Profile.educations":
+		if e.complexity.Profile.Educations == nil {
+			break
+		}
+
+		return e.complexity.Profile.Educations(childComplexity), true
+
+	case "Profile.firstName":
+		if e.complexity.Profile.FirstName == nil {
+			break
+		}
+
+		return e.complexity.Profile.FirstName(childComplexity), true
+
+	case "Profile.geoData":
+		if e.complexity.Profile.GeoData == nil {
+			break
+		}
+
+		return e.complexity.Profile.GeoData(childComplexity), true
 
 	case "Profile.id":
 		if e.complexity.Profile.ID == nil {
@@ -924,12 +992,47 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.Profile.ID(childComplexity), true
 
+	case "Profile.lastName":
+		if e.complexity.Profile.LastName == nil {
+			break
+		}
+
+		return e.complexity.Profile.LastName(childComplexity), true
+
 	case "Profile.name":
 		if e.complexity.Profile.Name == nil {
 			break
 		}
 
 		return e.complexity.Profile.Name(childComplexity), true
+
+	case "Profile.positions":
+		if e.complexity.Profile.Positions == nil {
+			break
+		}
+
+		return e.complexity.Profile.Positions(childComplexity), true
+
+	case "Profile.profileEntry":
+		if e.complexity.Profile.ProfileEntry == nil {
+			break
+		}
+
+		return e.complexity.Profile.ProfileEntry(childComplexity), true
+
+	case "Profile.rawDataS3Key":
+		if e.complexity.Profile.RawDataS3Key == nil {
+			break
+		}
+
+		return e.complexity.Profile.RawDataS3Key(childComplexity), true
+
+	case "Profile.skills":
+		if e.complexity.Profile.Skills == nil {
+			break
+		}
+
+		return e.complexity.Profile.Skills(childComplexity), true
 
 	case "Profile.sourceFile":
 		if e.complexity.Profile.SourceFile == nil {
@@ -1232,7 +1335,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.Profile(childComplexity, args["input"].(*ent.ProfileWhereInput)), true
+		return e.complexity.Query.Profile(childComplexity, args["id"].(ulid.ID)), true
 
 	case "Query.profileEntries":
 		if e.complexity.Query.ProfileEntries == nil {
@@ -2296,24 +2399,6 @@ input ProfileWhereInput {
   lastNameEqualFold: String
   lastNameContainsFold: String
   """
-  name field predicates
-  """
-  name: String
-  nameNEQ: String
-  nameIn: [String!]
-  nameNotIn: [String!]
-  nameGT: String
-  nameGTE: String
-  nameLT: String
-  nameLTE: String
-  nameContains: String
-  nameHasPrefix: String
-  nameHasSuffix: String
-  nameIsNil: Boolean
-  nameNotNil: Boolean
-  nameEqualFold: String
-  nameContainsFold: String
-  """
   headline field predicates
   """
   headline: String
@@ -2796,8 +2881,20 @@ extend type Mutation {
 	{Name: "../schema/profile/profile.graphql", Input: `type Profile implements Node {
   id: ID!
   name: String!
+  firstName: String
+  lastName: String
   title: String!
   urn: String!
+  country: String
+  city: String
+  educations: Map
+  positions: Map
+  skills: Map
+  geoData: Map
+  rawDataS3Key: String
+  cleanedDataS3Key: String
+  profileEntry: ProfileEntry
+
   sourceFile: String!
   createdAt: String!
   updatedAt: String!
@@ -2835,7 +2932,7 @@ input UpdateProfileInput {
 }
 
 extend type Query {
-  profile(input: ProfileWhereInput): Profile
+  profile(id: ID!): Profile
   profiles(
     after: Cursor
     first: Int
@@ -3349,11 +3446,11 @@ func (ec *executionContext) field_Query_profileEntry_args(ctx context.Context, r
 func (ec *executionContext) field_Query_profile_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
 	var err error
 	args := map[string]any{}
-	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalOProfileWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐProfileWhereInput)
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "id", ec.unmarshalNID2shengᚑgoᚑbackendᚋentᚋschemaᚋulidᚐID)
 	if err != nil {
 		return nil, err
 	}
-	args["input"] = arg0
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -6331,10 +6428,32 @@ func (ec *executionContext) fieldContext_Mutation_createProfile(ctx context.Cont
 				return ec.fieldContext_Profile_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Profile_name(ctx, field)
+			case "firstName":
+				return ec.fieldContext_Profile_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_Profile_lastName(ctx, field)
 			case "title":
 				return ec.fieldContext_Profile_title(ctx, field)
 			case "urn":
 				return ec.fieldContext_Profile_urn(ctx, field)
+			case "country":
+				return ec.fieldContext_Profile_country(ctx, field)
+			case "city":
+				return ec.fieldContext_Profile_city(ctx, field)
+			case "educations":
+				return ec.fieldContext_Profile_educations(ctx, field)
+			case "positions":
+				return ec.fieldContext_Profile_positions(ctx, field)
+			case "skills":
+				return ec.fieldContext_Profile_skills(ctx, field)
+			case "geoData":
+				return ec.fieldContext_Profile_geoData(ctx, field)
+			case "rawDataS3Key":
+				return ec.fieldContext_Profile_rawDataS3Key(ctx, field)
+			case "cleanedDataS3Key":
+				return ec.fieldContext_Profile_cleanedDataS3Key(ctx, field)
+			case "profileEntry":
+				return ec.fieldContext_Profile_profileEntry(ctx, field)
 			case "sourceFile":
 				return ec.fieldContext_Profile_sourceFile(ctx, field)
 			case "createdAt":
@@ -6424,10 +6543,32 @@ func (ec *executionContext) fieldContext_Mutation_updateProfile(ctx context.Cont
 				return ec.fieldContext_Profile_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Profile_name(ctx, field)
+			case "firstName":
+				return ec.fieldContext_Profile_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_Profile_lastName(ctx, field)
 			case "title":
 				return ec.fieldContext_Profile_title(ctx, field)
 			case "urn":
 				return ec.fieldContext_Profile_urn(ctx, field)
+			case "country":
+				return ec.fieldContext_Profile_country(ctx, field)
+			case "city":
+				return ec.fieldContext_Profile_city(ctx, field)
+			case "educations":
+				return ec.fieldContext_Profile_educations(ctx, field)
+			case "positions":
+				return ec.fieldContext_Profile_positions(ctx, field)
+			case "skills":
+				return ec.fieldContext_Profile_skills(ctx, field)
+			case "geoData":
+				return ec.fieldContext_Profile_geoData(ctx, field)
+			case "rawDataS3Key":
+				return ec.fieldContext_Profile_rawDataS3Key(ctx, field)
+			case "cleanedDataS3Key":
+				return ec.fieldContext_Profile_cleanedDataS3Key(ctx, field)
+			case "profileEntry":
+				return ec.fieldContext_Profile_profileEntry(ctx, field)
 			case "sourceFile":
 				return ec.fieldContext_Profile_sourceFile(ctx, field)
 			case "createdAt":
@@ -7290,7 +7431,7 @@ func (ec *executionContext) _Profile_name(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Name, nil
+		return ec.resolvers.Profile().Name(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7302,12 +7443,94 @@ func (ec *executionContext) _Profile_name(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Profile_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_firstName(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_firstName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FirstName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_firstName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_lastName(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_lastName(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.LastName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_lastName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "Profile",
 		Field:      field,
@@ -7403,6 +7626,395 @@ func (ec *executionContext) fieldContext_Profile_urn(_ context.Context, field gr
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_country(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_country(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Country, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_country(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_city(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_city(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.City, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_city(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_educations(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_educations(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Profile().Educations(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]any)
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_educations(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_positions(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_positions(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Profile().Positions(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]any)
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_positions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_skills(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_skills(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Profile().Skills(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]any)
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_skills(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_geoData(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_geoData(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.GeoData, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(map[string]any)
+	fc.Result = res
+	return ec.marshalOMap2map(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_geoData(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Map does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_rawDataS3Key(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_rawDataS3Key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RawDataS3Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_rawDataS3Key(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_cleanedDataS3Key(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_cleanedDataS3Key(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CleanedDataS3Key, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_cleanedDataS3Key(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Profile_profileEntry(ctx context.Context, field graphql.CollectedField, obj *ent.Profile) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Profile_profileEntry(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileEntry(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.ProfileEntry)
+	fc.Result = res
+	return ec.marshalOProfileEntry2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntry(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Profile_profileEntry(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Profile",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfileEntry_id(ctx, field)
+			case "linkedinUrn":
+				return ec.fieldContext_ProfileEntry_linkedinUrn(ctx, field)
+			case "gender":
+				return ec.fieldContext_ProfileEntry_gender(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfileEntry_status(ctx, field)
+			case "lastFetchedAt":
+				return ec.fieldContext_ProfileEntry_lastFetchedAt(ctx, field)
+			case "fetchCount":
+				return ec.fieldContext_ProfileEntry_fetchCount(ctx, field)
+			case "profileData":
+				return ec.fieldContext_ProfileEntry_profileData(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ProfileEntry_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ProfileEntry_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfileEntry", field.Name)
 		},
 	}
 	return fc, nil
@@ -7725,10 +8337,32 @@ func (ec *executionContext) fieldContext_ProfileEdge_node(_ context.Context, fie
 				return ec.fieldContext_Profile_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Profile_name(ctx, field)
+			case "firstName":
+				return ec.fieldContext_Profile_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_Profile_lastName(ctx, field)
 			case "title":
 				return ec.fieldContext_Profile_title(ctx, field)
 			case "urn":
 				return ec.fieldContext_Profile_urn(ctx, field)
+			case "country":
+				return ec.fieldContext_Profile_country(ctx, field)
+			case "city":
+				return ec.fieldContext_Profile_city(ctx, field)
+			case "educations":
+				return ec.fieldContext_Profile_educations(ctx, field)
+			case "positions":
+				return ec.fieldContext_Profile_positions(ctx, field)
+			case "skills":
+				return ec.fieldContext_Profile_skills(ctx, field)
+			case "geoData":
+				return ec.fieldContext_Profile_geoData(ctx, field)
+			case "rawDataS3Key":
+				return ec.fieldContext_Profile_rawDataS3Key(ctx, field)
+			case "cleanedDataS3Key":
+				return ec.fieldContext_Profile_cleanedDataS3Key(ctx, field)
+			case "profileEntry":
+				return ec.fieldContext_Profile_profileEntry(ctx, field)
 			case "sourceFile":
 				return ec.fieldContext_Profile_sourceFile(ctx, field)
 			case "createdAt":
@@ -9427,7 +10061,7 @@ func (ec *executionContext) _Query_profile(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Profile(rctx, fc.Args["input"].(*ent.ProfileWhereInput))
+		return ec.resolvers.Query().Profile(rctx, fc.Args["id"].(ulid.ID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9453,10 +10087,32 @@ func (ec *executionContext) fieldContext_Query_profile(ctx context.Context, fiel
 				return ec.fieldContext_Profile_id(ctx, field)
 			case "name":
 				return ec.fieldContext_Profile_name(ctx, field)
+			case "firstName":
+				return ec.fieldContext_Profile_firstName(ctx, field)
+			case "lastName":
+				return ec.fieldContext_Profile_lastName(ctx, field)
 			case "title":
 				return ec.fieldContext_Profile_title(ctx, field)
 			case "urn":
 				return ec.fieldContext_Profile_urn(ctx, field)
+			case "country":
+				return ec.fieldContext_Profile_country(ctx, field)
+			case "city":
+				return ec.fieldContext_Profile_city(ctx, field)
+			case "educations":
+				return ec.fieldContext_Profile_educations(ctx, field)
+			case "positions":
+				return ec.fieldContext_Profile_positions(ctx, field)
+			case "skills":
+				return ec.fieldContext_Profile_skills(ctx, field)
+			case "geoData":
+				return ec.fieldContext_Profile_geoData(ctx, field)
+			case "rawDataS3Key":
+				return ec.fieldContext_Profile_rawDataS3Key(ctx, field)
+			case "cleanedDataS3Key":
+				return ec.fieldContext_Profile_cleanedDataS3Key(ctx, field)
+			case "profileEntry":
+				return ec.fieldContext_Profile_profileEntry(ctx, field)
 			case "sourceFile":
 				return ec.fieldContext_Profile_sourceFile(ctx, field)
 			case "createdAt":
@@ -13864,11 +14520,13 @@ func (ec *executionContext) unmarshalInputCreateProfileInput(ctx context.Context
 		switch k {
 		case "name":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalNString2ᚖstring(ctx, v)
+			data, err := ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-			it.Name = data
+			if err = ec.resolvers.CreateProfileInput().Name(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "title":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
 			data, err := ec.unmarshalNString2ᚖstring(ctx, v)
@@ -16386,7 +17044,7 @@ func (ec *executionContext) unmarshalInputProfileWhereInput(ctx context.Context,
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "urn", "urnNEQ", "urnIn", "urnNotIn", "urnGT", "urnGTE", "urnLT", "urnLTE", "urnContains", "urnHasPrefix", "urnHasSuffix", "urnEqualFold", "urnContainsFold", "username", "usernameNEQ", "usernameIn", "usernameNotIn", "usernameGT", "usernameGTE", "usernameLT", "usernameLTE", "usernameContains", "usernameHasPrefix", "usernameHasSuffix", "usernameIsNil", "usernameNotNil", "usernameEqualFold", "usernameContainsFold", "firstName", "firstNameNEQ", "firstNameIn", "firstNameNotIn", "firstNameGT", "firstNameGTE", "firstNameLT", "firstNameLTE", "firstNameContains", "firstNameHasPrefix", "firstNameHasSuffix", "firstNameIsNil", "firstNameNotNil", "firstNameEqualFold", "firstNameContainsFold", "lastName", "lastNameNEQ", "lastNameIn", "lastNameNotIn", "lastNameGT", "lastNameGTE", "lastNameLT", "lastNameLTE", "lastNameContains", "lastNameHasPrefix", "lastNameHasSuffix", "lastNameIsNil", "lastNameNotNil", "lastNameEqualFold", "lastNameContainsFold", "name", "nameNEQ", "nameIn", "nameNotIn", "nameGT", "nameGTE", "nameLT", "nameLTE", "nameContains", "nameHasPrefix", "nameHasSuffix", "nameIsNil", "nameNotNil", "nameEqualFold", "nameContainsFold", "headline", "headlineNEQ", "headlineIn", "headlineNotIn", "headlineGT", "headlineGTE", "headlineLT", "headlineLTE", "headlineContains", "headlineHasPrefix", "headlineHasSuffix", "headlineIsNil", "headlineNotNil", "headlineEqualFold", "headlineContainsFold", "title", "titleNEQ", "titleIn", "titleNotIn", "titleGT", "titleGTE", "titleLT", "titleLTE", "titleContains", "titleHasPrefix", "titleHasSuffix", "titleIsNil", "titleNotNil", "titleEqualFold", "titleContainsFold", "country", "countryNEQ", "countryIn", "countryNotIn", "countryGT", "countryGTE", "countryLT", "countryLTE", "countryContains", "countryHasPrefix", "countryHasSuffix", "countryIsNil", "countryNotNil", "countryEqualFold", "countryContainsFold", "city", "cityNEQ", "cityIn", "cityNotIn", "cityGT", "cityGTE", "cityLT", "cityLTE", "cityContains", "cityHasPrefix", "cityHasSuffix", "cityIsNil", "cityNotNil", "cityEqualFold", "cityContainsFold", "rawDataS3Key", "rawDataS3KeyNEQ", "rawDataS3KeyIn", "rawDataS3KeyNotIn", "rawDataS3KeyGT", "rawDataS3KeyGTE", "rawDataS3KeyLT", "rawDataS3KeyLTE", "rawDataS3KeyContains", "rawDataS3KeyHasPrefix", "rawDataS3KeyHasSuffix", "rawDataS3KeyIsNil", "rawDataS3KeyNotNil", "rawDataS3KeyEqualFold", "rawDataS3KeyContainsFold", "cleanedDataS3Key", "cleanedDataS3KeyNEQ", "cleanedDataS3KeyIn", "cleanedDataS3KeyNotIn", "cleanedDataS3KeyGT", "cleanedDataS3KeyGTE", "cleanedDataS3KeyLT", "cleanedDataS3KeyLTE", "cleanedDataS3KeyContains", "cleanedDataS3KeyHasPrefix", "cleanedDataS3KeyHasSuffix", "cleanedDataS3KeyIsNil", "cleanedDataS3KeyNotNil", "cleanedDataS3KeyEqualFold", "cleanedDataS3KeyContainsFold", "sourceFile", "sourceFileNEQ", "sourceFileIn", "sourceFileNotIn", "sourceFileGT", "sourceFileGTE", "sourceFileLT", "sourceFileLTE", "sourceFileContains", "sourceFileHasPrefix", "sourceFileHasSuffix", "sourceFileIsNil", "sourceFileNotNil", "sourceFileEqualFold", "sourceFileContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "hasProfileEntry", "hasProfileEntryWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "urn", "urnNEQ", "urnIn", "urnNotIn", "urnGT", "urnGTE", "urnLT", "urnLTE", "urnContains", "urnHasPrefix", "urnHasSuffix", "urnEqualFold", "urnContainsFold", "username", "usernameNEQ", "usernameIn", "usernameNotIn", "usernameGT", "usernameGTE", "usernameLT", "usernameLTE", "usernameContains", "usernameHasPrefix", "usernameHasSuffix", "usernameIsNil", "usernameNotNil", "usernameEqualFold", "usernameContainsFold", "firstName", "firstNameNEQ", "firstNameIn", "firstNameNotIn", "firstNameGT", "firstNameGTE", "firstNameLT", "firstNameLTE", "firstNameContains", "firstNameHasPrefix", "firstNameHasSuffix", "firstNameIsNil", "firstNameNotNil", "firstNameEqualFold", "firstNameContainsFold", "lastName", "lastNameNEQ", "lastNameIn", "lastNameNotIn", "lastNameGT", "lastNameGTE", "lastNameLT", "lastNameLTE", "lastNameContains", "lastNameHasPrefix", "lastNameHasSuffix", "lastNameIsNil", "lastNameNotNil", "lastNameEqualFold", "lastNameContainsFold", "headline", "headlineNEQ", "headlineIn", "headlineNotIn", "headlineGT", "headlineGTE", "headlineLT", "headlineLTE", "headlineContains", "headlineHasPrefix", "headlineHasSuffix", "headlineIsNil", "headlineNotNil", "headlineEqualFold", "headlineContainsFold", "title", "titleNEQ", "titleIn", "titleNotIn", "titleGT", "titleGTE", "titleLT", "titleLTE", "titleContains", "titleHasPrefix", "titleHasSuffix", "titleIsNil", "titleNotNil", "titleEqualFold", "titleContainsFold", "country", "countryNEQ", "countryIn", "countryNotIn", "countryGT", "countryGTE", "countryLT", "countryLTE", "countryContains", "countryHasPrefix", "countryHasSuffix", "countryIsNil", "countryNotNil", "countryEqualFold", "countryContainsFold", "city", "cityNEQ", "cityIn", "cityNotIn", "cityGT", "cityGTE", "cityLT", "cityLTE", "cityContains", "cityHasPrefix", "cityHasSuffix", "cityIsNil", "cityNotNil", "cityEqualFold", "cityContainsFold", "rawDataS3Key", "rawDataS3KeyNEQ", "rawDataS3KeyIn", "rawDataS3KeyNotIn", "rawDataS3KeyGT", "rawDataS3KeyGTE", "rawDataS3KeyLT", "rawDataS3KeyLTE", "rawDataS3KeyContains", "rawDataS3KeyHasPrefix", "rawDataS3KeyHasSuffix", "rawDataS3KeyIsNil", "rawDataS3KeyNotNil", "rawDataS3KeyEqualFold", "rawDataS3KeyContainsFold", "cleanedDataS3Key", "cleanedDataS3KeyNEQ", "cleanedDataS3KeyIn", "cleanedDataS3KeyNotIn", "cleanedDataS3KeyGT", "cleanedDataS3KeyGTE", "cleanedDataS3KeyLT", "cleanedDataS3KeyLTE", "cleanedDataS3KeyContains", "cleanedDataS3KeyHasPrefix", "cleanedDataS3KeyHasSuffix", "cleanedDataS3KeyIsNil", "cleanedDataS3KeyNotNil", "cleanedDataS3KeyEqualFold", "cleanedDataS3KeyContainsFold", "sourceFile", "sourceFileNEQ", "sourceFileIn", "sourceFileNotIn", "sourceFileGT", "sourceFileGTE", "sourceFileLT", "sourceFileLTE", "sourceFileContains", "sourceFileHasPrefix", "sourceFileHasSuffix", "sourceFileIsNil", "sourceFileNotNil", "sourceFileEqualFold", "sourceFileContainsFold", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "hasProfileEntry", "hasProfileEntryWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -16876,111 +17534,6 @@ func (ec *executionContext) unmarshalInputProfileWhereInput(ctx context.Context,
 				return it, err
 			}
 			it.LastNameContainsFold = data
-		case "name":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.Name = data
-		case "nameNEQ":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNEQ"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameNEQ = data
-		case "nameIn":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIn"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameIn = data
-		case "nameNotIn":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotIn"))
-			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameNotIn = data
-		case "nameGT":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGT"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameGT = data
-		case "nameGTE":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameGTE"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameGTE = data
-		case "nameLT":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLT"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameLT = data
-		case "nameLTE":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameLTE"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameLTE = data
-		case "nameContains":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContains"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameContains = data
-		case "nameHasPrefix":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasPrefix"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameHasPrefix = data
-		case "nameHasSuffix":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameHasSuffix"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameHasSuffix = data
-		case "nameIsNil":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameIsNil"))
-			data, err := ec.unmarshalOBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameIsNil = data
-		case "nameNotNil":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameNotNil"))
-			data, err := ec.unmarshalOBoolean2bool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameNotNil = data
-		case "nameEqualFold":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameEqualFold"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameEqualFold = data
-		case "nameContainsFold":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("nameContainsFold"))
-			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.NameContainsFold = data
 		case "headline":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("headline"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -18362,7 +18915,9 @@ func (ec *executionContext) unmarshalInputUpdateProfileInput(ctx context.Context
 			if err != nil {
 				return it, err
 			}
-			it.Name = data
+			if err = ec.resolvers.UpdateProfileInput().Name(ctx, &it, data); err != nil {
+				return it, err
+			}
 		case "title":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("title"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -19589,10 +20144,45 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
-			out.Values[i] = ec._Profile_name(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Profile_name(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "firstName":
+			out.Values[i] = ec._Profile_firstName(ctx, field, obj)
+		case "lastName":
+			out.Values[i] = ec._Profile_lastName(ctx, field, obj)
 		case "title":
 			out.Values[i] = ec._Profile_title(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -19603,6 +20193,148 @@ func (ec *executionContext) _Profile(ctx context.Context, sel ast.SelectionSet, 
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "country":
+			out.Values[i] = ec._Profile_country(ctx, field, obj)
+		case "city":
+			out.Values[i] = ec._Profile_city(ctx, field, obj)
+		case "educations":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Profile_educations(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "positions":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Profile_positions(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "skills":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Profile_skills(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "geoData":
+			out.Values[i] = ec._Profile_geoData(ctx, field, obj)
+		case "rawDataS3Key":
+			out.Values[i] = ec._Profile_rawDataS3Key(ctx, field, obj)
+		case "cleanedDataS3Key":
+			out.Values[i] = ec._Profile_cleanedDataS3Key(ctx, field, obj)
+		case "profileEntry":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Profile_profileEntry(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "sourceFile":
 			out.Values[i] = ec._Profile_sourceFile(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

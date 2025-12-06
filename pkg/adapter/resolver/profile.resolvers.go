@@ -6,6 +6,7 @@ package resolver
 
 import (
 	"context"
+	"fmt"
 	"sheng-go-backend/ent"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/graph/generated"
@@ -32,6 +33,11 @@ func (r *mutationResolver) UpdateProfile(ctx context.Context, input ent.UpdatePr
 		return nil, handler.HandleGraphQLError(ctx, err)
 	}
 	return profile, nil
+}
+
+// Name is the resolver for the name field.
+func (r *profileResolver) Name(ctx context.Context, obj *ent.Profile) (string, error) {
+	return *obj.FirstName + *obj.Username, nil
 }
 
 // CreatedAt is the resolver for the createdAt field.
@@ -72,7 +78,31 @@ func (r *queryResolver) ProfilesByTitle(ctx context.Context, searchTerm *string,
 	return groups, nil
 }
 
+// Name is the resolver for the name field.
+func (r *createProfileInputResolver) Name(ctx context.Context, obj *ent.CreateProfileInput, data string) error {
+	panic(fmt.Errorf("not implemented: Name - name"))
+}
+
+// Name is the resolver for the name field.
+func (r *updateProfileInputResolver) Name(ctx context.Context, obj *ent.UpdateProfileInput, data *string) error {
+	panic(fmt.Errorf("not implemented: Name - name"))
+}
+
 // Profile returns generated.ProfileResolver implementation.
 func (r *Resolver) Profile() generated.ProfileResolver { return &profileResolver{r} }
 
-type profileResolver struct{ *Resolver }
+// CreateProfileInput returns generated.CreateProfileInputResolver implementation.
+func (r *Resolver) CreateProfileInput() generated.CreateProfileInputResolver {
+	return &createProfileInputResolver{r}
+}
+
+// UpdateProfileInput returns generated.UpdateProfileInputResolver implementation.
+func (r *Resolver) UpdateProfileInput() generated.UpdateProfileInputResolver {
+	return &updateProfileInputResolver{r}
+}
+
+type (
+	profileResolver            struct{ *Resolver }
+	createProfileInputResolver struct{ *Resolver }
+	updateProfileInputResolver struct{ *Resolver }
+)

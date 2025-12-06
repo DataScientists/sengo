@@ -47,12 +47,6 @@ func (ProfileMixin) Fields() []ent.Field {
 			Nillable().
 			Comment("Last name"),
 
-		field.String("name").
-			Optional().
-			Nillable().
-			MaxLen(255).
-			Comment("Full name (legacy field)"),
-
 		field.String("headline").
 			Optional().
 			Nillable().

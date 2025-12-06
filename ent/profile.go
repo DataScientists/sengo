@@ -28,8 +28,6 @@ type Profile struct {
 	FirstName *string `json:"first_name,omitempty"`
 	// Last name
 	LastName *string `json:"last_name,omitempty"`
-	// Full name (legacy field)
-	Name *string `json:"name,omitempty"`
 	// LinkedIn headline/bio
 	Headline *string `json:"headline,omitempty"`
 	// Current job title (legacy field)
@@ -92,7 +90,7 @@ func (*Profile) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case profile.FieldEducations, profile.FieldPositions, profile.FieldSkills, profile.FieldGeoData:
 			values[i] = new([]byte)
-		case profile.FieldUrn, profile.FieldUsername, profile.FieldFirstName, profile.FieldLastName, profile.FieldName, profile.FieldHeadline, profile.FieldTitle, profile.FieldCountry, profile.FieldCity, profile.FieldRawDataS3Key, profile.FieldCleanedDataS3Key, profile.FieldSourceFile:
+		case profile.FieldUrn, profile.FieldUsername, profile.FieldFirstName, profile.FieldLastName, profile.FieldHeadline, profile.FieldTitle, profile.FieldCountry, profile.FieldCity, profile.FieldRawDataS3Key, profile.FieldCleanedDataS3Key, profile.FieldSourceFile:
 			values[i] = new(sql.NullString)
 		case profile.FieldCreatedAt, profile.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -147,13 +145,6 @@ func (pr *Profile) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				pr.LastName = new(string)
 				*pr.LastName = value.String
-			}
-		case profile.FieldName:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field name", values[i])
-			} else if value.Valid {
-				pr.Name = new(string)
-				*pr.Name = value.String
 			}
 		case profile.FieldHeadline:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -311,11 +302,6 @@ func (pr *Profile) String() string {
 	builder.WriteString(", ")
 	if v := pr.LastName; v != nil {
 		builder.WriteString("last_name=")
-		builder.WriteString(*v)
-	}
-	builder.WriteString(", ")
-	if v := pr.Name; v != nil {
-		builder.WriteString("name=")
 		builder.WriteString(*v)
 	}
 	builder.WriteString(", ")

@@ -1,8 +1,20 @@
 type Profile implements Node {
   id: ID!
   name: String!
+  firstName: String
+  lastName: String
   title: String!
   urn: String!
+  country: String
+  city: String
+  educations: Map
+  positions: Map
+  skills: Map
+  geoData: Map
+  rawDataS3Key: String
+  cleanedDataS3Key: String
+  profileEntry: ProfileEntry
+
   sourceFile: String!
   createdAt: String!
   updatedAt: String!
@@ -40,7 +52,7 @@ input UpdateProfileInput {
 }
 
 extend type Query {
-  profile(input: ProfileWhereInput): Profile
+  profile(id: ID!): Profile
   profiles(
     after: Cursor
     first: Int

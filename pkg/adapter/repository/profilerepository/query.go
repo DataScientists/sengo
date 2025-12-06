@@ -8,20 +8,10 @@ import (
 
 func (r *profileRepository) Get(
 	ctx context.Context,
-	where *model.ProfileWhereInput,
+	id model.ID,
 ) (*model.Profile, error) {
-	q := r.client.Profile.Query()
-
-	q, err := where.Filter(q)
+	res, err := r.client.Profile.Get(ctx, id)
 	if err != nil {
-		return nil, model.NewInvalidParamError(nil)
-	}
-
-	res, err := q.Only(ctx)
-	if err != nil {
-		if ent.IsNotSingular(err) {
-			return nil, model.NewNotFoundError(err, nil)
-		}
 		if ent.IsNotFound(err) {
 			return nil, nil
 		}

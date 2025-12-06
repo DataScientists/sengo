@@ -11,7 +11,7 @@ type profileUseCase struct {
 }
 
 type Profile interface {
-	Get(ctx context.Context, where *model.ProfileWhereInput) (*model.Profile, error)
+	Get(ctx context.Context, id model.ID) (*model.Profile, error)
 	Create(ctx context.Context, input model.CreateProfileInput) (*model.Profile, error)
 	Update(ctx context.Context, input model.UpdateProfileInput) (*model.Profile, error)
 	List(ctx context.Context,
@@ -32,9 +32,9 @@ func NewProfileUseCase(r repository.Profile) Profile {
 
 func (p *profileUseCase) Get(
 	ctx context.Context,
-	where *model.ProfileWhereInput,
+	id model.ID,
 ) (*model.Profile, error) {
-	return p.profileRepository.Get(ctx, where)
+	return p.profileRepository.Get(ctx, id)
 }
 
 func (p *profileUseCase) Create(
