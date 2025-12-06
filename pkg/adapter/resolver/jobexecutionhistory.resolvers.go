@@ -8,7 +8,10 @@ import (
 	"context"
 	"fmt"
 	"sheng-go-backend/ent"
+	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/pkg/entity/model"
+
+	"entgo.io/contrib/entgql"
 )
 
 // TriggerProfileFetch is the resolver for the triggerProfileFetch field.
@@ -21,17 +24,12 @@ func (r *mutationResolver) TriggerProfileFetch(ctx context.Context) (*ent.JobExe
 }
 
 // JobExecutionHistory is the resolver for the jobExecutionHistory field.
-func (r *queryResolver) JobExecutionHistory(ctx context.Context, jobName *string, limit *int, where *ent.JobExecutionHistoryWhereInput) ([]*ent.JobExecutionHistory, error) {
-	historyLimit := 50 // Default limit
-	if limit != nil && *limit > 0 {
-		historyLimit = *limit
-	}
-
-	history, err := r.controller.JobExecution.List(ctx, jobName, historyLimit, where)
+func (r *queryResolver) JobExecutionHistory(ctx context.Context, jobName *string, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.JobExecutionHistoryWhereInput) (*ent.JobExecutionHistoryConnection, error) {
+	conn, err := r.controller.JobExecution.List(ctx, after, first, before, last, where)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get job execution history: %w", err)
+		return nil, err
 	}
-	return history, nil
+	return conn, nil
 }
 
 // LatestJobExecution is the resolver for the latestJobExecution field.

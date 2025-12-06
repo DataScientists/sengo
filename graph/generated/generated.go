@@ -119,6 +119,17 @@ type ComplexityRoot struct {
 		TotalProcessed  func(childComplexity int) int
 	}
 
+	JobExecutionHistoryConnection struct {
+		Edges      func(childComplexity int) int
+		PageInfo   func(childComplexity int) int
+		TotalCount func(childComplexity int) int
+	}
+
+	JobExecutionHistoryEdge struct {
+		Cursor func(childComplexity int) int
+		Node   func(childComplexity int) int
+	}
+
 	JobStats struct {
 		AverageDuration   func(childComplexity int) int
 		SuccessRate       func(childComplexity int) int
@@ -227,7 +238,7 @@ type ComplexityRoot struct {
 		CronJobConfigs      func(childComplexity int) int
 		CurrentQuotaStatus  func(childComplexity int) int
 		DashboardOverview   func(childComplexity int) int
-		JobExecutionHistory func(childComplexity int, jobName *string, limit *int, where *ent.JobExecutionHistoryWhereInput) int
+		JobExecutionHistory func(childComplexity int, jobName *string, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.JobExecutionHistoryWhereInput) int
 		JobStats            func(childComplexity int, jobName string, days *int) int
 		LatestJobExecution  func(childComplexity int, jobName string) int
 		Node                func(childComplexity int, id ulid.ID) int
@@ -329,7 +340,7 @@ type QueryResolver interface {
 	CronJobConfig(ctx context.Context, jobName string) (*ent.CronJobConfig, error)
 	ProfileEntryStats(ctx context.Context) (*model.ProfileEntryStats, error)
 	DashboardOverview(ctx context.Context) (*model.DashboardOverview, error)
-	JobExecutionHistory(ctx context.Context, jobName *string, limit *int, where *ent.JobExecutionHistoryWhereInput) ([]*ent.JobExecutionHistory, error)
+	JobExecutionHistory(ctx context.Context, jobName *string, after *entgql.Cursor[ulid.ID], first *int, before *entgql.Cursor[ulid.ID], last *int, where *ent.JobExecutionHistoryWhereInput) (*ent.JobExecutionHistoryConnection, error)
 	LatestJobExecution(ctx context.Context, jobName string) (*ent.JobExecutionHistory, error)
 	JobStats(ctx context.Context, jobName string, days *int) (*model.JobStats, error)
 	Profile(ctx context.Context, id ulid.ID) (*ent.Profile, error)
@@ -678,6 +689,41 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.JobExecutionHistory.TotalProcessed(childComplexity), true
+
+	case "JobExecutionHistoryConnection.edges":
+		if e.complexity.JobExecutionHistoryConnection.Edges == nil {
+			break
+		}
+
+		return e.complexity.JobExecutionHistoryConnection.Edges(childComplexity), true
+
+	case "JobExecutionHistoryConnection.pageInfo":
+		if e.complexity.JobExecutionHistoryConnection.PageInfo == nil {
+			break
+		}
+
+		return e.complexity.JobExecutionHistoryConnection.PageInfo(childComplexity), true
+
+	case "JobExecutionHistoryConnection.totalCount":
+		if e.complexity.JobExecutionHistoryConnection.TotalCount == nil {
+			break
+		}
+
+		return e.complexity.JobExecutionHistoryConnection.TotalCount(childComplexity), true
+
+	case "JobExecutionHistoryEdge.cursor":
+		if e.complexity.JobExecutionHistoryEdge.Cursor == nil {
+			break
+		}
+
+		return e.complexity.JobExecutionHistoryEdge.Cursor(childComplexity), true
+
+	case "JobExecutionHistoryEdge.node":
+		if e.complexity.JobExecutionHistoryEdge.Node == nil {
+			break
+		}
+
+		return e.complexity.JobExecutionHistoryEdge.Node(childComplexity), true
 
 	case "JobStats.averageDuration":
 		if e.complexity.JobStats.AverageDuration == nil {
@@ -1287,7 +1333,7 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 			return 0, false
 		}
 
-		return e.complexity.Query.JobExecutionHistory(childComplexity, args["jobName"].(*string), args["limit"].(*int), args["where"].(*ent.JobExecutionHistoryWhereInput)), true
+		return e.complexity.Query.JobExecutionHistory(childComplexity, args["jobName"].(*string), args["after"].(*entgql.Cursor[ulid.ID]), args["first"].(*int), args["before"].(*entgql.Cursor[ulid.ID]), args["last"].(*int), args["where"].(*ent.JobExecutionHistoryWhereInput)), true
 
 	case "Query.jobStats":
 		if e.complexity.Query.JobStats == nil {
@@ -2858,13 +2904,27 @@ type JobStats {
   totalAPICallsMade: Int!
 }
 
+type JobExecutionHistoryConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [JobExecutionHistoryEdge]
+}
+
+type JobExecutionHistoryEdge {
+  node: JobExecutionHistory
+  cursor: Cursor!
+}
+
 extend type Query {
   # Get job execution history with optional filtering
   jobExecutionHistory(
     jobName: String
-    limit: Int
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
     where: JobExecutionHistoryWhereInput
-  ): [JobExecutionHistory!]!
+  ): JobExecutionHistoryConnection!
 
   # Get the most recent execution for a job
   latestJobExecution(jobName: String!): JobExecutionHistory
@@ -3350,16 +3410,31 @@ func (ec *executionContext) field_Query_jobExecutionHistory_args(ctx context.Con
 		return nil, err
 	}
 	args["jobName"] = arg0
-	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "limit", ec.unmarshalOInt2ᚖint)
+	arg1, err := graphql.ProcessArgField(ctx, rawArgs, "after", ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor)
 	if err != nil {
 		return nil, err
 	}
-	args["limit"] = arg1
-	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "where", ec.unmarshalOJobExecutionHistoryWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryWhereInput)
+	args["after"] = arg1
+	arg2, err := graphql.ProcessArgField(ctx, rawArgs, "first", ec.unmarshalOInt2ᚖint)
 	if err != nil {
 		return nil, err
 	}
-	args["where"] = arg2
+	args["first"] = arg2
+	arg3, err := graphql.ProcessArgField(ctx, rawArgs, "before", ec.unmarshalOCursor2ᚖentgoᚗioᚋcontribᚋentgqlᚐCursor)
+	if err != nil {
+		return nil, err
+	}
+	args["before"] = arg3
+	arg4, err := graphql.ProcessArgField(ctx, rawArgs, "last", ec.unmarshalOInt2ᚖint)
+	if err != nil {
+		return nil, err
+	}
+	args["last"] = arg4
+	arg5, err := graphql.ProcessArgField(ctx, rawArgs, "where", ec.unmarshalOJobExecutionHistoryWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryWhereInput)
+	if err != nil {
+		return nil, err
+	}
+	args["where"] = arg5
 	return args, nil
 }
 
@@ -5621,6 +5696,264 @@ func (ec *executionContext) fieldContext_JobExecutionHistory_createdAt(_ context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobExecutionHistoryConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.JobExecutionHistoryConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobExecutionHistoryConnection_totalCount(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TotalCount, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobExecutionHistoryConnection_totalCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobExecutionHistoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobExecutionHistoryConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *ent.JobExecutionHistoryConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobExecutionHistoryConnection_pageInfo(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PageInfo, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.PageInfo[ulid.ID])
+	fc.Result = res
+	return ec.marshalNPageInfo2entgoᚗioᚋcontribᚋentgqlᚐPageInfo(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobExecutionHistoryConnection_pageInfo(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobExecutionHistoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "hasNextPage":
+				return ec.fieldContext_PageInfo_hasNextPage(ctx, field)
+			case "hasPreviousPage":
+				return ec.fieldContext_PageInfo_hasPreviousPage(ctx, field)
+			case "startCursor":
+				return ec.fieldContext_PageInfo_startCursor(ctx, field)
+			case "endCursor":
+				return ec.fieldContext_PageInfo_endCursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PageInfo", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobExecutionHistoryConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.JobExecutionHistoryConnection) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobExecutionHistoryConnection_edges(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Edges, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.JobExecutionHistoryEdge)
+	fc.Result = res
+	return ec.marshalOJobExecutionHistoryEdge2ᚕᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryEdge(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobExecutionHistoryConnection_edges(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobExecutionHistoryConnection",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "node":
+				return ec.fieldContext_JobExecutionHistoryEdge_node(ctx, field)
+			case "cursor":
+				return ec.fieldContext_JobExecutionHistoryEdge_cursor(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobExecutionHistoryEdge", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobExecutionHistoryEdge_node(ctx context.Context, field graphql.CollectedField, obj *ent.JobExecutionHistoryEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobExecutionHistoryEdge_node(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Node, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*ent.JobExecutionHistory)
+	fc.Result = res
+	return ec.marshalOJobExecutionHistory2ᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistory(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobExecutionHistoryEdge_node(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobExecutionHistoryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_JobExecutionHistory_id(ctx, field)
+			case "jobName":
+				return ec.fieldContext_JobExecutionHistory_jobName(ctx, field)
+			case "status":
+				return ec.fieldContext_JobExecutionHistory_status(ctx, field)
+			case "startedAt":
+				return ec.fieldContext_JobExecutionHistory_startedAt(ctx, field)
+			case "completedAt":
+				return ec.fieldContext_JobExecutionHistory_completedAt(ctx, field)
+			case "durationSeconds":
+				return ec.fieldContext_JobExecutionHistory_durationSeconds(ctx, field)
+			case "totalProcessed":
+				return ec.fieldContext_JobExecutionHistory_totalProcessed(ctx, field)
+			case "successfulCount":
+				return ec.fieldContext_JobExecutionHistory_successfulCount(ctx, field)
+			case "failedCount":
+				return ec.fieldContext_JobExecutionHistory_failedCount(ctx, field)
+			case "apiCallsMade":
+				return ec.fieldContext_JobExecutionHistory_apiCallsMade(ctx, field)
+			case "quotaRemaining":
+				return ec.fieldContext_JobExecutionHistory_quotaRemaining(ctx, field)
+			case "errorSummary":
+				return ec.fieldContext_JobExecutionHistory_errorSummary(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_JobExecutionHistory_createdAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type JobExecutionHistory", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _JobExecutionHistoryEdge_cursor(ctx context.Context, field graphql.CollectedField, obj *ent.JobExecutionHistoryEdge) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobExecutionHistoryEdge_cursor(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Cursor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(entgql.Cursor[ulid.ID])
+	fc.Result = res
+	return ec.marshalNCursor2entgoᚗioᚋcontribᚋentgqlᚐCursor(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobExecutionHistoryEdge_cursor(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobExecutionHistoryEdge",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Cursor does not have child fields")
 		},
 	}
 	return fc, nil
@@ -9831,7 +10164,7 @@ func (ec *executionContext) _Query_jobExecutionHistory(ctx context.Context, fiel
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().JobExecutionHistory(rctx, fc.Args["jobName"].(*string), fc.Args["limit"].(*int), fc.Args["where"].(*ent.JobExecutionHistoryWhereInput))
+		return ec.resolvers.Query().JobExecutionHistory(rctx, fc.Args["jobName"].(*string), fc.Args["after"].(*entgql.Cursor[ulid.ID]), fc.Args["first"].(*int), fc.Args["before"].(*entgql.Cursor[ulid.ID]), fc.Args["last"].(*int), fc.Args["where"].(*ent.JobExecutionHistoryWhereInput))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9843,9 +10176,9 @@ func (ec *executionContext) _Query_jobExecutionHistory(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*ent.JobExecutionHistory)
+	res := resTmp.(*ent.JobExecutionHistoryConnection)
 	fc.Result = res
-	return ec.marshalNJobExecutionHistory2ᚕᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryᚄ(ctx, field.Selections, res)
+	return ec.marshalNJobExecutionHistoryConnection2ᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryConnection(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_jobExecutionHistory(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -9856,34 +10189,14 @@ func (ec *executionContext) fieldContext_Query_jobExecutionHistory(ctx context.C
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "id":
-				return ec.fieldContext_JobExecutionHistory_id(ctx, field)
-			case "jobName":
-				return ec.fieldContext_JobExecutionHistory_jobName(ctx, field)
-			case "status":
-				return ec.fieldContext_JobExecutionHistory_status(ctx, field)
-			case "startedAt":
-				return ec.fieldContext_JobExecutionHistory_startedAt(ctx, field)
-			case "completedAt":
-				return ec.fieldContext_JobExecutionHistory_completedAt(ctx, field)
-			case "durationSeconds":
-				return ec.fieldContext_JobExecutionHistory_durationSeconds(ctx, field)
-			case "totalProcessed":
-				return ec.fieldContext_JobExecutionHistory_totalProcessed(ctx, field)
-			case "successfulCount":
-				return ec.fieldContext_JobExecutionHistory_successfulCount(ctx, field)
-			case "failedCount":
-				return ec.fieldContext_JobExecutionHistory_failedCount(ctx, field)
-			case "apiCallsMade":
-				return ec.fieldContext_JobExecutionHistory_apiCallsMade(ctx, field)
-			case "quotaRemaining":
-				return ec.fieldContext_JobExecutionHistory_quotaRemaining(ctx, field)
-			case "errorSummary":
-				return ec.fieldContext_JobExecutionHistory_errorSummary(ctx, field)
-			case "createdAt":
-				return ec.fieldContext_JobExecutionHistory_createdAt(ctx, field)
+			case "totalCount":
+				return ec.fieldContext_JobExecutionHistoryConnection_totalCount(ctx, field)
+			case "pageInfo":
+				return ec.fieldContext_JobExecutionHistoryConnection_pageInfo(ctx, field)
+			case "edges":
+				return ec.fieldContext_JobExecutionHistoryConnection_edges(ctx, field)
 			}
-			return nil, fmt.Errorf("no field named %q was found under type JobExecutionHistory", field.Name)
+			return nil, fmt.Errorf("no field named %q was found under type JobExecutionHistoryConnection", field.Name)
 		},
 	}
 	defer func() {
@@ -19865,6 +20178,93 @@ func (ec *executionContext) _JobExecutionHistory(ctx context.Context, sel ast.Se
 	return out
 }
 
+var jobExecutionHistoryConnectionImplementors = []string{"JobExecutionHistoryConnection"}
+
+func (ec *executionContext) _JobExecutionHistoryConnection(ctx context.Context, sel ast.SelectionSet, obj *ent.JobExecutionHistoryConnection) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobExecutionHistoryConnectionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobExecutionHistoryConnection")
+		case "totalCount":
+			out.Values[i] = ec._JobExecutionHistoryConnection_totalCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pageInfo":
+			out.Values[i] = ec._JobExecutionHistoryConnection_pageInfo(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "edges":
+			out.Values[i] = ec._JobExecutionHistoryConnection_edges(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var jobExecutionHistoryEdgeImplementors = []string{"JobExecutionHistoryEdge"}
+
+func (ec *executionContext) _JobExecutionHistoryEdge(ctx context.Context, sel ast.SelectionSet, obj *ent.JobExecutionHistoryEdge) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jobExecutionHistoryEdgeImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JobExecutionHistoryEdge")
+		case "node":
+			out.Values[i] = ec._JobExecutionHistoryEdge_node(ctx, field, obj)
+		case "cursor":
+			out.Values[i] = ec._JobExecutionHistoryEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var jobStatsImplementors = []string{"JobStats"}
 
 func (ec *executionContext) _JobStats(ctx context.Context, sel ast.SelectionSet, obj *model.JobStats) graphql.Marshaler {
@@ -22391,6 +22791,20 @@ func (ec *executionContext) marshalNJobExecutionHistory2ᚖshengᚑgoᚑbackend�
 	return ec._JobExecutionHistory(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNJobExecutionHistoryConnection2shengᚑgoᚑbackendᚋentᚐJobExecutionHistoryConnection(ctx context.Context, sel ast.SelectionSet, v ent.JobExecutionHistoryConnection) graphql.Marshaler {
+	return ec._JobExecutionHistoryConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNJobExecutionHistoryConnection2ᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryConnection(ctx context.Context, sel ast.SelectionSet, v *ent.JobExecutionHistoryConnection) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._JobExecutionHistoryConnection(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNJobExecutionHistoryWhereInput2ᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryWhereInput(ctx context.Context, v any) (*ent.JobExecutionHistoryWhereInput, error) {
 	res, err := ec.unmarshalInputJobExecutionHistoryWhereInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
@@ -23290,6 +23704,54 @@ func (ec *executionContext) marshalOJobExecutionHistory2ᚖshengᚑgoᚑbackend�
 		return graphql.Null
 	}
 	return ec._JobExecutionHistory(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOJobExecutionHistoryEdge2ᚕᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryEdge(ctx context.Context, sel ast.SelectionSet, v []*ent.JobExecutionHistoryEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalOJobExecutionHistoryEdge2ᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryEdge(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	return ret
+}
+
+func (ec *executionContext) marshalOJobExecutionHistoryEdge2ᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryEdge(ctx context.Context, sel ast.SelectionSet, v *ent.JobExecutionHistoryEdge) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._JobExecutionHistoryEdge(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOJobExecutionHistoryWhereInput2ᚕᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryWhereInputᚄ(ctx context.Context, v any) ([]*ent.JobExecutionHistoryWhereInput, error) {

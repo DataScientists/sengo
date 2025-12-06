@@ -27,6 +27,7 @@ require (
 	github.com/stretchr/testify v1.10.0
 	github.com/vektah/gqlparser/v2 v2.5.30
 	go.uber.org/mock v0.5.0
+	go.uber.org/zap v1.24.0
 	golang.org/x/crypto v0.40.0
 	gopkg.in/mail.v2 v2.3.1
 )

@@ -29,13 +29,27 @@ type JobStats {
   totalAPICallsMade: Int!
 }
 
+type JobExecutionHistoryConnection {
+  totalCount: Int!
+  pageInfo: PageInfo!
+  edges: [JobExecutionHistoryEdge]
+}
+
+type JobExecutionHistoryEdge {
+  node: JobExecutionHistory
+  cursor: Cursor!
+}
+
 extend type Query {
   # Get job execution history with optional filtering
   jobExecutionHistory(
     jobName: String
-    limit: Int
+    after: Cursor
+    first: Int
+    before: Cursor
+    last: Int
     where: JobExecutionHistoryWhereInput
-  ): [JobExecutionHistory!]!
+  ): JobExecutionHistoryConnection!
 
   # Get the most recent execution for a job
   latestJobExecution(jobName: String!): JobExecutionHistory

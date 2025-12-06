@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"sheng-go-backend/config"
 	"sheng-go-backend/ent"
 	"sheng-go-backend/ent/jobexecutionhistory"
@@ -20,6 +21,9 @@ import (
 	"sheng-go-backend/pkg/usecase/usecase/apiquota"
 	"strings"
 	"time"
+
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 // ProfileFetcher handles the profile fetching workflow
@@ -32,6 +36,7 @@ type ProfileFetcher struct {
 	s3Service        *storage.S3Service
 	emailService     *email.EmailService
 	quotaManager     *apiquota.QuotaManager
+	logger           *zap.SugaredLogger
 }
 
 // NewProfileFetcher creates a new ProfileFetcher
@@ -54,12 +59,14 @@ func NewProfileFetcher(
 		s3Service:        s3Service,
 		emailService:     emailService,
 		quotaManager:     quotaManager,
+		logger:           newProfileFetcherLogger(),
 	}
 }
 
 // ExecuteFetchJob executes the profile fetching job
 func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutionHistory, error) {
 	startTime := time.Now()
+	pf.logger.Info("profile fetcher job started")
 
 	// Load cron job config
 	jobConfig, err := pf.cronConfigRepo.GetByName(ctx, "profile_fetcher")
@@ -80,6 +87,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		allowedBatchSize, err := pf.quotaManager.CheckAndReserveQuota(ctx, jobConfig.BatchSize)
 		if err != nil {
 			if totalProcessed == 0 && jobConfig.RespectQuota {
+				pf.logger.Warnw("quota exceeded before processing", "error", err)
 				// Create history record for quota exceeded
 				history := &ent.JobExecutionHistory{
 					JobName:         "profile_fetcher",
@@ -102,13 +110,20 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 			if jobConfig.RespectQuota {
 				quotaLimited = true
 				errors = append(errors, fmt.Sprintf("Stopped due to quota: %v", err))
+				pf.logger.Warnw("stopping due to quota mid-run", "error", err)
 				break
 			}
 
 			// If not respecting quota, log warning but continue
-			fmt.Printf("Warning: Quota check failed but respect_quota is false: %v\n", err)
+			pf.logger.Warnw(
+				"quota check failed but respect_quota is false, continuing",
+				"error",
+				err,
+			)
 			allowedBatchSize = jobConfig.BatchSize
 		}
+
+		pf.logger.Infow("quota check passed", "allowed_batch_size", allowedBatchSize)
 
 		// Get pending profile entries for this batch
 		pendingEntries, err := pf.profileEntryRepo.GetPendingBatch(ctx, allowedBatchSize)
@@ -117,11 +132,13 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		}
 
 		if len(pendingEntries) == 0 {
+			pf.logger.Info("no pending profile entries, exiting")
 			break
 		}
 
 		// Process each entry in the batch
 		for _, entry := range pendingEntries {
+			pf.logger.Infow("fetching profile", "urn", entry.LinkedinUrn)
 			// Update status to FETCHING
 			_, _ = pf.profileEntryRepo.UpdateStatus(
 				ctx,
@@ -148,9 +165,17 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 				continue
 			}
 
+			pf.logger.Infow(
+				"fetched profile",
+				"urn",
+				entry.LinkedinUrn,
+				"username",
+				profile.Username,
+			)
+
 			// Increment quota
 			if err := pf.quotaManager.IncrementCallCount(ctx, 1); err != nil {
-				fmt.Printf("Warning: Failed to increment quota: %v\n", err)
+				pf.logger.Warnw("failed to increment quota", "error", err)
 			}
 
 			// Generate S3 keys
@@ -169,6 +194,13 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 				)
 				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
 				failedCount++
+				pf.logger.Errorw(
+					"failed to upload raw json to s3",
+					"urn",
+					entry.LinkedinUrn,
+					"error",
+					err,
+				)
 				continue
 			}
 
@@ -187,6 +219,13 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 				)
 				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
 				failedCount++
+				pf.logger.Errorw(
+					"failed to upload cleaned json to s3",
+					"urn",
+					entry.LinkedinUrn,
+					"error",
+					err,
+				)
 				continue
 			}
 
@@ -202,12 +241,19 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 				)
 				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
 				failedCount++
+				pf.logger.Errorw("failed to upsert profile", "urn", entry.LinkedinUrn, "error", err)
 				continue
 			}
 
 			// Update profile entry as completed
 			if _, err := pf.profileEntryRepo.UpdateAfterFetch(ctx, string(entry.ID), rawS3Key, cleanedS3Key); err != nil {
-				fmt.Printf("Warning: Failed to update profile entry: %v\n", err)
+				pf.logger.Warnw(
+					"failed to update profile entry after fetch",
+					"urn",
+					entry.LinkedinUrn,
+					"error",
+					err,
+				)
 			}
 
 			successCount++
@@ -252,9 +298,16 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		history.ErrorSummary = &errorSummary
 	}
 
+	if totalProcessed == 0 && !quotaLimited {
+		// Nothing to do; skip persisting history to avoid noisy records.
+		return history, nil
+	}
+
 	savedHistory, err := pf.jobHistoryRepo.Create(ctx, history)
 	if err != nil {
-		fmt.Printf("Warning: Failed to create job history: %v\n", err)
+		pf.logger.Warnw("failed to create job history", "error", err)
+		// Return in-memory history even if persistence failed
+		return history, nil
 	}
 
 	// Send email summary
@@ -270,7 +323,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		errors,
 		nextRunTime,
 	); err != nil {
-		fmt.Printf("Warning: Failed to send email summary: %v\n", err)
+		pf.logger.Warnw("failed to send job completion email", "error", err)
 	}
 
 	return savedHistory, nil
@@ -324,11 +377,15 @@ func (pf *ProfileFetcher) fetchProfileWithRetry(
 				sleep = maxBackoff
 			}
 
-			fmt.Printf(
-				"Rate limited for URN %s, retrying in %v (attempt %d of %d)\n",
+			pf.logger.Infow(
+				"rate limited, backing off",
+				"urn",
 				urn,
+				"sleep",
 				sleep,
+				"attempt",
 				attempt+1,
+				"max_retries",
 				maxRetries,
 			)
 			if err := sleepWithContext(ctx, sleep); err != nil {
@@ -348,22 +405,6 @@ func (pf *ProfileFetcher) fetchProfileWithRetry(
 	}
 
 	return nil, nil, attempts, lastErr
-}
-
-func sleepWithContext(ctx context.Context, d time.Duration) error {
-	if d <= 0 {
-		return nil
-	}
-
-	timer := time.NewTimer(d)
-	defer timer.Stop()
-
-	select {
-	case <-ctx.Done():
-		return ctx.Err()
-	case <-timer.C:
-		return nil
-	}
 }
 
 // extractProfileData extracts relevant fields from RapidAPI profile
@@ -443,7 +484,7 @@ func (pf *ProfileFetcher) fetchSingleProfileEntry(
 
 	// Increment quota
 	if err := pf.quotaManager.IncrementCallCount(ctx, 1); err != nil {
-		fmt.Printf("Warning: Failed to increment quota: %v\n", err)
+		pf.logger.Warnw("failed to increment quota", "urn", entry.LinkedinUrn, "error", err)
 	}
 
 	// Generate S3 keys
@@ -460,6 +501,7 @@ func (pf *ProfileFetcher) fetchSingleProfileEntry(
 			profileentry.StatusFAILED,
 			&errMsg,
 		)
+		pf.logger.Errorw("failed to upload raw json to s3", "urn", entry.LinkedinUrn, "error", err)
 		return err
 	}
 
@@ -476,6 +518,13 @@ func (pf *ProfileFetcher) fetchSingleProfileEntry(
 			profileentry.StatusFAILED,
 			&errMsg,
 		)
+		pf.logger.Errorw(
+			"failed to upload cleaned json to s3",
+			"urn",
+			entry.LinkedinUrn,
+			"error",
+			err,
+		)
 		return err
 	}
 
@@ -489,15 +538,52 @@ func (pf *ProfileFetcher) fetchSingleProfileEntry(
 			profileentry.StatusFAILED,
 			&errMsg,
 		)
+		pf.logger.Errorw("failed to upsert profile", "urn", entry.LinkedinUrn, "error", err)
 		return err
 	}
 
 	// Update profile entry as completed
 	if _, err := pf.profileEntryRepo.UpdateAfterFetch(ctx, string(entry.ID), rawS3Key, cleanedS3Key); err != nil {
-		fmt.Printf("Warning: Failed to update profile entry: %v\n", err)
+		pf.logger.Warnw(
+			"failed to update profile entry after fetch",
+			"urn",
+			entry.LinkedinUrn,
+			"error",
+			err,
+		)
 	}
 
 	return nil
+}
+
+func sleepWithContext(ctx context.Context, d time.Duration) error {
+	if d <= 0 {
+		return nil
+	}
+
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
+func newProfileFetcherLogger() *zap.SugaredLogger {
+	encCfg := zap.NewProductionEncoderConfig()
+	encCfg.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	encCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
+	core := zapcore.NewCore(
+		zapcore.NewConsoleEncoder(encCfg),
+		zapcore.AddSync(os.Stdout),
+		zapcore.InfoLevel,
+	)
+
+	return zap.New(core).Sugar()
 }
 
 func (pf *ProfileFetcher) FetchSinglEntry(ctx context.Context, entryId model.ID) error {
