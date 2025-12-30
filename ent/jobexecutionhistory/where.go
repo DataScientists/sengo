@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 // ID filters vertices based on their ID field.
@@ -683,6 +684,29 @@ func ErrorSummaryEqualFold(v string) predicate.JobExecutionHistory {
 // ErrorSummaryContainsFold applies the ContainsFold predicate on the "error_summary" field.
 func ErrorSummaryContainsFold(v string) predicate.JobExecutionHistory {
 	return predicate.JobExecutionHistory(sql.FieldContainsFold(FieldErrorSummary, v))
+}
+
+// HasProfileEntries applies the HasEdge predicate on the "profile_entries" edge.
+func HasProfileEntries() predicate.JobExecutionHistory {
+	return predicate.JobExecutionHistory(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, ProfileEntriesTable, ProfileEntriesPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasProfileEntriesWith applies the HasEdge predicate on the "profile_entries" edge with a given conditions (other predicates).
+func HasProfileEntriesWith(preds ...predicate.ProfileEntry) predicate.JobExecutionHistory {
+	return predicate.JobExecutionHistory(func(s *sql.Selector) {
+		step := newProfileEntriesStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

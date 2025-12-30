@@ -631,6 +631,22 @@ func (c *JobExecutionHistoryClient) GetX(ctx context.Context, id ulid.ID) *JobEx
 	return obj
 }
 
+// QueryProfileEntries queries the profile_entries edge of a JobExecutionHistory.
+func (c *JobExecutionHistoryClient) QueryProfileEntries(jeh *JobExecutionHistory) *ProfileEntryQuery {
+	query := (&ProfileEntryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := jeh.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(jobexecutionhistory.Table, jobexecutionhistory.FieldID, id),
+			sqlgraph.To(profileentry.Table, profileentry.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, jobexecutionhistory.ProfileEntriesTable, jobexecutionhistory.ProfileEntriesPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(jeh.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *JobExecutionHistoryClient) Hooks() []Hook {
 	return c.hooks.JobExecutionHistory
@@ -922,6 +938,22 @@ func (c *ProfileEntryClient) QueryProfile(pe *ProfileEntry) *ProfileQuery {
 			sqlgraph.From(profileentry.Table, profileentry.FieldID, id),
 			sqlgraph.To(profile.Table, profile.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, profileentry.ProfileTable, profileentry.ProfileColumn),
+		)
+		fromV = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryJobExecutions queries the job_executions edge of a ProfileEntry.
+func (c *ProfileEntryClient) QueryJobExecutions(pe *ProfileEntry) *JobExecutionHistoryQuery {
+	query := (&JobExecutionHistoryClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pe.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileentry.Table, profileentry.FieldID, id),
+			sqlgraph.To(jobexecutionhistory.Table, jobexecutionhistory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, profileentry.JobExecutionsTable, profileentry.JobExecutionsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(pe.driver.Dialect(), step)
 		return fromV, nil

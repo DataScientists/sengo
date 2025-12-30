@@ -42,6 +42,8 @@ const (
 	FieldErrorMessage = "error_message"
 	// EdgeProfile holds the string denoting the profile edge name in mutations.
 	EdgeProfile = "profile"
+	// EdgeJobExecutions holds the string denoting the job_executions edge name in mutations.
+	EdgeJobExecutions = "job_executions"
 	// Table holds the table name of the profileentry in the database.
 	Table = "profile_entries"
 	// ProfileTable is the table that holds the profile relation/edge.
@@ -51,6 +53,11 @@ const (
 	ProfileInverseTable = "profiles"
 	// ProfileColumn is the table column denoting the profile relation/edge.
 	ProfileColumn = "profile_entry_profile"
+	// JobExecutionsTable is the table that holds the job_executions relation/edge. The primary key declared below.
+	JobExecutionsTable = "job_execution_history_profile_entries"
+	// JobExecutionsInverseTable is the table name for the JobExecutionHistory entity.
+	// It exists in this package in order to avoid circular dependency with the "jobexecutionhistory" package.
+	JobExecutionsInverseTable = "job_execution_histories"
 )
 
 // Columns holds all SQL columns for profileentry fields.
@@ -68,6 +75,12 @@ var Columns = []string{
 	FieldLastFetchedAt,
 	FieldErrorMessage,
 }
+
+var (
+	// JobExecutionsPrimaryKey and JobExecutionsColumn2 are the table columns denoting the
+	// primary key for the job_executions relation (M2M).
+	JobExecutionsPrimaryKey = []string{"job_execution_history_id", "profile_entry_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -192,11 +205,32 @@ func ByProfileField(field string, opts ...sql.OrderTermOption) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newProfileStep(), sql.OrderByField(field, opts...))
 	}
 }
+
+// ByJobExecutionsCount orders the results by job_executions count.
+func ByJobExecutionsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newJobExecutionsStep(), opts...)
+	}
+}
+
+// ByJobExecutions orders the results by job_executions terms.
+func ByJobExecutions(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newJobExecutionsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newProfileStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(ProfileInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2O, false, ProfileTable, ProfileColumn),
+	)
+}
+func newJobExecutionsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(JobExecutionsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, true, JobExecutionsTable, JobExecutionsPrimaryKey...),
 	)
 }
 

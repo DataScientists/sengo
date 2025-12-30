@@ -689,6 +689,29 @@ func HasProfileWith(preds ...predicate.Profile) predicate.ProfileEntry {
 	})
 }
 
+// HasJobExecutions applies the HasEdge predicate on the "job_executions" edge.
+func HasJobExecutions() predicate.ProfileEntry {
+	return predicate.ProfileEntry(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, JobExecutionsTable, JobExecutionsPrimaryKey...),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasJobExecutionsWith applies the HasEdge predicate on the "job_executions" edge with a given conditions (other predicates).
+func HasJobExecutionsWith(preds ...predicate.JobExecutionHistory) predicate.ProfileEntry {
+	return predicate.ProfileEntry(func(s *sql.Selector) {
+		step := newJobExecutionsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
 // And groups predicates with the AND operator between them.
 func And(predicates ...predicate.ProfileEntry) predicate.ProfileEntry {
 	return predicate.ProfileEntry(sql.AndPredicates(predicates...))

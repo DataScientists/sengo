@@ -10,6 +10,7 @@ import (
 	"sheng-go-backend/ent"
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/pkg/adapter/repository/cronjobconfigrepository"
 	"sheng-go-backend/pkg/adapter/repository/jobexecutionhistoryrepository"
 	"sheng-go-backend/pkg/adapter/repository/profileentryrepository"
@@ -81,9 +82,12 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 	apiCallsMade := 0
 	totalProcessed := 0
 	quotaLimited := false
+	var processedEntryIDs []ulid.ID
 	var errors []string
+	batchNumber := 0
 
 	for {
+		batchNumber++
 		allowedBatchSize, err := pf.quotaManager.CheckAndReserveQuota(ctx, jobConfig.BatchSize)
 		if err != nil {
 			if totalProcessed == 0 && jobConfig.RespectQuota {
@@ -103,7 +107,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 				errMsg := err.Error()
 				history.ErrorSummary = &errMsg
 
-				savedHistory, _ := pf.jobHistoryRepo.Create(ctx, history)
+				savedHistory, _ := pf.jobHistoryRepo.Create(ctx, history, nil)
 				return savedHistory, err
 			}
 
@@ -126,10 +130,14 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		pf.logger.Infow("quota check passed", "allowed_batch_size", allowedBatchSize)
 
 		// Get pending profile entries for this batch
+		pf.logger.Infof("%s[%s] Fetching from DB: getting pending profile entries (batch size: %d)%s",
+			colorCyan, time.Now().Format("2006-01-02 15:04:05"), allowedBatchSize, colorReset)
 		pendingEntries, err := pf.profileEntryRepo.GetPendingBatch(ctx, allowedBatchSize)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get pending entries: %w", err)
 		}
+		pf.logger.Infof("%s[%s] Fetched from DB: total to process = %d, fetched = %d%s",
+			colorGreen, time.Now().Format("2006-01-02 15:04:05"), allowedBatchSize, len(pendingEntries), colorReset)
 
 		if len(pendingEntries) == 0 {
 			pf.logger.Info("no pending profile entries, exiting")
@@ -137,9 +145,12 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		}
 
 		// Process each entry in the batch
-		for _, entry := range pendingEntries {
-			pf.logger.Infow("fetching profile", "urn", entry.LinkedinUrn)
+		for i, entry := range pendingEntries {
+			pf.logger.Infof("%s[%s] Processing entry %d/%d - URN: %s%s",
+				colorCyan, time.Now().Format("2006-01-02 15:04:05"), i+1, len(pendingEntries), entry.LinkedinUrn, colorReset)
 			// Update status to FETCHING
+			pf.logger.Infof("%s[%s] Updating DB: setting status to FETCHING for entry %s%s",
+				colorYellow, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
 			_, _ = pf.profileEntryRepo.UpdateStatus(
 				ctx,
 				string(entry.ID),
@@ -154,6 +165,8 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 			if err != nil {
 				// Handle error
 				errMsg := err.Error()
+				pf.logger.Infof("%s[%s] Updating DB: setting status to FAILED for entry %s%s",
+					colorRed, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
 				_, _ = pf.profileEntryRepo.UpdateStatus(
 					ctx,
 					string(entry.ID),
@@ -230,9 +243,13 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 			}
 
 			// Upsert profile in database
+			pf.logger.Infof("%s[%s] Inserting/Updating DB: upserting profile for URN %s%s",
+				colorYellow, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
 			dbProfile := pf.convertToDBProfile(profile, rawS3Key, cleanedS3Key)
 			if _, err := pf.profileRepo.Upsert(ctx, dbProfile); err != nil {
 				errMsg := fmt.Sprintf("DB upsert failed: %v", err)
+				pf.logger.Infof("%s[%s] Updating DB: setting status to FAILED for entry %s%s",
+					colorRed, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
 				_, _ = pf.profileEntryRepo.UpdateStatus(
 					ctx,
 					string(entry.ID),
@@ -244,8 +261,12 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 				pf.logger.Errorw("failed to upsert profile", "urn", entry.LinkedinUrn, "error", err)
 				continue
 			}
+			pf.logger.Infof("%s[%s] DB operation complete: profile upserted successfully%s",
+				colorGreen, time.Now().Format("2006-01-02 15:04:05"), colorReset)
 
 			// Update profile entry as completed
+			pf.logger.Infof("%s[%s] Updating DB: setting status to COMPLETED for entry %s%s",
+				colorYellow, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
 			if _, err := pf.profileEntryRepo.UpdateAfterFetch(ctx, string(entry.ID), rawS3Key, cleanedS3Key); err != nil {
 				pf.logger.Warnw(
 					"failed to update profile entry after fetch",
@@ -256,7 +277,10 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 				)
 			}
 
+			processedEntryIDs = append(processedEntryIDs, entry.ID)
 			successCount++
+			pf.logger.Infof("%s[%s] Batch #%d progress: %d/%d entries processed (success: %d, failed: %d)%s",
+				colorGreen, time.Now().Format("2006-01-02 15:04:05"), batchNumber, i+1, len(pendingEntries), successCount, failedCount, colorReset)
 		}
 
 		totalProcessed += len(pendingEntries)
@@ -303,7 +327,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		return history, nil
 	}
 
-	savedHistory, err := pf.jobHistoryRepo.Create(ctx, history)
+	savedHistory, err := pf.jobHistoryRepo.Create(ctx, history, processedEntryIDs)
 	if err != nil {
 		pf.logger.Warnw("failed to create job history", "error", err)
 		// Return in-memory history even if persistence failed
@@ -329,12 +353,23 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 	return savedHistory, nil
 }
 
+// ANSI color codes for logging
+const (
+	colorReset   = "\033[0m"
+	colorCyan    = "\033[36m" // Fetching
+	colorYellow  = "\033[33m" // Rate limit hit
+	colorMagenta = "\033[35m" // Sleeping
+	colorGreen   = "\033[32m" // Success
+	colorRed     = "\033[31m" // Error/Failed
+)
+
 func (pf *ProfileFetcher) fetchProfileWithRetry(
 	ctx context.Context,
 	urn string,
 ) (*rapidapi.LinkedInProfile, []byte, int, error) {
 	cfg := config.C.RapidAPI
 
+	// maxRetries applies to non-rate-limit errors only
 	maxRetries := cfg.RateLimitMaxRetries
 	if maxRetries <= 0 {
 		maxRetries = 3
@@ -345,66 +380,76 @@ func (pf *ProfileFetcher) fetchProfileWithRetry(
 		backoff = time.Second
 	}
 
-	maxBackoff := time.Duration(cfg.RateLimitBackoffMaxMs) * time.Millisecond
-	if maxBackoff <= 0 {
-		maxBackoff = 8 * time.Second
-	}
+	// Cap max backoff at 60 seconds for rate limits
+	maxBackoff := 60 * time.Second
 
 	attempts := 0
+	nonRateLimitAttempts := 0
 	var lastErr error
 
-	for attempt := 0; attempt <= maxRetries; attempt++ {
+	// Infinite loop - only exits on success, context cancellation, or non-rate-limit error after maxRetries
+	for {
 		attempts++
+
+		// Log fetching attempt
+		pf.logger.Infof("%s[FETCHING]%s URN: %s (attempt %d)", colorCyan, colorReset, urn, attempts)
 
 		profile, rawData, err := pf.linkedinClient.FetchProfileByURN(ctx, urn)
 		if err == nil {
+			pf.logger.Infof("%s[SUCCESS]%s URN: %s fetched successfully after %d attempts", colorGreen, colorReset, urn, attempts)
 			return profile, rawData, attempts, nil
 		}
 
 		lastErr = err
 
+		// Check if this is a rate limit error
 		var rateErr *rapidapi.RateLimitError
 		if errors.As(err, &rateErr) {
-			if attempt == maxRetries {
-				break
-			}
+			// Rate limit error - ALWAYS retry, never give up
+			pf.logger.Warnf("%s[RATE LIMIT]%s URN: %s - API rate limit hit (attempt %d)", colorYellow, colorReset, urn, attempts)
 
 			sleep := backoff
 			if rateErr.RetryAfter > 0 && rateErr.RetryAfter > sleep {
 				sleep = rateErr.RetryAfter
 			}
-			if maxBackoff > 0 && sleep > maxBackoff {
+			if sleep > maxBackoff {
 				sleep = maxBackoff
 			}
 
-			pf.logger.Infow(
-				"rate limited, backing off",
-				"urn",
-				urn,
-				"sleep",
-				sleep,
-				"attempt",
-				attempt+1,
-				"max_retries",
-				maxRetries,
-			)
+			pf.logger.Infof("%s[SLEEPING]%s URN: %s - waiting %v before retry...", colorMagenta, colorReset, urn, sleep)
+
 			if err := sleepWithContext(ctx, sleep); err != nil {
+				pf.logger.Warnf("%s[CANCELLED]%s URN: %s - context cancelled during sleep", colorRed, colorReset, urn)
 				return nil, nil, attempts, err
 			}
 
+			// Exponential backoff, capped at maxBackoff
 			backoff *= 2
-			if maxBackoff > 0 && backoff > maxBackoff {
+			if backoff > maxBackoff {
 				backoff = maxBackoff
 			}
 
+			pf.logger.Infof("%s[RETRYING]%s URN: %s - resuming after rate limit", colorCyan, colorReset, urn)
 			continue
 		}
 
-		// Non-rate-limit error, return immediately
-		return nil, nil, attempts, err
-	}
+		// Non-rate-limit error - apply limited retries
+		nonRateLimitAttempts++
+		pf.logger.Errorf("%s[ERROR]%s URN: %s - non-rate-limit error: %v (attempt %d/%d)",
+			colorRed, colorReset, urn, err, nonRateLimitAttempts, maxRetries)
 
-	return nil, nil, attempts, lastErr
+		if nonRateLimitAttempts >= maxRetries {
+			pf.logger.Errorf("%s[FAILED]%s URN: %s - giving up after %d non-rate-limit errors",
+				colorRed, colorReset, urn, nonRateLimitAttempts)
+			return nil, nil, attempts, lastErr
+		}
+
+		// Brief wait before retrying non-rate-limit errors
+		pf.logger.Infof("%s[SLEEPING]%s URN: %s - waiting 1s before retry after error...", colorMagenta, colorReset, urn)
+		if err := sleepWithContext(ctx, time.Second); err != nil {
+			return nil, nil, attempts, err
+		}
+	}
 }
 
 // extractProfileData extracts relevant fields from RapidAPI profile

@@ -279,6 +279,31 @@ var (
 		Columns:    UsersColumns,
 		PrimaryKey: []*schema.Column{UsersColumns[0]},
 	}
+	// JobExecutionHistoryProfileEntriesColumns holds the columns for the "job_execution_history_profile_entries" table.
+	JobExecutionHistoryProfileEntriesColumns = []*schema.Column{
+		{Name: "job_execution_history_id", Type: field.TypeString},
+		{Name: "profile_entry_id", Type: field.TypeString},
+	}
+	// JobExecutionHistoryProfileEntriesTable holds the schema information for the "job_execution_history_profile_entries" table.
+	JobExecutionHistoryProfileEntriesTable = &schema.Table{
+		Name:       "job_execution_history_profile_entries",
+		Columns:    JobExecutionHistoryProfileEntriesColumns,
+		PrimaryKey: []*schema.Column{JobExecutionHistoryProfileEntriesColumns[0], JobExecutionHistoryProfileEntriesColumns[1]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "job_execution_history_profile_entries_job_execution_history_id",
+				Columns:    []*schema.Column{JobExecutionHistoryProfileEntriesColumns[0]},
+				RefColumns: []*schema.Column{JobExecutionHistoriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+			{
+				Symbol:     "job_execution_history_profile_entries_profile_entry_id",
+				Columns:    []*schema.Column{JobExecutionHistoryProfileEntriesColumns[1]},
+				RefColumns: []*schema.Column{ProfileEntriesColumns[0]},
+				OnDelete:   schema.Cascade,
+			},
+		},
+	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		APIQuotaTrackersTable,
@@ -288,10 +313,13 @@ var (
 		ProfileEntriesTable,
 		TodosTable,
 		UsersTable,
+		JobExecutionHistoryProfileEntriesTable,
 	}
 )
 
 func init() {
 	ProfilesTable.ForeignKeys[0].RefTable = ProfileEntriesTable
 	TodosTable.ForeignKeys[0].RefTable = UsersTable
+	JobExecutionHistoryProfileEntriesTable.ForeignKeys[0].RefTable = JobExecutionHistoriesTable
+	JobExecutionHistoryProfileEntriesTable.ForeignKeys[1].RefTable = ProfileEntriesTable
 }

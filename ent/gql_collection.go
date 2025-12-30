@@ -265,6 +265,19 @@ func (jeh *JobExecutionHistoryQuery) collectField(ctx context.Context, oneNode b
 	)
 	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
 		switch field.Name {
+
+		case "profileEntries":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProfileEntryClient{config: jeh.config}).Query()
+			)
+			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, profileentryImplementors)...); err != nil {
+				return err
+			}
+			jeh.WithNamedProfileEntries(alias, func(wq *ProfileEntryQuery) {
+				*wq = *query
+			})
 		case "createdAt":
 			if _, ok := fieldSeen[jobexecutionhistory.FieldCreatedAt]; !ok {
 				selectedFields = append(selectedFields, jobexecutionhistory.FieldCreatedAt)
@@ -561,6 +574,19 @@ func (pe *ProfileEntryQuery) collectField(ctx context.Context, oneNode bool, opC
 				return err
 			}
 			pe.withProfile = query
+
+		case "jobExecutions":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&JobExecutionHistoryClient{config: pe.config}).Query()
+			)
+			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, jobexecutionhistoryImplementors)...); err != nil {
+				return err
+			}
+			pe.WithNamedJobExecutions(alias, func(wq *JobExecutionHistoryQuery) {
+				*wq = *query
+			})
 		case "createdAt":
 			if _, ok := fieldSeen[profileentry.FieldCreatedAt]; !ok {
 				selectedFields = append(selectedFields, profileentry.FieldCreatedAt)

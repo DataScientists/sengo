@@ -12,6 +12,7 @@ type JobExecutionHistory implements Node {
   quotaRemaining: Int!
   errorSummary: String
   createdAt: Time!
+  profileEntries: [ProfileEntry!]!
 }
 
 enum JobExecutionStatus {

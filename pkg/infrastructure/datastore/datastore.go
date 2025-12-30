@@ -46,7 +46,7 @@ func NewClientWithDSN(dsn string) (*ent.Client, error) {
 	drv := sql.OpenDB(dialect.Postgres, sqlDB)
 
 	// Create the Ent client
-	client := ent.NewClient(ent.Driver(drv), ent.Debug())
+	client := ent.NewClient(ent.Driver(drv))
 
 	return client, nil
 }

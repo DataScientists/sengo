@@ -112,6 +112,7 @@ type ComplexityRoot struct {
 		FailedCount     func(childComplexity int) int
 		ID              func(childComplexity int) int
 		JobName         func(childComplexity int) int
+		ProfileEntries  func(childComplexity int) int
 		QuotaRemaining  func(childComplexity int) int
 		StartedAt       func(childComplexity int) int
 		Status          func(childComplexity int) int
@@ -656,6 +657,13 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.JobExecutionHistory.JobName(childComplexity), true
+
+	case "JobExecutionHistory.profileEntries":
+		if e.complexity.JobExecutionHistory.ProfileEntries == nil {
+			break
+		}
+
+		return e.complexity.JobExecutionHistory.ProfileEntries(childComplexity), true
 
 	case "JobExecutionHistory.quotaRemaining":
 		if e.complexity.JobExecutionHistory.QuotaRemaining == nil {
@@ -2213,6 +2221,11 @@ input JobExecutionHistoryWhereInput {
   errorSummaryNotNil: Boolean
   errorSummaryEqualFold: String
   errorSummaryContainsFold: String
+  """
+  profile_entries edge predicates
+  """
+  hasProfileEntries: Boolean
+  hasProfileEntriesWith: [ProfileEntryWhereInput!]
 }
 """
 ProfileEntryWhereInput is used for filtering ProfileEntry objects.
@@ -2368,6 +2381,11 @@ input ProfileEntryWhereInput {
   """
   hasProfile: Boolean
   hasProfileWith: [ProfileWhereInput!]
+  """
+  job_executions edge predicates
+  """
+  hasJobExecutions: Boolean
+  hasJobExecutionsWith: [JobExecutionHistoryWhereInput!]
 }
 """
 ProfileWhereInput is used for filtering Profile objects.
@@ -2901,6 +2919,7 @@ extend type Query {
   quotaRemaining: Int!
   errorSummary: String
   createdAt: Time!
+  profileEntries: [ProfileEntry!]!
 }
 
 enum JobExecutionStatus {
@@ -5023,6 +5042,8 @@ func (ec *executionContext) fieldContext_DashboardOverview_recentJobExecutions(_
 				return ec.fieldContext_JobExecutionHistory_errorSummary(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_JobExecutionHistory_createdAt(ctx, field)
+			case "profileEntries":
+				return ec.fieldContext_JobExecutionHistory_profileEntries(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobExecutionHistory", field.Name)
 		},
@@ -5722,6 +5743,70 @@ func (ec *executionContext) fieldContext_JobExecutionHistory_createdAt(_ context
 	return fc, nil
 }
 
+func (ec *executionContext) _JobExecutionHistory_profileEntries(ctx context.Context, field graphql.CollectedField, obj *ent.JobExecutionHistory) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_JobExecutionHistory_profileEntries(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (any, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ProfileEntries(ctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*ent.ProfileEntry)
+	fc.Result = res
+	return ec.marshalNProfileEntry2ᚕᚖshengᚑgoᚑbackendᚋentᚐProfileEntryᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_JobExecutionHistory_profileEntries(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "JobExecutionHistory",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_ProfileEntry_id(ctx, field)
+			case "linkedinUrn":
+				return ec.fieldContext_ProfileEntry_linkedinUrn(ctx, field)
+			case "gender":
+				return ec.fieldContext_ProfileEntry_gender(ctx, field)
+			case "status":
+				return ec.fieldContext_ProfileEntry_status(ctx, field)
+			case "lastFetchedAt":
+				return ec.fieldContext_ProfileEntry_lastFetchedAt(ctx, field)
+			case "fetchCount":
+				return ec.fieldContext_ProfileEntry_fetchCount(ctx, field)
+			case "profileData":
+				return ec.fieldContext_ProfileEntry_profileData(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_ProfileEntry_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_ProfileEntry_updatedAt(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ProfileEntry", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _JobExecutionHistoryConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *ent.JobExecutionHistoryConnection) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_JobExecutionHistoryConnection_totalCount(ctx, field)
 	if err != nil {
@@ -5929,6 +6014,8 @@ func (ec *executionContext) fieldContext_JobExecutionHistoryEdge_node(_ context.
 				return ec.fieldContext_JobExecutionHistory_errorSummary(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_JobExecutionHistory_createdAt(ctx, field)
+			case "profileEntries":
+				return ec.fieldContext_JobExecutionHistory_profileEntries(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobExecutionHistory", field.Name)
 		},
@@ -6710,6 +6797,8 @@ func (ec *executionContext) fieldContext_Mutation_triggerProfileFetch(_ context.
 				return ec.fieldContext_JobExecutionHistory_errorSummary(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_JobExecutionHistory_createdAt(ctx, field)
+			case "profileEntries":
+				return ec.fieldContext_JobExecutionHistory_profileEntries(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobExecutionHistory", field.Name)
 		},
@@ -10230,6 +10319,8 @@ func (ec *executionContext) fieldContext_Query_jobExecutionHistory(ctx context.C
 				return ec.fieldContext_JobExecutionHistory_errorSummary(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_JobExecutionHistory_createdAt(ctx, field)
+			case "profileEntries":
+				return ec.fieldContext_JobExecutionHistory_profileEntries(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobExecutionHistory", field.Name)
 		},
@@ -10373,6 +10464,8 @@ func (ec *executionContext) fieldContext_Query_latestJobExecution(ctx context.Co
 				return ec.fieldContext_JobExecutionHistory_errorSummary(ctx, field)
 			case "createdAt":
 				return ec.fieldContext_JobExecutionHistory_createdAt(ctx, field)
+			case "profileEntries":
+				return ec.fieldContext_JobExecutionHistory_profileEntries(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type JobExecutionHistory", field.Name)
 		},
@@ -15750,7 +15843,7 @@ func (ec *executionContext) unmarshalInputJobExecutionHistoryWhereInput(ctx cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "jobName", "jobNameNEQ", "jobNameIn", "jobNameNotIn", "jobNameGT", "jobNameGTE", "jobNameLT", "jobNameLTE", "jobNameContains", "jobNameHasPrefix", "jobNameHasSuffix", "jobNameEqualFold", "jobNameContainsFold", "status", "statusNEQ", "statusIn", "statusNotIn", "startedAt", "startedAtNEQ", "startedAtIn", "startedAtNotIn", "startedAtGT", "startedAtGTE", "startedAtLT", "startedAtLTE", "completedAt", "completedAtNEQ", "completedAtIn", "completedAtNotIn", "completedAtGT", "completedAtGTE", "completedAtLT", "completedAtLTE", "completedAtIsNil", "completedAtNotNil", "durationSeconds", "durationSecondsNEQ", "durationSecondsIn", "durationSecondsNotIn", "durationSecondsGT", "durationSecondsGTE", "durationSecondsLT", "durationSecondsLTE", "totalProcessed", "totalProcessedNEQ", "totalProcessedIn", "totalProcessedNotIn", "totalProcessedGT", "totalProcessedGTE", "totalProcessedLT", "totalProcessedLTE", "successfulCount", "successfulCountNEQ", "successfulCountIn", "successfulCountNotIn", "successfulCountGT", "successfulCountGTE", "successfulCountLT", "successfulCountLTE", "failedCount", "failedCountNEQ", "failedCountIn", "failedCountNotIn", "failedCountGT", "failedCountGTE", "failedCountLT", "failedCountLTE", "apiCallsMade", "apiCallsMadeNEQ", "apiCallsMadeIn", "apiCallsMadeNotIn", "apiCallsMadeGT", "apiCallsMadeGTE", "apiCallsMadeLT", "apiCallsMadeLTE", "quotaRemaining", "quotaRemainingNEQ", "quotaRemainingIn", "quotaRemainingNotIn", "quotaRemainingGT", "quotaRemainingGTE", "quotaRemainingLT", "quotaRemainingLTE", "errorSummary", "errorSummaryNEQ", "errorSummaryIn", "errorSummaryNotIn", "errorSummaryGT", "errorSummaryGTE", "errorSummaryLT", "errorSummaryLTE", "errorSummaryContains", "errorSummaryHasPrefix", "errorSummaryHasSuffix", "errorSummaryIsNil", "errorSummaryNotNil", "errorSummaryEqualFold", "errorSummaryContainsFold"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "jobName", "jobNameNEQ", "jobNameIn", "jobNameNotIn", "jobNameGT", "jobNameGTE", "jobNameLT", "jobNameLTE", "jobNameContains", "jobNameHasPrefix", "jobNameHasSuffix", "jobNameEqualFold", "jobNameContainsFold", "status", "statusNEQ", "statusIn", "statusNotIn", "startedAt", "startedAtNEQ", "startedAtIn", "startedAtNotIn", "startedAtGT", "startedAtGTE", "startedAtLT", "startedAtLTE", "completedAt", "completedAtNEQ", "completedAtIn", "completedAtNotIn", "completedAtGT", "completedAtGTE", "completedAtLT", "completedAtLTE", "completedAtIsNil", "completedAtNotNil", "durationSeconds", "durationSecondsNEQ", "durationSecondsIn", "durationSecondsNotIn", "durationSecondsGT", "durationSecondsGTE", "durationSecondsLT", "durationSecondsLTE", "totalProcessed", "totalProcessedNEQ", "totalProcessedIn", "totalProcessedNotIn", "totalProcessedGT", "totalProcessedGTE", "totalProcessedLT", "totalProcessedLTE", "successfulCount", "successfulCountNEQ", "successfulCountIn", "successfulCountNotIn", "successfulCountGT", "successfulCountGTE", "successfulCountLT", "successfulCountLTE", "failedCount", "failedCountNEQ", "failedCountIn", "failedCountNotIn", "failedCountGT", "failedCountGTE", "failedCountLT", "failedCountLTE", "apiCallsMade", "apiCallsMadeNEQ", "apiCallsMadeIn", "apiCallsMadeNotIn", "apiCallsMadeGT", "apiCallsMadeGTE", "apiCallsMadeLT", "apiCallsMadeLTE", "quotaRemaining", "quotaRemainingNEQ", "quotaRemainingIn", "quotaRemainingNotIn", "quotaRemainingGT", "quotaRemainingGTE", "quotaRemainingLT", "quotaRemainingLTE", "errorSummary", "errorSummaryNEQ", "errorSummaryIn", "errorSummaryNotIn", "errorSummaryGT", "errorSummaryGTE", "errorSummaryLT", "errorSummaryLTE", "errorSummaryContains", "errorSummaryHasPrefix", "errorSummaryHasSuffix", "errorSummaryIsNil", "errorSummaryNotNil", "errorSummaryEqualFold", "errorSummaryContainsFold", "hasProfileEntries", "hasProfileEntriesWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -16576,6 +16669,20 @@ func (ec *executionContext) unmarshalInputJobExecutionHistoryWhereInput(ctx cont
 				return it, err
 			}
 			it.ErrorSummaryContainsFold = data
+		case "hasProfileEntries":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasProfileEntries"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasProfileEntries = data
+		case "hasProfileEntriesWith":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasProfileEntriesWith"))
+			data, err := ec.unmarshalOProfileEntryWhereInput2ᚕᚖshengᚑgoᚑbackendᚋentᚐProfileEntryWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasProfileEntriesWith = data
 		}
 	}
 
@@ -16623,7 +16730,7 @@ func (ec *executionContext) unmarshalInputProfileEntryWhereInput(ctx context.Con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "linkedinUrn", "linkedinUrnNEQ", "linkedinUrnIn", "linkedinUrnNotIn", "linkedinUrnGT", "linkedinUrnGTE", "linkedinUrnLT", "linkedinUrnLTE", "linkedinUrnContains", "linkedinUrnHasPrefix", "linkedinUrnHasSuffix", "linkedinUrnEqualFold", "linkedinUrnContainsFold", "gender", "genderNEQ", "genderIn", "genderNotIn", "genderGT", "genderGTE", "genderLT", "genderLTE", "genderContains", "genderHasPrefix", "genderHasSuffix", "genderIsNil", "genderNotNil", "genderEqualFold", "genderContainsFold", "status", "statusNEQ", "statusIn", "statusNotIn", "templateJSONS3Key", "templateJSONS3KeyNEQ", "templateJSONS3KeyIn", "templateJSONS3KeyNotIn", "templateJSONS3KeyGT", "templateJSONS3KeyGTE", "templateJSONS3KeyLT", "templateJSONS3KeyLTE", "templateJSONS3KeyContains", "templateJSONS3KeyHasPrefix", "templateJSONS3KeyHasSuffix", "templateJSONS3KeyIsNil", "templateJSONS3KeyNotNil", "templateJSONS3KeyEqualFold", "templateJSONS3KeyContainsFold", "rawResponseS3Key", "rawResponseS3KeyNEQ", "rawResponseS3KeyIn", "rawResponseS3KeyNotIn", "rawResponseS3KeyGT", "rawResponseS3KeyGTE", "rawResponseS3KeyLT", "rawResponseS3KeyLTE", "rawResponseS3KeyContains", "rawResponseS3KeyHasPrefix", "rawResponseS3KeyHasSuffix", "rawResponseS3KeyIsNil", "rawResponseS3KeyNotNil", "rawResponseS3KeyEqualFold", "rawResponseS3KeyContainsFold", "fetchCount", "fetchCountNEQ", "fetchCountIn", "fetchCountNotIn", "fetchCountGT", "fetchCountGTE", "fetchCountLT", "fetchCountLTE", "lastFetchedAt", "lastFetchedAtNEQ", "lastFetchedAtIn", "lastFetchedAtNotIn", "lastFetchedAtGT", "lastFetchedAtGTE", "lastFetchedAtLT", "lastFetchedAtLTE", "lastFetchedAtIsNil", "lastFetchedAtNotNil", "errorMessage", "errorMessageNEQ", "errorMessageIn", "errorMessageNotIn", "errorMessageGT", "errorMessageGTE", "errorMessageLT", "errorMessageLTE", "errorMessageContains", "errorMessageHasPrefix", "errorMessageHasSuffix", "errorMessageIsNil", "errorMessageNotNil", "errorMessageEqualFold", "errorMessageContainsFold", "hasProfile", "hasProfileWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "linkedinUrn", "linkedinUrnNEQ", "linkedinUrnIn", "linkedinUrnNotIn", "linkedinUrnGT", "linkedinUrnGTE", "linkedinUrnLT", "linkedinUrnLTE", "linkedinUrnContains", "linkedinUrnHasPrefix", "linkedinUrnHasSuffix", "linkedinUrnEqualFold", "linkedinUrnContainsFold", "gender", "genderNEQ", "genderIn", "genderNotIn", "genderGT", "genderGTE", "genderLT", "genderLTE", "genderContains", "genderHasPrefix", "genderHasSuffix", "genderIsNil", "genderNotNil", "genderEqualFold", "genderContainsFold", "status", "statusNEQ", "statusIn", "statusNotIn", "templateJSONS3Key", "templateJSONS3KeyNEQ", "templateJSONS3KeyIn", "templateJSONS3KeyNotIn", "templateJSONS3KeyGT", "templateJSONS3KeyGTE", "templateJSONS3KeyLT", "templateJSONS3KeyLTE", "templateJSONS3KeyContains", "templateJSONS3KeyHasPrefix", "templateJSONS3KeyHasSuffix", "templateJSONS3KeyIsNil", "templateJSONS3KeyNotNil", "templateJSONS3KeyEqualFold", "templateJSONS3KeyContainsFold", "rawResponseS3Key", "rawResponseS3KeyNEQ", "rawResponseS3KeyIn", "rawResponseS3KeyNotIn", "rawResponseS3KeyGT", "rawResponseS3KeyGTE", "rawResponseS3KeyLT", "rawResponseS3KeyLTE", "rawResponseS3KeyContains", "rawResponseS3KeyHasPrefix", "rawResponseS3KeyHasSuffix", "rawResponseS3KeyIsNil", "rawResponseS3KeyNotNil", "rawResponseS3KeyEqualFold", "rawResponseS3KeyContainsFold", "fetchCount", "fetchCountNEQ", "fetchCountIn", "fetchCountNotIn", "fetchCountGT", "fetchCountGTE", "fetchCountLT", "fetchCountLTE", "lastFetchedAt", "lastFetchedAtNEQ", "lastFetchedAtIn", "lastFetchedAtNotIn", "lastFetchedAtGT", "lastFetchedAtGTE", "lastFetchedAtLT", "lastFetchedAtLTE", "lastFetchedAtIsNil", "lastFetchedAtNotNil", "errorMessage", "errorMessageNEQ", "errorMessageIn", "errorMessageNotIn", "errorMessageGT", "errorMessageGTE", "errorMessageLT", "errorMessageLTE", "errorMessageContains", "errorMessageHasPrefix", "errorMessageHasSuffix", "errorMessageIsNil", "errorMessageNotNil", "errorMessageEqualFold", "errorMessageContainsFold", "hasProfile", "hasProfileWith", "hasJobExecutions", "hasJobExecutionsWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -17442,6 +17549,20 @@ func (ec *executionContext) unmarshalInputProfileEntryWhereInput(ctx context.Con
 				return it, err
 			}
 			it.HasProfileWith = data
+		case "hasJobExecutions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasJobExecutions"))
+			data, err := ec.unmarshalOBoolean2ᚖbool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasJobExecutions = data
+		case "hasJobExecutionsWith":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hasJobExecutionsWith"))
+			data, err := ec.unmarshalOJobExecutionHistoryWhereInput2ᚕᚖshengᚑgoᚑbackendᚋentᚐJobExecutionHistoryWhereInputᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.HasJobExecutionsWith = data
 		}
 	}
 
@@ -20197,62 +20318,98 @@ func (ec *executionContext) _JobExecutionHistory(ctx context.Context, sel ast.Se
 		case "id":
 			out.Values[i] = ec._JobExecutionHistory_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "jobName":
 			out.Values[i] = ec._JobExecutionHistory_jobName(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "status":
 			out.Values[i] = ec._JobExecutionHistory_status(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "startedAt":
 			out.Values[i] = ec._JobExecutionHistory_startedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "completedAt":
 			out.Values[i] = ec._JobExecutionHistory_completedAt(ctx, field, obj)
 		case "durationSeconds":
 			out.Values[i] = ec._JobExecutionHistory_durationSeconds(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "totalProcessed":
 			out.Values[i] = ec._JobExecutionHistory_totalProcessed(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "successfulCount":
 			out.Values[i] = ec._JobExecutionHistory_successfulCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "failedCount":
 			out.Values[i] = ec._JobExecutionHistory_failedCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "apiCallsMade":
 			out.Values[i] = ec._JobExecutionHistory_apiCallsMade(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "quotaRemaining":
 			out.Values[i] = ec._JobExecutionHistory_quotaRemaining(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "errorSummary":
 			out.Values[i] = ec._JobExecutionHistory_errorSummary(ctx, field, obj)
 		case "createdAt":
 			out.Values[i] = ec._JobExecutionHistory_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "profileEntries":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._JobExecutionHistory_profileEntries(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -22973,6 +23130,50 @@ func (ec *executionContext) marshalNProfile2ᚖshengᚑgoᚑbackendᚋentᚐProf
 
 func (ec *executionContext) marshalNProfileEntry2shengᚑgoᚑbackendᚋentᚐProfileEntry(ctx context.Context, sel ast.SelectionSet, v ent.ProfileEntry) graphql.Marshaler {
 	return ec._ProfileEntry(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNProfileEntry2ᚕᚖshengᚑgoᚑbackendᚋentᚐProfileEntryᚄ(ctx context.Context, sel ast.SelectionSet, v []*ent.ProfileEntry) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNProfileEntry2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntry(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
 }
 
 func (ec *executionContext) marshalNProfileEntry2ᚖshengᚑgoᚑbackendᚋentᚐProfileEntry(ctx context.Context, sel ast.SelectionSet, v *ent.ProfileEntry) graphql.Marshaler {

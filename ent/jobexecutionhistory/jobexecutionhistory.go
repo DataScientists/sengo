@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 )
 
 const (
@@ -43,8 +44,15 @@ const (
 	FieldQuotaRemaining = "quota_remaining"
 	// FieldErrorSummary holds the string denoting the error_summary field in the database.
 	FieldErrorSummary = "error_summary"
+	// EdgeProfileEntries holds the string denoting the profile_entries edge name in mutations.
+	EdgeProfileEntries = "profile_entries"
 	// Table holds the table name of the jobexecutionhistory in the database.
 	Table = "job_execution_histories"
+	// ProfileEntriesTable is the table that holds the profile_entries relation/edge. The primary key declared below.
+	ProfileEntriesTable = "job_execution_history_profile_entries"
+	// ProfileEntriesInverseTable is the table name for the ProfileEntry entity.
+	// It exists in this package in order to avoid circular dependency with the "profileentry" package.
+	ProfileEntriesInverseTable = "profile_entries"
 )
 
 // Columns holds all SQL columns for jobexecutionhistory fields.
@@ -64,6 +72,12 @@ var Columns = []string{
 	FieldQuotaRemaining,
 	FieldErrorSummary,
 }
+
+var (
+	// ProfileEntriesPrimaryKey and ProfileEntriesColumn2 are the table columns denoting the
+	// primary key for the profile_entries relation (M2M).
+	ProfileEntriesPrimaryKey = []string{"job_execution_history_id", "profile_entry_id"}
+)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -208,6 +222,27 @@ func ByQuotaRemaining(opts ...sql.OrderTermOption) OrderOption {
 // ByErrorSummary orders the results by the error_summary field.
 func ByErrorSummary(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldErrorSummary, opts...).ToFunc()
+}
+
+// ByProfileEntriesCount orders the results by profile_entries count.
+func ByProfileEntriesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newProfileEntriesStep(), opts...)
+	}
+}
+
+// ByProfileEntries orders the results by profile_entries terms.
+func ByProfileEntries(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newProfileEntriesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newProfileEntriesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(ProfileEntriesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, ProfileEntriesTable, ProfileEntriesPrimaryKey...),
+	)
 }
 
 // MarshalGQL implements graphql.Marshaler interface.

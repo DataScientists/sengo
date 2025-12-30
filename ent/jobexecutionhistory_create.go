@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sheng-go-backend/ent/jobexecutionhistory"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 	"time"
 
@@ -191,6 +192,21 @@ func (jehc *JobExecutionHistoryCreate) SetNillableID(u *ulid.ID) *JobExecutionHi
 		jehc.SetID(*u)
 	}
 	return jehc
+}
+
+// AddProfileEntryIDs adds the "profile_entries" edge to the ProfileEntry entity by IDs.
+func (jehc *JobExecutionHistoryCreate) AddProfileEntryIDs(ids ...ulid.ID) *JobExecutionHistoryCreate {
+	jehc.mutation.AddProfileEntryIDs(ids...)
+	return jehc
+}
+
+// AddProfileEntries adds the "profile_entries" edges to the ProfileEntry entity.
+func (jehc *JobExecutionHistoryCreate) AddProfileEntries(p ...*ProfileEntry) *JobExecutionHistoryCreate {
+	ids := make([]ulid.ID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return jehc.AddProfileEntryIDs(ids...)
 }
 
 // Mutation returns the JobExecutionHistoryMutation object of the builder.
@@ -427,6 +443,22 @@ func (jehc *JobExecutionHistoryCreate) createSpec() (*JobExecutionHistory, *sqlg
 	if value, ok := jehc.mutation.ErrorSummary(); ok {
 		_spec.SetField(jobexecutionhistory.FieldErrorSummary, field.TypeString, value)
 		_node.ErrorSummary = &value
+	}
+	if nodes := jehc.mutation.ProfileEntriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   jobexecutionhistory.ProfileEntriesTable,
+			Columns: jobexecutionhistory.ProfileEntriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }

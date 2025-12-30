@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
@@ -191,6 +192,21 @@ func (pec *ProfileEntryCreate) SetNillableProfileID(id *ulid.ID) *ProfileEntryCr
 // SetProfile sets the "profile" edge to the Profile entity.
 func (pec *ProfileEntryCreate) SetProfile(p *Profile) *ProfileEntryCreate {
 	return pec.SetProfileID(p.ID)
+}
+
+// AddJobExecutionIDs adds the "job_executions" edge to the JobExecutionHistory entity by IDs.
+func (pec *ProfileEntryCreate) AddJobExecutionIDs(ids ...ulid.ID) *ProfileEntryCreate {
+	pec.mutation.AddJobExecutionIDs(ids...)
+	return pec
+}
+
+// AddJobExecutions adds the "job_executions" edges to the JobExecutionHistory entity.
+func (pec *ProfileEntryCreate) AddJobExecutions(j ...*JobExecutionHistory) *ProfileEntryCreate {
+	ids := make([]ulid.ID, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return pec.AddJobExecutionIDs(ids...)
 }
 
 // Mutation returns the ProfileEntryMutation object of the builder.
@@ -380,6 +396,22 @@ func (pec *ProfileEntryCreate) createSpec() (*ProfileEntry, *sqlgraph.CreateSpec
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := pec.mutation.JobExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   profileentry.JobExecutionsTable,
+			Columns: profileentry.JobExecutionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(jobexecutionhistory.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

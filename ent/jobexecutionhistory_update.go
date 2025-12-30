@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/predicate"
+	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/schema/ulid"
 	"time"
 
 	"entgo.io/ent/dialect/sql"
@@ -242,9 +244,45 @@ func (jehu *JobExecutionHistoryUpdate) ClearErrorSummary() *JobExecutionHistoryU
 	return jehu
 }
 
+// AddProfileEntryIDs adds the "profile_entries" edge to the ProfileEntry entity by IDs.
+func (jehu *JobExecutionHistoryUpdate) AddProfileEntryIDs(ids ...ulid.ID) *JobExecutionHistoryUpdate {
+	jehu.mutation.AddProfileEntryIDs(ids...)
+	return jehu
+}
+
+// AddProfileEntries adds the "profile_entries" edges to the ProfileEntry entity.
+func (jehu *JobExecutionHistoryUpdate) AddProfileEntries(p ...*ProfileEntry) *JobExecutionHistoryUpdate {
+	ids := make([]ulid.ID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return jehu.AddProfileEntryIDs(ids...)
+}
+
 // Mutation returns the JobExecutionHistoryMutation object of the builder.
 func (jehu *JobExecutionHistoryUpdate) Mutation() *JobExecutionHistoryMutation {
 	return jehu.mutation
+}
+
+// ClearProfileEntries clears all "profile_entries" edges to the ProfileEntry entity.
+func (jehu *JobExecutionHistoryUpdate) ClearProfileEntries() *JobExecutionHistoryUpdate {
+	jehu.mutation.ClearProfileEntries()
+	return jehu
+}
+
+// RemoveProfileEntryIDs removes the "profile_entries" edge to ProfileEntry entities by IDs.
+func (jehu *JobExecutionHistoryUpdate) RemoveProfileEntryIDs(ids ...ulid.ID) *JobExecutionHistoryUpdate {
+	jehu.mutation.RemoveProfileEntryIDs(ids...)
+	return jehu
+}
+
+// RemoveProfileEntries removes "profile_entries" edges to ProfileEntry entities.
+func (jehu *JobExecutionHistoryUpdate) RemoveProfileEntries(p ...*ProfileEntry) *JobExecutionHistoryUpdate {
+	ids := make([]ulid.ID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return jehu.RemoveProfileEntryIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -399,6 +437,51 @@ func (jehu *JobExecutionHistoryUpdate) sqlSave(ctx context.Context) (n int, err 
 	}
 	if jehu.mutation.ErrorSummaryCleared() {
 		_spec.ClearField(jobexecutionhistory.FieldErrorSummary, field.TypeString)
+	}
+	if jehu.mutation.ProfileEntriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   jobexecutionhistory.ProfileEntriesTable,
+			Columns: jobexecutionhistory.ProfileEntriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jehu.mutation.RemovedProfileEntriesIDs(); len(nodes) > 0 && !jehu.mutation.ProfileEntriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   jobexecutionhistory.ProfileEntriesTable,
+			Columns: jobexecutionhistory.ProfileEntriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jehu.mutation.ProfileEntriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   jobexecutionhistory.ProfileEntriesTable,
+			Columns: jobexecutionhistory.ProfileEntriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, jehu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -634,9 +717,45 @@ func (jehuo *JobExecutionHistoryUpdateOne) ClearErrorSummary() *JobExecutionHist
 	return jehuo
 }
 
+// AddProfileEntryIDs adds the "profile_entries" edge to the ProfileEntry entity by IDs.
+func (jehuo *JobExecutionHistoryUpdateOne) AddProfileEntryIDs(ids ...ulid.ID) *JobExecutionHistoryUpdateOne {
+	jehuo.mutation.AddProfileEntryIDs(ids...)
+	return jehuo
+}
+
+// AddProfileEntries adds the "profile_entries" edges to the ProfileEntry entity.
+func (jehuo *JobExecutionHistoryUpdateOne) AddProfileEntries(p ...*ProfileEntry) *JobExecutionHistoryUpdateOne {
+	ids := make([]ulid.ID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return jehuo.AddProfileEntryIDs(ids...)
+}
+
 // Mutation returns the JobExecutionHistoryMutation object of the builder.
 func (jehuo *JobExecutionHistoryUpdateOne) Mutation() *JobExecutionHistoryMutation {
 	return jehuo.mutation
+}
+
+// ClearProfileEntries clears all "profile_entries" edges to the ProfileEntry entity.
+func (jehuo *JobExecutionHistoryUpdateOne) ClearProfileEntries() *JobExecutionHistoryUpdateOne {
+	jehuo.mutation.ClearProfileEntries()
+	return jehuo
+}
+
+// RemoveProfileEntryIDs removes the "profile_entries" edge to ProfileEntry entities by IDs.
+func (jehuo *JobExecutionHistoryUpdateOne) RemoveProfileEntryIDs(ids ...ulid.ID) *JobExecutionHistoryUpdateOne {
+	jehuo.mutation.RemoveProfileEntryIDs(ids...)
+	return jehuo
+}
+
+// RemoveProfileEntries removes "profile_entries" edges to ProfileEntry entities.
+func (jehuo *JobExecutionHistoryUpdateOne) RemoveProfileEntries(p ...*ProfileEntry) *JobExecutionHistoryUpdateOne {
+	ids := make([]ulid.ID, len(p))
+	for i := range p {
+		ids[i] = p[i].ID
+	}
+	return jehuo.RemoveProfileEntryIDs(ids...)
 }
 
 // Where appends a list predicates to the JobExecutionHistoryUpdate builder.
@@ -821,6 +940,51 @@ func (jehuo *JobExecutionHistoryUpdateOne) sqlSave(ctx context.Context) (_node *
 	}
 	if jehuo.mutation.ErrorSummaryCleared() {
 		_spec.ClearField(jobexecutionhistory.FieldErrorSummary, field.TypeString)
+	}
+	if jehuo.mutation.ProfileEntriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   jobexecutionhistory.ProfileEntriesTable,
+			Columns: jobexecutionhistory.ProfileEntriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jehuo.mutation.RemovedProfileEntriesIDs(); len(nodes) > 0 && !jehuo.mutation.ProfileEntriesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   jobexecutionhistory.ProfileEntriesTable,
+			Columns: jobexecutionhistory.ProfileEntriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := jehuo.mutation.ProfileEntriesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   jobexecutionhistory.ProfileEntriesTable,
+			Columns: jobexecutionhistory.ProfileEntriesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(profileentry.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &JobExecutionHistory{config: jehuo.config}
 	_spec.Assign = _node.assignValues

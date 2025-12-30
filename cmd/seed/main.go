@@ -43,7 +43,7 @@ func main() {
 	)
 	profileLimit := flag.Int(
 		"profiles-limit",
-		33,
+		1000,
 		"Number of profile entries to seed from the dump",
 	)
 	profileGender := flag.String(
@@ -106,6 +106,12 @@ func truncateData(ctx context.Context, client *ent.Client) error {
 	// Delete all users
 	if _, err := client.Profile.Delete().Exec(ctx); err != nil {
 		return fmt.Errorf("failed to delete users: %w", err)
+	}
+
+	log.Println("Truncating job execution table...")
+	// Delete all job execution histories
+	if _, err := client.JobExecutionHistory.Delete().Exec(ctx); err != nil {
+		return fmt.Errorf("failed to delete job execution history: %w", err)
 	}
 
 	log.Println("Truncating profile entries table...")

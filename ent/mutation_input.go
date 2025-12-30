@@ -256,6 +256,7 @@ type CreateJobExecutionHistoryInput struct {
 	APICallsMade    *int
 	QuotaRemaining  *int
 	ErrorSummary    *string
+	ProfileEntryIDs []ulid.ID
 }
 
 // Mutate applies the CreateJobExecutionHistoryInput on the JobExecutionHistoryCreate builder.
@@ -293,6 +294,9 @@ func (i *CreateJobExecutionHistoryInput) Mutate(m *JobExecutionHistoryCreate) {
 	if v := i.ErrorSummary; v != nil {
 		m.SetErrorSummary(*v)
 	}
+	if ids := i.ProfileEntryIDs; len(ids) > 0 {
+		m.AddProfileEntryIDs(ids...)
+	}
 }
 
 // SetInput applies the change-set in the CreateJobExecutionHistoryInput on the create builder.
@@ -303,21 +307,23 @@ func (c *JobExecutionHistoryCreate) SetInput(i CreateJobExecutionHistoryInput) *
 
 // UpdateJobExecutionHistoryInput represents a mutation input for updating jobexecutionhistories.
 type UpdateJobExecutionHistoryInput struct {
-	ID                ulid.ID
-	UpdatedAt         *time.Time
-	JobName           *string
-	Status            *jobexecutionhistory.Status
-	StartedAt         *time.Time
-	CompletedAt       *time.Time
-	ClearCompletedAt  bool
-	DurationSeconds   *int
-	TotalProcessed    *int
-	SuccessfulCount   *int
-	FailedCount       *int
-	APICallsMade      *int
-	QuotaRemaining    *int
-	ErrorSummary      *string
-	ClearErrorSummary bool
+	ID                    ulid.ID
+	UpdatedAt             *time.Time
+	JobName               *string
+	Status                *jobexecutionhistory.Status
+	StartedAt             *time.Time
+	CompletedAt           *time.Time
+	ClearCompletedAt      bool
+	DurationSeconds       *int
+	TotalProcessed        *int
+	SuccessfulCount       *int
+	FailedCount           *int
+	APICallsMade          *int
+	QuotaRemaining        *int
+	ErrorSummary          *string
+	ClearErrorSummary     bool
+	AddProfileEntryIDs    []ulid.ID
+	RemoveProfileEntryIDs []ulid.ID
 }
 
 // Mutate applies the UpdateJobExecutionHistoryInput on the JobExecutionHistoryMutation.
@@ -363,6 +369,12 @@ func (i *UpdateJobExecutionHistoryInput) Mutate(m *JobExecutionHistoryMutation) 
 	}
 	if v := i.ErrorSummary; v != nil {
 		m.SetErrorSummary(*v)
+	}
+	if ids := i.AddProfileEntryIDs; len(ids) > 0 {
+		m.AddProfileEntryIDs(ids...)
+	}
+	if ids := i.RemoveProfileEntryIDs; len(ids) > 0 {
+		m.RemoveProfileEntryIDs(ids...)
 	}
 }
 
@@ -625,6 +637,7 @@ type CreateProfileEntryInput struct {
 	LastFetchedAt     *time.Time
 	ErrorMessage      *string
 	ProfileID         *ulid.ID
+	JobExecutionIDs   []ulid.ID
 }
 
 // Mutate applies the CreateProfileEntryInput on the ProfileEntryCreate builder.
@@ -663,6 +676,9 @@ func (i *CreateProfileEntryInput) Mutate(m *ProfileEntryCreate) {
 	if v := i.ProfileID; v != nil {
 		m.SetProfileID(*v)
 	}
+	if ids := i.JobExecutionIDs; len(ids) > 0 {
+		m.AddJobExecutionIDs(ids...)
+	}
 }
 
 // SetInput applies the change-set in the CreateProfileEntryInput on the create builder.
@@ -692,6 +708,8 @@ type UpdateProfileEntryInput struct {
 	ClearErrorMessage      bool
 	ProfileID              *ulid.ID
 	ClearProfile           bool
+	AddJobExecutionIDs     []ulid.ID
+	RemoveJobExecutionIDs  []ulid.ID
 }
 
 // Mutate applies the UpdateProfileEntryInput on the ProfileEntryMutation.
@@ -749,6 +767,12 @@ func (i *UpdateProfileEntryInput) Mutate(m *ProfileEntryMutation) {
 	}
 	if v := i.ProfileID; v != nil {
 		m.SetProfileID(*v)
+	}
+	if ids := i.AddJobExecutionIDs; len(ids) > 0 {
+		m.AddJobExecutionIDs(ids...)
+	}
+	if ids := i.RemoveJobExecutionIDs; len(ids) > 0 {
+		m.RemoveJobExecutionIDs(ids...)
 	}
 }
 

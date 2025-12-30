@@ -395,6 +395,11 @@ input JobExecutionHistoryWhereInput {
   errorSummaryNotNil: Boolean
   errorSummaryEqualFold: String
   errorSummaryContainsFold: String
+  """
+  profile_entries edge predicates
+  """
+  hasProfileEntries: Boolean
+  hasProfileEntriesWith: [ProfileEntryWhereInput!]
 }
 """
 ProfileEntryWhereInput is used for filtering ProfileEntry objects.
@@ -550,6 +555,11 @@ input ProfileEntryWhereInput {
   """
   hasProfile: Boolean
   hasProfileWith: [ProfileWhereInput!]
+  """
+  job_executions edge predicates
+  """
+  hasJobExecutions: Boolean
+  hasJobExecutionsWith: [JobExecutionHistoryWhereInput!]
 }
 """
 ProfileWhereInput is used for filtering Profile objects.

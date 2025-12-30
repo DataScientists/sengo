@@ -1005,6 +1005,10 @@ type JobExecutionHistoryWhereInput struct {
 	ErrorSummaryNotNil       bool     `json:"errorSummaryNotNil,omitempty"`
 	ErrorSummaryEqualFold    *string  `json:"errorSummaryEqualFold,omitempty"`
 	ErrorSummaryContainsFold *string  `json:"errorSummaryContainsFold,omitempty"`
+
+	// "profile_entries" edge predicates.
+	HasProfileEntries     *bool                     `json:"hasProfileEntries,omitempty"`
+	HasProfileEntriesWith []*ProfileEntryWhereInput `json:"hasProfileEntriesWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -1421,6 +1425,24 @@ func (i *JobExecutionHistoryWhereInput) P() (predicate.JobExecutionHistory, erro
 		predicates = append(predicates, jobexecutionhistory.ErrorSummaryContainsFold(*i.ErrorSummaryContainsFold))
 	}
 
+	if i.HasProfileEntries != nil {
+		p := jobexecutionhistory.HasProfileEntries()
+		if !*i.HasProfileEntries {
+			p = jobexecutionhistory.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasProfileEntriesWith) > 0 {
+		with := make([]predicate.ProfileEntry, 0, len(i.HasProfileEntriesWith))
+		for _, w := range i.HasProfileEntriesWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasProfileEntriesWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, jobexecutionhistory.HasProfileEntriesWith(with...))
+	}
 	switch len(predicates) {
 	case 0:
 		return nil, ErrEmptyJobExecutionHistoryWhereInput
@@ -2426,6 +2448,10 @@ type ProfileEntryWhereInput struct {
 	// "profile" edge predicates.
 	HasProfile     *bool                `json:"hasProfile,omitempty"`
 	HasProfileWith []*ProfileWhereInput `json:"hasProfileWith,omitempty"`
+
+	// "job_executions" edge predicates.
+	HasJobExecutions     *bool                            `json:"hasJobExecutions,omitempty"`
+	HasJobExecutionsWith []*JobExecutionHistoryWhereInput `json:"hasJobExecutionsWith,omitempty"`
 }
 
 // AddPredicates adds custom predicates to the where input to be used during the filtering phase.
@@ -2850,6 +2876,24 @@ func (i *ProfileEntryWhereInput) P() (predicate.ProfileEntry, error) {
 			with = append(with, p)
 		}
 		predicates = append(predicates, profileentry.HasProfileWith(with...))
+	}
+	if i.HasJobExecutions != nil {
+		p := profileentry.HasJobExecutions()
+		if !*i.HasJobExecutions {
+			p = profileentry.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasJobExecutionsWith) > 0 {
+		with := make([]predicate.JobExecutionHistory, 0, len(i.HasJobExecutionsWith))
+		for _, w := range i.HasJobExecutionsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasJobExecutionsWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, profileentry.HasJobExecutionsWith(with...))
 	}
 	switch len(predicates) {
 	case 0:

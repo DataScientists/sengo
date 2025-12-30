@@ -4,6 +4,7 @@ import (
 	"context"
 	"sheng-go-backend/ent"
 	"sheng-go-backend/ent/jobexecutionhistory"
+	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/pkg/entity/model"
 	"time"
 )
@@ -20,6 +21,7 @@ func NewJobExecutionHistoryRepository(client *ent.Client) *JobExecutionHistoryRe
 func (r *JobExecutionHistoryRepository) Create(
 	ctx context.Context,
 	input *ent.JobExecutionHistory,
+	profileEntryIDs []ulid.ID,
 ) (*ent.JobExecutionHistory, error) {
 	builder := r.client.JobExecutionHistory.
 		Create().
@@ -38,6 +40,9 @@ func (r *JobExecutionHistoryRepository) Create(
 	}
 	if input.ErrorSummary != nil {
 		builder = builder.SetErrorSummary(*input.ErrorSummary)
+	}
+	if len(profileEntryIDs) > 0 {
+		builder = builder.AddProfileEntryIDs(profileEntryIDs...)
 	}
 
 	return builder.Save(ctx)

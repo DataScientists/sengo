@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/predicate"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
@@ -216,6 +217,21 @@ func (peu *ProfileEntryUpdate) SetProfile(p *Profile) *ProfileEntryUpdate {
 	return peu.SetProfileID(p.ID)
 }
 
+// AddJobExecutionIDs adds the "job_executions" edge to the JobExecutionHistory entity by IDs.
+func (peu *ProfileEntryUpdate) AddJobExecutionIDs(ids ...ulid.ID) *ProfileEntryUpdate {
+	peu.mutation.AddJobExecutionIDs(ids...)
+	return peu
+}
+
+// AddJobExecutions adds the "job_executions" edges to the JobExecutionHistory entity.
+func (peu *ProfileEntryUpdate) AddJobExecutions(j ...*JobExecutionHistory) *ProfileEntryUpdate {
+	ids := make([]ulid.ID, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return peu.AddJobExecutionIDs(ids...)
+}
+
 // Mutation returns the ProfileEntryMutation object of the builder.
 func (peu *ProfileEntryUpdate) Mutation() *ProfileEntryMutation {
 	return peu.mutation
@@ -225,6 +241,27 @@ func (peu *ProfileEntryUpdate) Mutation() *ProfileEntryMutation {
 func (peu *ProfileEntryUpdate) ClearProfile() *ProfileEntryUpdate {
 	peu.mutation.ClearProfile()
 	return peu
+}
+
+// ClearJobExecutions clears all "job_executions" edges to the JobExecutionHistory entity.
+func (peu *ProfileEntryUpdate) ClearJobExecutions() *ProfileEntryUpdate {
+	peu.mutation.ClearJobExecutions()
+	return peu
+}
+
+// RemoveJobExecutionIDs removes the "job_executions" edge to JobExecutionHistory entities by IDs.
+func (peu *ProfileEntryUpdate) RemoveJobExecutionIDs(ids ...ulid.ID) *ProfileEntryUpdate {
+	peu.mutation.RemoveJobExecutionIDs(ids...)
+	return peu
+}
+
+// RemoveJobExecutions removes "job_executions" edges to JobExecutionHistory entities.
+func (peu *ProfileEntryUpdate) RemoveJobExecutions(j ...*JobExecutionHistory) *ProfileEntryUpdate {
+	ids := make([]ulid.ID, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return peu.RemoveJobExecutionIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -378,6 +415,51 @@ func (peu *ProfileEntryUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if peu.mutation.JobExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   profileentry.JobExecutionsTable,
+			Columns: profileentry.JobExecutionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(jobexecutionhistory.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := peu.mutation.RemovedJobExecutionsIDs(); len(nodes) > 0 && !peu.mutation.JobExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   profileentry.JobExecutionsTable,
+			Columns: profileentry.JobExecutionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(jobexecutionhistory.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := peu.mutation.JobExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   profileentry.JobExecutionsTable,
+			Columns: profileentry.JobExecutionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(jobexecutionhistory.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {
@@ -591,6 +673,21 @@ func (peuo *ProfileEntryUpdateOne) SetProfile(p *Profile) *ProfileEntryUpdateOne
 	return peuo.SetProfileID(p.ID)
 }
 
+// AddJobExecutionIDs adds the "job_executions" edge to the JobExecutionHistory entity by IDs.
+func (peuo *ProfileEntryUpdateOne) AddJobExecutionIDs(ids ...ulid.ID) *ProfileEntryUpdateOne {
+	peuo.mutation.AddJobExecutionIDs(ids...)
+	return peuo
+}
+
+// AddJobExecutions adds the "job_executions" edges to the JobExecutionHistory entity.
+func (peuo *ProfileEntryUpdateOne) AddJobExecutions(j ...*JobExecutionHistory) *ProfileEntryUpdateOne {
+	ids := make([]ulid.ID, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return peuo.AddJobExecutionIDs(ids...)
+}
+
 // Mutation returns the ProfileEntryMutation object of the builder.
 func (peuo *ProfileEntryUpdateOne) Mutation() *ProfileEntryMutation {
 	return peuo.mutation
@@ -600,6 +697,27 @@ func (peuo *ProfileEntryUpdateOne) Mutation() *ProfileEntryMutation {
 func (peuo *ProfileEntryUpdateOne) ClearProfile() *ProfileEntryUpdateOne {
 	peuo.mutation.ClearProfile()
 	return peuo
+}
+
+// ClearJobExecutions clears all "job_executions" edges to the JobExecutionHistory entity.
+func (peuo *ProfileEntryUpdateOne) ClearJobExecutions() *ProfileEntryUpdateOne {
+	peuo.mutation.ClearJobExecutions()
+	return peuo
+}
+
+// RemoveJobExecutionIDs removes the "job_executions" edge to JobExecutionHistory entities by IDs.
+func (peuo *ProfileEntryUpdateOne) RemoveJobExecutionIDs(ids ...ulid.ID) *ProfileEntryUpdateOne {
+	peuo.mutation.RemoveJobExecutionIDs(ids...)
+	return peuo
+}
+
+// RemoveJobExecutions removes "job_executions" edges to JobExecutionHistory entities.
+func (peuo *ProfileEntryUpdateOne) RemoveJobExecutions(j ...*JobExecutionHistory) *ProfileEntryUpdateOne {
+	ids := make([]ulid.ID, len(j))
+	for i := range j {
+		ids[i] = j[i].ID
+	}
+	return peuo.RemoveJobExecutionIDs(ids...)
 }
 
 // Where appends a list predicates to the ProfileEntryUpdate builder.
@@ -783,6 +901,51 @@ func (peuo *ProfileEntryUpdateOne) sqlSave(ctx context.Context) (_node *ProfileE
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(profile.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if peuo.mutation.JobExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   profileentry.JobExecutionsTable,
+			Columns: profileentry.JobExecutionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(jobexecutionhistory.FieldID, field.TypeString),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := peuo.mutation.RemovedJobExecutionsIDs(); len(nodes) > 0 && !peuo.mutation.JobExecutionsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   profileentry.JobExecutionsTable,
+			Columns: profileentry.JobExecutionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(jobexecutionhistory.FieldID, field.TypeString),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := peuo.mutation.JobExecutionsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   profileentry.JobExecutionsTable,
+			Columns: profileentry.JobExecutionsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(jobexecutionhistory.FieldID, field.TypeString),
 			},
 		}
 		for _, k := range nodes {

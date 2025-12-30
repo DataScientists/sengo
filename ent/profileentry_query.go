@@ -7,6 +7,7 @@ import (
 	"database/sql/driver"
 	"fmt"
 	"math"
+	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/predicate"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
@@ -21,13 +22,15 @@ import (
 // ProfileEntryQuery is the builder for querying ProfileEntry entities.
 type ProfileEntryQuery struct {
 	config
-	ctx         *QueryContext
-	order       []profileentry.OrderOption
-	inters      []Interceptor
-	predicates  []predicate.ProfileEntry
-	withProfile *ProfileQuery
-	modifiers   []func(*sql.Selector)
-	loadTotal   []func(context.Context, []*ProfileEntry) error
+	ctx                    *QueryContext
+	order                  []profileentry.OrderOption
+	inters                 []Interceptor
+	predicates             []predicate.ProfileEntry
+	withProfile            *ProfileQuery
+	withJobExecutions      *JobExecutionHistoryQuery
+	modifiers              []func(*sql.Selector)
+	loadTotal              []func(context.Context, []*ProfileEntry) error
+	withNamedJobExecutions map[string]*JobExecutionHistoryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -79,6 +82,28 @@ func (peq *ProfileEntryQuery) QueryProfile() *ProfileQuery {
 			sqlgraph.From(profileentry.Table, profileentry.FieldID, selector),
 			sqlgraph.To(profile.Table, profile.FieldID),
 			sqlgraph.Edge(sqlgraph.O2O, false, profileentry.ProfileTable, profileentry.ProfileColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(peq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryJobExecutions chains the current query on the "job_executions" edge.
+func (peq *ProfileEntryQuery) QueryJobExecutions() *JobExecutionHistoryQuery {
+	query := (&JobExecutionHistoryClient{config: peq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := peq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := peq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profileentry.Table, profileentry.FieldID, selector),
+			sqlgraph.To(jobexecutionhistory.Table, jobexecutionhistory.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, profileentry.JobExecutionsTable, profileentry.JobExecutionsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(peq.driver.Dialect(), step)
 		return fromU, nil
@@ -273,12 +298,13 @@ func (peq *ProfileEntryQuery) Clone() *ProfileEntryQuery {
 		return nil
 	}
 	return &ProfileEntryQuery{
-		config:      peq.config,
-		ctx:         peq.ctx.Clone(),
-		order:       append([]profileentry.OrderOption{}, peq.order...),
-		inters:      append([]Interceptor{}, peq.inters...),
-		predicates:  append([]predicate.ProfileEntry{}, peq.predicates...),
-		withProfile: peq.withProfile.Clone(),
+		config:            peq.config,
+		ctx:               peq.ctx.Clone(),
+		order:             append([]profileentry.OrderOption{}, peq.order...),
+		inters:            append([]Interceptor{}, peq.inters...),
+		predicates:        append([]predicate.ProfileEntry{}, peq.predicates...),
+		withProfile:       peq.withProfile.Clone(),
+		withJobExecutions: peq.withJobExecutions.Clone(),
 		// clone intermediate query.
 		sql:  peq.sql.Clone(),
 		path: peq.path,
@@ -293,6 +319,17 @@ func (peq *ProfileEntryQuery) WithProfile(opts ...func(*ProfileQuery)) *ProfileE
 		opt(query)
 	}
 	peq.withProfile = query
+	return peq
+}
+
+// WithJobExecutions tells the query-builder to eager-load the nodes that are connected to
+// the "job_executions" edge. The optional arguments are used to configure the query builder of the edge.
+func (peq *ProfileEntryQuery) WithJobExecutions(opts ...func(*JobExecutionHistoryQuery)) *ProfileEntryQuery {
+	query := (&JobExecutionHistoryClient{config: peq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	peq.withJobExecutions = query
 	return peq
 }
 
@@ -374,8 +411,9 @@ func (peq *ProfileEntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	var (
 		nodes       = []*ProfileEntry{}
 		_spec       = peq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			peq.withProfile != nil,
+			peq.withJobExecutions != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -402,6 +440,22 @@ func (peq *ProfileEntryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([
 	if query := peq.withProfile; query != nil {
 		if err := peq.loadProfile(ctx, query, nodes, nil,
 			func(n *ProfileEntry, e *Profile) { n.Edges.Profile = e }); err != nil {
+			return nil, err
+		}
+	}
+	if query := peq.withJobExecutions; query != nil {
+		if err := peq.loadJobExecutions(ctx, query, nodes,
+			func(n *ProfileEntry) { n.Edges.JobExecutions = []*JobExecutionHistory{} },
+			func(n *ProfileEntry, e *JobExecutionHistory) {
+				n.Edges.JobExecutions = append(n.Edges.JobExecutions, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range peq.withNamedJobExecutions {
+		if err := peq.loadJobExecutions(ctx, query, nodes,
+			func(n *ProfileEntry) { n.appendNamedJobExecutions(name) },
+			func(n *ProfileEntry, e *JobExecutionHistory) { n.appendNamedJobExecutions(name, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -438,6 +492,67 @@ func (peq *ProfileEntryQuery) loadProfile(ctx context.Context, query *ProfileQue
 			return fmt.Errorf(`unexpected referenced foreign-key "profile_entry_profile" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
+	}
+	return nil
+}
+func (peq *ProfileEntryQuery) loadJobExecutions(ctx context.Context, query *JobExecutionHistoryQuery, nodes []*ProfileEntry, init func(*ProfileEntry), assign func(*ProfileEntry, *JobExecutionHistory)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[ulid.ID]*ProfileEntry)
+	nids := make(map[ulid.ID]map[*ProfileEntry]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(profileentry.JobExecutionsTable)
+		s.Join(joinT).On(s.C(jobexecutionhistory.FieldID), joinT.C(profileentry.JobExecutionsPrimaryKey[0]))
+		s.Where(sql.InValues(joinT.C(profileentry.JobExecutionsPrimaryKey[1]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(profileentry.JobExecutionsPrimaryKey[1]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(ulid.ID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*ulid.ID)
+				inValue := *values[1].(*ulid.ID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*ProfileEntry]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*JobExecutionHistory](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "job_executions" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
 	}
 	return nil
 }
@@ -524,6 +639,20 @@ func (peq *ProfileEntryQuery) sqlQuery(ctx context.Context) *sql.Selector {
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedJobExecutions tells the query-builder to eager-load the nodes that are connected to the "job_executions"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (peq *ProfileEntryQuery) WithNamedJobExecutions(name string, opts ...func(*JobExecutionHistoryQuery)) *ProfileEntryQuery {
+	query := (&JobExecutionHistoryClient{config: peq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if peq.withNamedJobExecutions == nil {
+		peq.withNamedJobExecutions = make(map[string]*JobExecutionHistoryQuery)
+	}
+	peq.withNamedJobExecutions[name] = query
+	return peq
 }
 
 // ProfileEntryGroupBy is the group-by builder for ProfileEntry entities.

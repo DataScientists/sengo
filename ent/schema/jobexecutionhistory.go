@@ -6,6 +6,7 @@ import (
 
 	"entgo.io/contrib/entgql"
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	entMixin "entgo.io/ent/schema/mixin"
@@ -112,5 +113,13 @@ func (JobExecutionHistory) Indexes() []ent.Index {
 
 		// Composite index for job + time
 		index.Fields("job_name", "started_at"),
+	}
+}
+
+// Edges of the JobExecutionHistory.
+func (JobExecutionHistory) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("profile_entries", ProfileEntry.Type).
+			Comment("Profile entries processed in this job execution"),
 	}
 }

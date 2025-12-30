@@ -44,7 +44,32 @@ type JobExecutionHistory struct {
 	QuotaRemaining int `json:"quota_remaining,omitempty"`
 	// Summary of errors encountered
 	ErrorSummary *string `json:"error_summary,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the JobExecutionHistoryQuery when eager-loading is set.
+	Edges        JobExecutionHistoryEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// JobExecutionHistoryEdges holds the relations/edges for other nodes in the graph.
+type JobExecutionHistoryEdges struct {
+	// Profile entries processed in this job execution
+	ProfileEntries []*ProfileEntry `json:"profile_entries,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedProfileEntries map[string][]*ProfileEntry
+}
+
+// ProfileEntriesOrErr returns the ProfileEntries value or an error if the edge
+// was not loaded in eager-loading.
+func (e JobExecutionHistoryEdges) ProfileEntriesOrErr() ([]*ProfileEntry, error) {
+	if e.loadedTypes[0] {
+		return e.ProfileEntries, nil
+	}
+	return nil, &NotLoadedError{edge: "profile_entries"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -174,6 +199,11 @@ func (jeh *JobExecutionHistory) Value(name string) (ent.Value, error) {
 	return jeh.selectValues.Get(name)
 }
 
+// QueryProfileEntries queries the "profile_entries" edge of the JobExecutionHistory entity.
+func (jeh *JobExecutionHistory) QueryProfileEntries() *ProfileEntryQuery {
+	return NewJobExecutionHistoryClient(jeh.config).QueryProfileEntries(jeh)
+}
+
 // Update returns a builder for updating this JobExecutionHistory.
 // Note that you need to call JobExecutionHistory.Unwrap() before calling this method if this JobExecutionHistory
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -241,6 +271,30 @@ func (jeh *JobExecutionHistory) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedProfileEntries returns the ProfileEntries named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (jeh *JobExecutionHistory) NamedProfileEntries(name string) ([]*ProfileEntry, error) {
+	if jeh.Edges.namedProfileEntries == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := jeh.Edges.namedProfileEntries[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (jeh *JobExecutionHistory) appendNamedProfileEntries(name string, edges ...*ProfileEntry) {
+	if jeh.Edges.namedProfileEntries == nil {
+		jeh.Edges.namedProfileEntries = make(map[string][]*ProfileEntry)
+	}
+	if len(edges) == 0 {
+		jeh.Edges.namedProfileEntries[name] = []*ProfileEntry{}
+	} else {
+		jeh.Edges.namedProfileEntries[name] = append(jeh.Edges.namedProfileEntries[name], edges...)
+	}
 }
 
 // JobExecutionHistories is a parsable slice of JobExecutionHistory.

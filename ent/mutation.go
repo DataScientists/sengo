@@ -1967,32 +1967,35 @@ func (m *CronJobConfigMutation) ResetEdge(name string) error {
 // JobExecutionHistoryMutation represents an operation that mutates the JobExecutionHistory nodes in the graph.
 type JobExecutionHistoryMutation struct {
 	config
-	op                  Op
-	typ                 string
-	id                  *ulid.ID
-	created_at          *time.Time
-	updated_at          *time.Time
-	job_name            *string
-	status              *jobexecutionhistory.Status
-	started_at          *time.Time
-	completed_at        *time.Time
-	duration_seconds    *int
-	addduration_seconds *int
-	total_processed     *int
-	addtotal_processed  *int
-	successful_count    *int
-	addsuccessful_count *int
-	failed_count        *int
-	addfailed_count     *int
-	api_calls_made      *int
-	addapi_calls_made   *int
-	quota_remaining     *int
-	addquota_remaining  *int
-	error_summary       *string
-	clearedFields       map[string]struct{}
-	done                bool
-	oldValue            func(context.Context) (*JobExecutionHistory, error)
-	predicates          []predicate.JobExecutionHistory
+	op                     Op
+	typ                    string
+	id                     *ulid.ID
+	created_at             *time.Time
+	updated_at             *time.Time
+	job_name               *string
+	status                 *jobexecutionhistory.Status
+	started_at             *time.Time
+	completed_at           *time.Time
+	duration_seconds       *int
+	addduration_seconds    *int
+	total_processed        *int
+	addtotal_processed     *int
+	successful_count       *int
+	addsuccessful_count    *int
+	failed_count           *int
+	addfailed_count        *int
+	api_calls_made         *int
+	addapi_calls_made      *int
+	quota_remaining        *int
+	addquota_remaining     *int
+	error_summary          *string
+	clearedFields          map[string]struct{}
+	profile_entries        map[ulid.ID]struct{}
+	removedprofile_entries map[ulid.ID]struct{}
+	clearedprofile_entries bool
+	done                   bool
+	oldValue               func(context.Context) (*JobExecutionHistory, error)
+	predicates             []predicate.JobExecutionHistory
 }
 
 var _ ent.Mutation = (*JobExecutionHistoryMutation)(nil)
@@ -2713,6 +2716,60 @@ func (m *JobExecutionHistoryMutation) ResetErrorSummary() {
 	delete(m.clearedFields, jobexecutionhistory.FieldErrorSummary)
 }
 
+// AddProfileEntryIDs adds the "profile_entries" edge to the ProfileEntry entity by ids.
+func (m *JobExecutionHistoryMutation) AddProfileEntryIDs(ids ...ulid.ID) {
+	if m.profile_entries == nil {
+		m.profile_entries = make(map[ulid.ID]struct{})
+	}
+	for i := range ids {
+		m.profile_entries[ids[i]] = struct{}{}
+	}
+}
+
+// ClearProfileEntries clears the "profile_entries" edge to the ProfileEntry entity.
+func (m *JobExecutionHistoryMutation) ClearProfileEntries() {
+	m.clearedprofile_entries = true
+}
+
+// ProfileEntriesCleared reports if the "profile_entries" edge to the ProfileEntry entity was cleared.
+func (m *JobExecutionHistoryMutation) ProfileEntriesCleared() bool {
+	return m.clearedprofile_entries
+}
+
+// RemoveProfileEntryIDs removes the "profile_entries" edge to the ProfileEntry entity by IDs.
+func (m *JobExecutionHistoryMutation) RemoveProfileEntryIDs(ids ...ulid.ID) {
+	if m.removedprofile_entries == nil {
+		m.removedprofile_entries = make(map[ulid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.profile_entries, ids[i])
+		m.removedprofile_entries[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedProfileEntries returns the removed IDs of the "profile_entries" edge to the ProfileEntry entity.
+func (m *JobExecutionHistoryMutation) RemovedProfileEntriesIDs() (ids []ulid.ID) {
+	for id := range m.removedprofile_entries {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ProfileEntriesIDs returns the "profile_entries" edge IDs in the mutation.
+func (m *JobExecutionHistoryMutation) ProfileEntriesIDs() (ids []ulid.ID) {
+	for id := range m.profile_entries {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetProfileEntries resets all changes to the "profile_entries" edge.
+func (m *JobExecutionHistoryMutation) ResetProfileEntries() {
+	m.profile_entries = nil
+	m.clearedprofile_entries = false
+	m.removedprofile_entries = nil
+}
+
 // Where appends a list predicates to the JobExecutionHistoryMutation builder.
 func (m *JobExecutionHistoryMutation) Where(ps ...predicate.JobExecutionHistory) {
 	m.predicates = append(m.predicates, ps...)
@@ -3140,49 +3197,85 @@ func (m *JobExecutionHistoryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *JobExecutionHistoryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.profile_entries != nil {
+		edges = append(edges, jobexecutionhistory.EdgeProfileEntries)
+	}
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
 func (m *JobExecutionHistoryMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case jobexecutionhistory.EdgeProfileEntries:
+		ids := make([]ent.Value, 0, len(m.profile_entries))
+		for id := range m.profile_entries {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *JobExecutionHistoryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.removedprofile_entries != nil {
+		edges = append(edges, jobexecutionhistory.EdgeProfileEntries)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *JobExecutionHistoryMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case jobexecutionhistory.EdgeProfileEntries:
+		ids := make([]ent.Value, 0, len(m.removedprofile_entries))
+		for id := range m.removedprofile_entries {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *JobExecutionHistoryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 0)
+	edges := make([]string, 0, 1)
+	if m.clearedprofile_entries {
+		edges = append(edges, jobexecutionhistory.EdgeProfileEntries)
+	}
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
 func (m *JobExecutionHistoryMutation) EdgeCleared(name string) bool {
+	switch name {
+	case jobexecutionhistory.EdgeProfileEntries:
+		return m.clearedprofile_entries
+	}
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
 func (m *JobExecutionHistoryMutation) ClearEdge(name string) error {
+	switch name {
+	}
 	return fmt.Errorf("unknown JobExecutionHistory unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
 func (m *JobExecutionHistoryMutation) ResetEdge(name string) error {
+	switch name {
+	case jobexecutionhistory.EdgeProfileEntries:
+		m.ResetProfileEntries()
+		return nil
+	}
 	return fmt.Errorf("unknown JobExecutionHistory edge %s", name)
 }
 
@@ -4772,27 +4865,30 @@ func (m *ProfileMutation) ResetEdge(name string) error {
 // ProfileEntryMutation represents an operation that mutates the ProfileEntry nodes in the graph.
 type ProfileEntryMutation struct {
 	config
-	op                   Op
-	typ                  string
-	id                   *ulid.ID
-	created_at           *time.Time
-	updated_at           *time.Time
-	linkedin_urn         *string
-	gender               *string
-	status               *profileentry.Status
-	profile_data         *map[string]interface{}
-	template_json_s3_key *string
-	raw_response_s3_key  *string
-	fetch_count          *int
-	addfetch_count       *int
-	last_fetched_at      *time.Time
-	error_message        *string
-	clearedFields        map[string]struct{}
-	profile              *ulid.ID
-	clearedprofile       bool
-	done                 bool
-	oldValue             func(context.Context) (*ProfileEntry, error)
-	predicates           []predicate.ProfileEntry
+	op                    Op
+	typ                   string
+	id                    *ulid.ID
+	created_at            *time.Time
+	updated_at            *time.Time
+	linkedin_urn          *string
+	gender                *string
+	status                *profileentry.Status
+	profile_data          *map[string]interface{}
+	template_json_s3_key  *string
+	raw_response_s3_key   *string
+	fetch_count           *int
+	addfetch_count        *int
+	last_fetched_at       *time.Time
+	error_message         *string
+	clearedFields         map[string]struct{}
+	profile               *ulid.ID
+	clearedprofile        bool
+	job_executions        map[ulid.ID]struct{}
+	removedjob_executions map[ulid.ID]struct{}
+	clearedjob_executions bool
+	done                  bool
+	oldValue              func(context.Context) (*ProfileEntry, error)
+	predicates            []predicate.ProfileEntry
 }
 
 var _ ent.Mutation = (*ProfileEntryMutation)(nil)
@@ -5432,6 +5528,60 @@ func (m *ProfileEntryMutation) ResetProfile() {
 	m.clearedprofile = false
 }
 
+// AddJobExecutionIDs adds the "job_executions" edge to the JobExecutionHistory entity by ids.
+func (m *ProfileEntryMutation) AddJobExecutionIDs(ids ...ulid.ID) {
+	if m.job_executions == nil {
+		m.job_executions = make(map[ulid.ID]struct{})
+	}
+	for i := range ids {
+		m.job_executions[ids[i]] = struct{}{}
+	}
+}
+
+// ClearJobExecutions clears the "job_executions" edge to the JobExecutionHistory entity.
+func (m *ProfileEntryMutation) ClearJobExecutions() {
+	m.clearedjob_executions = true
+}
+
+// JobExecutionsCleared reports if the "job_executions" edge to the JobExecutionHistory entity was cleared.
+func (m *ProfileEntryMutation) JobExecutionsCleared() bool {
+	return m.clearedjob_executions
+}
+
+// RemoveJobExecutionIDs removes the "job_executions" edge to the JobExecutionHistory entity by IDs.
+func (m *ProfileEntryMutation) RemoveJobExecutionIDs(ids ...ulid.ID) {
+	if m.removedjob_executions == nil {
+		m.removedjob_executions = make(map[ulid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.job_executions, ids[i])
+		m.removedjob_executions[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedJobExecutions returns the removed IDs of the "job_executions" edge to the JobExecutionHistory entity.
+func (m *ProfileEntryMutation) RemovedJobExecutionsIDs() (ids []ulid.ID) {
+	for id := range m.removedjob_executions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// JobExecutionsIDs returns the "job_executions" edge IDs in the mutation.
+func (m *ProfileEntryMutation) JobExecutionsIDs() (ids []ulid.ID) {
+	for id := range m.job_executions {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetJobExecutions resets all changes to the "job_executions" edge.
+func (m *ProfileEntryMutation) ResetJobExecutions() {
+	m.job_executions = nil
+	m.clearedjob_executions = false
+	m.removedjob_executions = nil
+}
+
 // Where appends a list predicates to the ProfileEntryMutation builder.
 func (m *ProfileEntryMutation) Where(ps ...predicate.ProfileEntry) {
 	m.predicates = append(m.predicates, ps...)
@@ -5789,9 +5939,12 @@ func (m *ProfileEntryMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *ProfileEntryMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.profile != nil {
 		edges = append(edges, profileentry.EdgeProfile)
+	}
+	if m.job_executions != nil {
+		edges = append(edges, profileentry.EdgeJobExecutions)
 	}
 	return edges
 }
@@ -5804,27 +5957,47 @@ func (m *ProfileEntryMutation) AddedIDs(name string) []ent.Value {
 		if id := m.profile; id != nil {
 			return []ent.Value{*id}
 		}
+	case profileentry.EdgeJobExecutions:
+		ids := make([]ent.Value, 0, len(m.job_executions))
+		for id := range m.job_executions {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *ProfileEntryMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
+	if m.removedjob_executions != nil {
+		edges = append(edges, profileentry.EdgeJobExecutions)
+	}
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
 func (m *ProfileEntryMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case profileentry.EdgeJobExecutions:
+		ids := make([]ent.Value, 0, len(m.removedjob_executions))
+		for id := range m.removedjob_executions {
+			ids = append(ids, id)
+		}
+		return ids
+	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *ProfileEntryMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedprofile {
 		edges = append(edges, profileentry.EdgeProfile)
+	}
+	if m.clearedjob_executions {
+		edges = append(edges, profileentry.EdgeJobExecutions)
 	}
 	return edges
 }
@@ -5835,6 +6008,8 @@ func (m *ProfileEntryMutation) EdgeCleared(name string) bool {
 	switch name {
 	case profileentry.EdgeProfile:
 		return m.clearedprofile
+	case profileentry.EdgeJobExecutions:
+		return m.clearedjob_executions
 	}
 	return false
 }
@@ -5856,6 +6031,9 @@ func (m *ProfileEntryMutation) ResetEdge(name string) error {
 	switch name {
 	case profileentry.EdgeProfile:
 		m.ResetProfile()
+		return nil
+	case profileentry.EdgeJobExecutions:
+		m.ResetJobExecutions()
 		return nil
 	}
 	return fmt.Errorf("unknown ProfileEntry edge %s", name)

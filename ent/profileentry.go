@@ -52,11 +52,15 @@ type ProfileEntry struct {
 type ProfileEntryEdges struct {
 	// Linked Profile after successful fetch
 	Profile *Profile `json:"profile,omitempty"`
+	// Job executions that processed this entry
+	JobExecutions []*JobExecutionHistory `json:"job_executions,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 	// totalCount holds the count of the edges above.
-	totalCount [1]map[string]int
+	totalCount [2]map[string]int
+
+	namedJobExecutions map[string][]*JobExecutionHistory
 }
 
 // ProfileOrErr returns the Profile value or an error if the edge
@@ -68,6 +72,15 @@ func (e ProfileEntryEdges) ProfileOrErr() (*Profile, error) {
 		return nil, &NotFoundError{label: profile.Label}
 	}
 	return nil, &NotLoadedError{edge: "profile"}
+}
+
+// JobExecutionsOrErr returns the JobExecutions value or an error if the edge
+// was not loaded in eager-loading.
+func (e ProfileEntryEdges) JobExecutionsOrErr() ([]*JobExecutionHistory, error) {
+	if e.loadedTypes[1] {
+		return e.JobExecutions, nil
+	}
+	return nil, &NotLoadedError{edge: "job_executions"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -197,6 +210,11 @@ func (pe *ProfileEntry) QueryProfile() *ProfileQuery {
 	return NewProfileEntryClient(pe.config).QueryProfile(pe)
 }
 
+// QueryJobExecutions queries the "job_executions" edge of the ProfileEntry entity.
+func (pe *ProfileEntry) QueryJobExecutions() *JobExecutionHistoryQuery {
+	return NewProfileEntryClient(pe.config).QueryJobExecutions(pe)
+}
+
 // Update returns a builder for updating this ProfileEntry.
 // Note that you need to call ProfileEntry.Unwrap() before calling this method if this ProfileEntry
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -264,6 +282,30 @@ func (pe *ProfileEntry) String() string {
 	}
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedJobExecutions returns the JobExecutions named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (pe *ProfileEntry) NamedJobExecutions(name string) ([]*JobExecutionHistory, error) {
+	if pe.Edges.namedJobExecutions == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := pe.Edges.namedJobExecutions[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (pe *ProfileEntry) appendNamedJobExecutions(name string, edges ...*JobExecutionHistory) {
+	if pe.Edges.namedJobExecutions == nil {
+		pe.Edges.namedJobExecutions = make(map[string][]*JobExecutionHistory)
+	}
+	if len(edges) == 0 {
+		pe.Edges.namedJobExecutions[name] = []*JobExecutionHistory{}
+	} else {
+		pe.Edges.namedJobExecutions[name] = append(pe.Edges.namedJobExecutions[name], edges...)
+	}
 }
 
 // ProfileEntries is a parsable slice of ProfileEntry.

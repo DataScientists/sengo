@@ -8,6 +8,18 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+func (jeh *JobExecutionHistory) ProfileEntries(ctx context.Context) (result []*ProfileEntry, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = jeh.NamedProfileEntries(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = jeh.Edges.ProfileEntriesOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = jeh.QueryProfileEntries().All(ctx)
+	}
+	return result, err
+}
+
 func (pr *Profile) ProfileEntry(ctx context.Context) (*ProfileEntry, error) {
 	result, err := pr.Edges.ProfileEntryOrErr()
 	if IsNotLoaded(err) {
@@ -22,6 +34,18 @@ func (pe *ProfileEntry) Profile(ctx context.Context) (*Profile, error) {
 		result, err = pe.QueryProfile().Only(ctx)
 	}
 	return result, MaskNotFound(err)
+}
+
+func (pe *ProfileEntry) JobExecutions(ctx context.Context) (result []*JobExecutionHistory, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = pe.NamedJobExecutions(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = pe.Edges.JobExecutionsOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = pe.QueryJobExecutions().All(ctx)
+	}
+	return result, err
 }
 
 func (t *Todo) User(ctx context.Context) (*User, error) {

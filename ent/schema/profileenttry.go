@@ -105,11 +105,13 @@ func (ProfileEntry) Indexes() []ent.Index {
 	}
 }
 
-// Edges of the ProfileEntry.
 func (ProfileEntry) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("profile", Profile.Type).
 			Unique().
 			Comment("Linked Profile after successful fetch"),
+		edge.From("job_executions", JobExecutionHistory.Type).
+			Ref("profile_entries").
+			Comment("Job executions that processed this entry"),
 	}
 }

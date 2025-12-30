@@ -4,10 +4,12 @@ package ent
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/predicate"
+	"sheng-go-backend/ent/profileentry"
 	"sheng-go-backend/ent/schema/ulid"
 
 	"entgo.io/ent"
@@ -19,12 +21,14 @@ import (
 // JobExecutionHistoryQuery is the builder for querying JobExecutionHistory entities.
 type JobExecutionHistoryQuery struct {
 	config
-	ctx        *QueryContext
-	order      []jobexecutionhistory.OrderOption
-	inters     []Interceptor
-	predicates []predicate.JobExecutionHistory
-	modifiers  []func(*sql.Selector)
-	loadTotal  []func(context.Context, []*JobExecutionHistory) error
+	ctx                     *QueryContext
+	order                   []jobexecutionhistory.OrderOption
+	inters                  []Interceptor
+	predicates              []predicate.JobExecutionHistory
+	withProfileEntries      *ProfileEntryQuery
+	modifiers               []func(*sql.Selector)
+	loadTotal               []func(context.Context, []*JobExecutionHistory) error
+	withNamedProfileEntries map[string]*ProfileEntryQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -59,6 +63,28 @@ func (jehq *JobExecutionHistoryQuery) Unique(unique bool) *JobExecutionHistoryQu
 func (jehq *JobExecutionHistoryQuery) Order(o ...jobexecutionhistory.OrderOption) *JobExecutionHistoryQuery {
 	jehq.order = append(jehq.order, o...)
 	return jehq
+}
+
+// QueryProfileEntries chains the current query on the "profile_entries" edge.
+func (jehq *JobExecutionHistoryQuery) QueryProfileEntries() *ProfileEntryQuery {
+	query := (&ProfileEntryClient{config: jehq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := jehq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := jehq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(jobexecutionhistory.Table, jobexecutionhistory.FieldID, selector),
+			sqlgraph.To(profileentry.Table, profileentry.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, jobexecutionhistory.ProfileEntriesTable, jobexecutionhistory.ProfileEntriesPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(jehq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first JobExecutionHistory entity from the query.
@@ -248,15 +274,27 @@ func (jehq *JobExecutionHistoryQuery) Clone() *JobExecutionHistoryQuery {
 		return nil
 	}
 	return &JobExecutionHistoryQuery{
-		config:     jehq.config,
-		ctx:        jehq.ctx.Clone(),
-		order:      append([]jobexecutionhistory.OrderOption{}, jehq.order...),
-		inters:     append([]Interceptor{}, jehq.inters...),
-		predicates: append([]predicate.JobExecutionHistory{}, jehq.predicates...),
+		config:             jehq.config,
+		ctx:                jehq.ctx.Clone(),
+		order:              append([]jobexecutionhistory.OrderOption{}, jehq.order...),
+		inters:             append([]Interceptor{}, jehq.inters...),
+		predicates:         append([]predicate.JobExecutionHistory{}, jehq.predicates...),
+		withProfileEntries: jehq.withProfileEntries.Clone(),
 		// clone intermediate query.
 		sql:  jehq.sql.Clone(),
 		path: jehq.path,
 	}
+}
+
+// WithProfileEntries tells the query-builder to eager-load the nodes that are connected to
+// the "profile_entries" edge. The optional arguments are used to configure the query builder of the edge.
+func (jehq *JobExecutionHistoryQuery) WithProfileEntries(opts ...func(*ProfileEntryQuery)) *JobExecutionHistoryQuery {
+	query := (&ProfileEntryClient{config: jehq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	jehq.withProfileEntries = query
+	return jehq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -335,8 +373,11 @@ func (jehq *JobExecutionHistoryQuery) prepareQuery(ctx context.Context) error {
 
 func (jehq *JobExecutionHistoryQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*JobExecutionHistory, error) {
 	var (
-		nodes = []*JobExecutionHistory{}
-		_spec = jehq.querySpec()
+		nodes       = []*JobExecutionHistory{}
+		_spec       = jehq.querySpec()
+		loadedTypes = [1]bool{
+			jehq.withProfileEntries != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*JobExecutionHistory).scanValues(nil, columns)
@@ -344,6 +385,7 @@ func (jehq *JobExecutionHistoryQuery) sqlAll(ctx context.Context, hooks ...query
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &JobExecutionHistory{config: jehq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(jehq.modifiers) > 0 {
@@ -358,12 +400,90 @@ func (jehq *JobExecutionHistoryQuery) sqlAll(ctx context.Context, hooks ...query
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := jehq.withProfileEntries; query != nil {
+		if err := jehq.loadProfileEntries(ctx, query, nodes,
+			func(n *JobExecutionHistory) { n.Edges.ProfileEntries = []*ProfileEntry{} },
+			func(n *JobExecutionHistory, e *ProfileEntry) {
+				n.Edges.ProfileEntries = append(n.Edges.ProfileEntries, e)
+			}); err != nil {
+			return nil, err
+		}
+	}
+	for name, query := range jehq.withNamedProfileEntries {
+		if err := jehq.loadProfileEntries(ctx, query, nodes,
+			func(n *JobExecutionHistory) { n.appendNamedProfileEntries(name) },
+			func(n *JobExecutionHistory, e *ProfileEntry) { n.appendNamedProfileEntries(name, e) }); err != nil {
+			return nil, err
+		}
+	}
 	for i := range jehq.loadTotal {
 		if err := jehq.loadTotal[i](ctx, nodes); err != nil {
 			return nil, err
 		}
 	}
 	return nodes, nil
+}
+
+func (jehq *JobExecutionHistoryQuery) loadProfileEntries(ctx context.Context, query *ProfileEntryQuery, nodes []*JobExecutionHistory, init func(*JobExecutionHistory), assign func(*JobExecutionHistory, *ProfileEntry)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[ulid.ID]*JobExecutionHistory)
+	nids := make(map[ulid.ID]map[*JobExecutionHistory]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(jobexecutionhistory.ProfileEntriesTable)
+		s.Join(joinT).On(s.C(profileentry.FieldID), joinT.C(jobexecutionhistory.ProfileEntriesPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(jobexecutionhistory.ProfileEntriesPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(jobexecutionhistory.ProfileEntriesPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(ulid.ID)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := *values[0].(*ulid.ID)
+				inValue := *values[1].(*ulid.ID)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*JobExecutionHistory]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*ProfileEntry](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "profile_entries" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
 }
 
 func (jehq *JobExecutionHistoryQuery) sqlCount(ctx context.Context) (int, error) {
@@ -448,6 +568,20 @@ func (jehq *JobExecutionHistoryQuery) sqlQuery(ctx context.Context) *sql.Selecto
 		selector.Limit(*limit)
 	}
 	return selector
+}
+
+// WithNamedProfileEntries tells the query-builder to eager-load the nodes that are connected to the "profile_entries"
+// edge with the given name. The optional arguments are used to configure the query builder of the edge.
+func (jehq *JobExecutionHistoryQuery) WithNamedProfileEntries(name string, opts ...func(*ProfileEntryQuery)) *JobExecutionHistoryQuery {
+	query := (&ProfileEntryClient{config: jehq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	if jehq.withNamedProfileEntries == nil {
+		jehq.withNamedProfileEntries = make(map[string]*ProfileEntryQuery)
+	}
+	jehq.withNamedProfileEntries[name] = query
+	return jehq
 }
 
 // JobExecutionHistoryGroupBy is the group-by builder for JobExecutionHistory entities.
