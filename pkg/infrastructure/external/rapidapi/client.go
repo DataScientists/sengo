@@ -27,8 +27,12 @@ type LinkedInProfile struct {
 
 // GeoData represents geographic information
 type GeoData struct {
-	CountryName string `json:"country_name"`
-	CityName    string `json:"city_name"`
+	Country     string `json:"country"`
+	City        string `json:"city"`
+	Full        string `json:"full"`
+	CountryCode string `json:"countryCode"`
+	CountryName string `json:"country_name"` // Keep for backward compatibility
+	CityName    string `json:"city_name"`    // Keep for backward compatibility
 }
 
 // APIResponse represents the wrapper response from RapidAPI

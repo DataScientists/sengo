@@ -489,11 +489,23 @@ func (pf *ProfileFetcher) convertToDBProfile(
 	}
 
 	if profile.Geo != nil {
-		p.Country = &profile.Geo.CountryName
-		p.City = &profile.Geo.CityName
+		// Use Country/City if available, fallback to CountryName/CityName
+		country := profile.Geo.Country
+		if country == "" {
+			country = profile.Geo.CountryName
+		}
+		city := profile.Geo.City
+		if city == "" {
+			city = profile.Geo.CityName
+		}
+
+		p.Country = &country
+		p.City = &city
 		p.GeoData = map[string]interface{}{
-			"country_name": profile.Geo.CountryName,
-			"city_name":    profile.Geo.CityName,
+			"country_name": country,
+			"city_name":    city,
+			"full":         profile.Geo.Full,
+			"country_code": profile.Geo.CountryCode,
 		}
 	}
 
