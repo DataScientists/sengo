@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"sheng-go-backend/config"
 	"sheng-go-backend/ent"
 	"sheng-go-backend/ent/jobexecutionhistory"
@@ -67,6 +69,17 @@ func NewProfileFetcher(
 // ExecuteFetchJob executes the profile fetching job
 func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutionHistory, error) {
 	startTime := time.Now()
+
+	// Create a per-run log file in the project root
+	logFile, fileLogger, err := createJobLogFile()
+	if err != nil {
+		pf.logger.Warnw("failed to create job log file, continuing with stdout only", "error", err)
+	} else {
+		defer logFile.Close()
+		pf.logger = fileLogger
+		pf.logger.Infof("Log file created: %s", logFile.Name())
+	}
+
 	pf.logger.Info("profile fetcher job started")
 
 	// Load cron job config
@@ -281,6 +294,16 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 			successCount++
 			pf.logger.Infof("%s[%s] Batch #%d progress: %d/%d entries processed (success: %d, failed: %d)%s",
 				colorGreen, time.Now().Format("2006-01-02 15:04:05"), batchNumber, i+1, len(pendingEntries), successCount, failedCount, colorReset)
+
+			// Add 5s delay between profile fetch calls to avoid hitting RapidAPI rate limits
+			if i < len(pendingEntries)-1 {
+				pf.logger.Infof("%s[%s] Waiting 5 seconds before next fetch...%s",
+					colorMagenta, time.Now().Format("2006-01-02 15:04:05"), colorReset)
+				if err := sleepWithContext(ctx, 5*time.Second); err != nil {
+					pf.logger.Warnf("%s[CANCELLED]%s Context cancelled during inter-fetch delay", colorRed, colorReset)
+					break
+				}
+			}
 		}
 
 		totalProcessed += len(pendingEntries)
@@ -641,6 +664,67 @@ func newProfileFetcherLogger() *zap.SugaredLogger {
 	)
 
 	return zap.New(core).Sugar()
+}
+
+// getProjectRoot returns the project root directory by finding the go.mod file
+func getProjectRoot() string {
+	// Use runtime.Caller to get the path of this source file, then walk up to find go.mod
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		return "."
+	}
+	dir := filepath.Dir(filename)
+	for {
+		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
+			return dir
+		}
+		parent := filepath.Dir(dir)
+		if parent == dir {
+			return "."
+		}
+		dir = parent
+	}
+}
+
+// createJobLogFile creates a timestamped log file in the project root and returns
+// a logger that writes to both stdout and the file.
+func createJobLogFile() (*os.File, *zap.SugaredLogger, error) {
+	projectRoot := getProjectRoot()
+	timestamp := time.Now().Format("2006-01-02_15-04-05")
+	logFileName := fmt.Sprintf("profile_fetcher_%s.log", timestamp)
+	logFilePath := filepath.Join(projectRoot, logFileName)
+
+	logFile, err := os.Create(logFilePath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create log file %s: %w", logFilePath, err)
+	}
+
+	// Encoder config for the file (no color codes)
+	fileEncCfg := zap.NewProductionEncoderConfig()
+	fileEncCfg.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	fileEncCfg.EncodeLevel = zapcore.CapitalLevelEncoder
+
+	// Encoder config for stdout (with color codes)
+	stdoutEncCfg := zap.NewProductionEncoderConfig()
+	stdoutEncCfg.EncodeTime = zapcore.TimeEncoderOfLayout("2006-01-02 15:04:05")
+	stdoutEncCfg.EncodeLevel = zapcore.CapitalColorLevelEncoder
+
+	// Tee core: write to both stdout and the log file
+	core := zapcore.NewTee(
+		zapcore.NewCore(
+			zapcore.NewConsoleEncoder(stdoutEncCfg),
+			zapcore.AddSync(os.Stdout),
+			zapcore.InfoLevel,
+		),
+		zapcore.NewCore(
+			zapcore.NewConsoleEncoder(fileEncCfg),
+			zapcore.AddSync(logFile),
+			zapcore.InfoLevel,
+		),
+	)
+
+	logger := zap.New(core).Sugar()
+	return logFile, logger, nil
 }
 
 func (pf *ProfileFetcher) FetchSinglEntry(ctx context.Context, entryId model.ID) error {
