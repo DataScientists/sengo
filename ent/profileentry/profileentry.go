@@ -125,6 +125,7 @@ const (
 	StatusFetching  Status = "FETCHING"
 	StatusCOMPLETED Status = "COMPLETED"
 	StatusFAILED    Status = "FAILED"
+	StatusNotFound  Status = "NOT_FOUND"
 )
 
 func (s Status) String() string {
@@ -134,7 +135,7 @@ func (s Status) String() string {
 // StatusValidator is a validator for the "status" field enum values. It is called by the builders before save.
 func StatusValidator(s Status) error {
 	switch s {
-	case StatusPending, StatusFetching, StatusCOMPLETED, StatusFAILED:
+	case StatusPending, StatusFetching, StatusCOMPLETED, StatusFAILED, StatusNotFound:
 		return nil
 	default:
 		return fmt.Errorf("profileentry: invalid enum value for status field: %q", s)

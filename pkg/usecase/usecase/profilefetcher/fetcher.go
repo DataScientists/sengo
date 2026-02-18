@@ -96,7 +96,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 	totalProcessed := 0
 	quotaLimited := false
 	var processedEntryIDs []ulid.ID
-	var errors []string
+	var errMsgs []string
 	batchNumber := 0
 
 	for {
@@ -126,7 +126,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 
 			if jobConfig.RespectQuota {
 				quotaLimited = true
-				errors = append(errors, fmt.Sprintf("Stopped due to quota: %v", err))
+				errMsgs = append(errMsgs, fmt.Sprintf("Stopped due to quota: %v", err))
 				pf.logger.Warnw("stopping due to quota mid-run", "error", err)
 				break
 			}
@@ -176,7 +176,26 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 			apiCallsMade += attempts
 
 			if err != nil {
-				// Handle error
+				// Check if this is a profile-not-found error
+				var notFoundErr *rapidapi.NotFoundError
+				if errors.As(err, &notFoundErr) {
+					errMsg := fmt.Sprintf("Profile not found: %s", notFoundErr.Message)
+					pf.logger.Warnf("%s[NOT FOUND]%s URN: %s - %s",
+						colorRed, colorReset, entry.LinkedinUrn, errMsg)
+					pf.logger.Infof("%s[%s] Updating DB: setting status to NOT_FOUND for entry %s%s",
+						colorRed, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
+					_, _ = pf.profileEntryRepo.UpdateStatus(
+						ctx,
+						string(entry.ID),
+						profileentry.StatusNotFound,
+						&errMsg,
+					)
+					errMsgs = append(errMsgs, fmt.Sprintf("URN %s: NOT FOUND - %s", entry.LinkedinUrn, notFoundErr.Message))
+					failedCount++
+					continue
+				}
+
+				// Handle other errors as FAILED
 				errMsg := err.Error()
 				pf.logger.Infof("%s[%s] Updating DB: setting status to FAILED for entry %s%s",
 					colorRed, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
@@ -186,7 +205,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 					profileentry.StatusFAILED,
 					&errMsg,
 				)
-				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, err.Error()))
+				errMsgs = append(errMsgs, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, err.Error()))
 				failedCount++
 				continue
 			}
@@ -204,10 +223,11 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 				pf.logger.Warnw("failed to increment quota", "error", err)
 			}
 
-			// Generate S3 keys
+			// Generate S3 keys with batch folder organization (max 900 files per folder)
 			timestamp := time.Now().Unix()
-			rawS3Key := fmt.Sprintf("profiles/%s-%d-raw.json", entry.LinkedinUrn, timestamp)
-			cleanedS3Key := fmt.Sprintf("profiles/%s-%d-cleaned.json", entry.LinkedinUrn, timestamp)
+			folder := (totalProcessed + i) / 900
+			rawS3Key := fmt.Sprintf("profiles/batch-%d/%s-%d-raw.json", folder, entry.LinkedinUrn, timestamp)
+			cleanedS3Key := fmt.Sprintf("profiles/batch-%d/%s-%d-cleaned.json", folder, entry.LinkedinUrn, timestamp)
 
 			// Upload raw JSON to S3
 			if err := pf.s3Service.UploadJSON(ctx, rawS3Key, rawData); err != nil {
@@ -218,7 +238,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 					profileentry.StatusFAILED,
 					&errMsg,
 				)
-				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
+				errMsgs = append(errMsgs, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
 				failedCount++
 				pf.logger.Errorw(
 					"failed to upload raw json to s3",
@@ -243,7 +263,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 					profileentry.StatusFAILED,
 					&errMsg,
 				)
-				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
+				errMsgs = append(errMsgs, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
 				failedCount++
 				pf.logger.Errorw(
 					"failed to upload cleaned json to s3",
@@ -269,7 +289,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 					profileentry.StatusFAILED,
 					&errMsg,
 				)
-				errors = append(errors, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
+				errMsgs = append(errMsgs, fmt.Sprintf("URN %s: %s", entry.LinkedinUrn, errMsg))
 				failedCount++
 				pf.logger.Errorw("failed to upsert profile", "urn", entry.LinkedinUrn, "error", err)
 				continue
@@ -340,8 +360,8 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		DurationSeconds: duration,
 	}
 
-	if len(errors) > 0 {
-		errorSummary := strings.Join(errors, "; ")
+	if len(errMsgs) > 0 {
+		errorSummary := strings.Join(errMsgs, "; ")
 		history.ErrorSummary = &errorSummary
 	}
 
@@ -367,7 +387,7 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		failedCount,
 		apiCallsMade,
 		quotaRemaining,
-		errors,
+		errMsgs,
 		nextRunTime,
 	); err != nil {
 		pf.logger.Warnw("failed to send job completion email", "error", err)
@@ -454,6 +474,13 @@ func (pf *ProfileFetcher) fetchProfileWithRetry(
 
 			pf.logger.Infof("%s[RETRYING]%s URN: %s - resuming after rate limit", colorCyan, colorReset, urn)
 			continue
+		}
+
+		// Check if URN was not found - no point retrying
+		var notFoundErr *rapidapi.NotFoundError
+		if errors.As(err, &notFoundErr) {
+			pf.logger.Warnf("%s[NOT FOUND]%s URN: %s - profile not found, skipping retries", colorRed, colorReset, urn)
+			return nil, nil, attempts, notFoundErr
 		}
 
 		// Non-rate-limit error - apply limited retries
@@ -550,7 +577,22 @@ func (pf *ProfileFetcher) fetchSingleProfileEntry(
 	// Fetch profile from RapidAPI
 	profile, rawData, _, err := pf.fetchProfileWithRetry(ctx, entry.LinkedinUrn)
 	if err != nil {
-		// Handle error
+		// Check if this is a profile-not-found error
+		var notFoundErr *rapidapi.NotFoundError
+		if errors.As(err, &notFoundErr) {
+			errMsg := fmt.Sprintf("Profile not found: %s", notFoundErr.Message)
+			pf.logger.Warnf("%s[NOT FOUND]%s URN: %s - %s",
+				colorRed, colorReset, entry.LinkedinUrn, errMsg)
+			_, _ = pf.profileEntryRepo.UpdateStatus(
+				ctx,
+				string(entry.ID),
+				profileentry.StatusNotFound,
+				&errMsg,
+			)
+			return notFoundErr
+		}
+
+		// Handle other errors as FAILED
 		errMsg := err.Error()
 		_, _ = pf.profileEntryRepo.UpdateStatus(
 			ctx,
@@ -567,10 +609,10 @@ func (pf *ProfileFetcher) fetchSingleProfileEntry(
 		pf.logger.Warnw("failed to increment quota", "urn", entry.LinkedinUrn, "error", err)
 	}
 
-	// Generate S3 keys
+	// Generate S3 keys with batch folder organization (max 900 files per folder)
 	timestamp := time.Now().Unix()
-	rawS3Key := fmt.Sprintf("profiles/%s-%d-raw.json", entry.LinkedinUrn, timestamp)
-	cleanedS3Key := fmt.Sprintf("profiles/%s-%d-cleaned.json", entry.LinkedinUrn, timestamp)
+	rawS3Key := fmt.Sprintf("profiles/batch-0/%s-%d-raw.json", entry.LinkedinUrn, timestamp)
+	cleanedS3Key := fmt.Sprintf("profiles/batch-0/%s-%d-cleaned.json", entry.LinkedinUrn, timestamp)
 
 	// Upload raw JSON to S3
 	if err := pf.s3Service.UploadJSON(ctx, rawS3Key, rawData); err != nil {

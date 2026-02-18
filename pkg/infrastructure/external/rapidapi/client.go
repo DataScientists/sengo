@@ -7,8 +7,9 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"strconv"
 	"sheng-go-backend/config"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -37,9 +38,9 @@ type GeoData struct {
 
 // APIResponse represents the wrapper response from RapidAPI
 type APIResponse struct {
-	Success bool                    `json:"success"`
-	Message string                  `json:"message"`
-	Data    *json.RawMessage        `json:"data"`
+	Success bool             `json:"success"`
+	Message string           `json:"message"`
+	Data    *json.RawMessage `json:"data"`
 }
 
 // APIErrorResponse represents error responses from RapidAPI
@@ -64,6 +65,16 @@ func (e *RateLimitError) Error() string {
 		return fmt.Sprintf("rate limited (status=%d, retry after %v): %s", e.StatusCode, e.RetryAfter, e.Message)
 	}
 	return fmt.Sprintf("rate limited (status=%d): %s", e.StatusCode, e.Message)
+}
+
+// NotFoundError represents a 404 response from RapidAPI (profile not found)
+type NotFoundError struct {
+	URN     string
+	Message string
+}
+
+func (e *NotFoundError) Error() string {
+	return fmt.Sprintf("profile not found for URN %s: %s", e.URN, e.Message)
 }
 
 // LinkedInClient handles RapidAPI LinkedIn requests
@@ -106,6 +117,15 @@ func parseAPIResponse(body []byte) (*LinkedInProfile, []byte, error) {
 			if !apiResp.Success {
 				// Error response
 				log.Printf("RapidAPI Error Response: success=false, message=%s", apiResp.Message)
+				// Check if the message indicates an invalid/not-found profile
+				msgLower := strings.ToLower(apiResp.Message)
+				if strings.Contains(msgLower, "not valid linkedin profile") ||
+					strings.Contains(msgLower, "can't be accessed") ||
+					strings.Contains(msgLower, "profile not found") {
+					return nil, body, &NotFoundError{
+						Message: apiResp.Message,
+					}
+				}
 				return nil, body, fmt.Errorf("API error: %s", apiResp.Message)
 			}
 
@@ -196,6 +216,14 @@ func (c *LinkedInClient) FetchProfileByURN(
 			RetryAfter: retryAfter,
 			StatusCode: resp.StatusCode,
 			Message:    string(body),
+		}
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		log.Printf("RapidAPI profile not found: URN=%s body=%s", urn, string(body))
+		return nil, body, &NotFoundError{
+			URN:     urn,
+			Message: string(body),
 		}
 	}
 

@@ -41,6 +41,7 @@ func (ProfileEntry) Fields() []ent.Field {
 				"Fetching", "FETCHING",
 				"COMPLETED", "COMPLETED",
 				"FAILED", "FAILED",
+				"NotFound", "NOT_FOUND",
 			).Annotations(
 			entgql.Type("ProfileEntryStatus")).
 			Default("PENDING").

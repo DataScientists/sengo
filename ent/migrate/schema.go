@@ -203,7 +203,7 @@ var (
 		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
 		{Name: "linkedin_urn", Type: field.TypeString, Unique: true},
 		{Name: "gender", Type: field.TypeString, Nullable: true},
-		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "FETCHING", "COMPLETED", "FAILED"}, Default: "PENDING"},
+		{Name: "status", Type: field.TypeEnum, Enums: []string{"PENDING", "FETCHING", "COMPLETED", "FAILED", "NOT_FOUND"}, Default: "PENDING"},
 		{Name: "profile_data", Type: field.TypeJSON, Nullable: true},
 		{Name: "template_json_s3_key", Type: field.TypeString, Nullable: true, Size: 500},
 		{Name: "raw_response_s3_key", Type: field.TypeString, Nullable: true, Size: 500},
