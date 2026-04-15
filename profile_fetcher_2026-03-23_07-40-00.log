@@ -1,0 +1,3 @@
+2026-03-23 07:40:00	INFO	Log file created: /Volumes/A/bds/sengo/profile_fetcher_2026-03-23_07-40-00.log
+2026-03-23 07:40:00	INFO	profile fetcher job started
+2026-03-23 07:40:00	WARN	quota exceeded before processing	{"error": "insufficient API quota remaining"}

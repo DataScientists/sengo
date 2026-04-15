@@ -1,0 +1,623 @@
+2026-03-01 03:45:30	INFO	Log file created: /Volumes/A/bds/sengo/profile_fetcher_2026-03-01_03-45-30.log
+2026-03-01 03:45:30	INFO	profile fetcher job started
+2026-03-01 03:45:30	INFO	quota check passed	{"allowed_batch_size": 10}
+2026-03-01 03:45:30	INFO	[36m[2026-03-01 03:45:30] Fetching from DB: getting pending profile entries (batch size: 10)[0m
+2026-03-01 03:45:30	INFO	[32m[2026-03-01 03:45:30] Fetched from DB: total to process = 10, fetched = 10[0m
+2026-03-01 03:45:30	INFO	[36m[2026-03-01 03:45:30] Processing entry 1/10 - URN: tanya-swartz-aa3901220[0m
+2026-03-01 03:45:30	INFO	[33m[2026-03-01 03:45:30] Updating DB: setting status to FETCHING for entry tanya-swartz-aa3901220[0m
+2026-03-01 03:45:30	INFO	[36m[FETCHING][0m URN: tanya-swartz-aa3901220 (attempt 1)
+2026-03-01 03:45:36	WARN	[31m[NOT FOUND][0m URN: tanya-swartz-aa3901220 - profile not found, skipping retries
+2026-03-01 03:45:36	WARN	[31m[NOT FOUND][0m URN: tanya-swartz-aa3901220 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:45:36	INFO	[31m[2026-03-01 03:45:36] Updating DB: setting status to NOT_FOUND for entry tanya-swartz-aa3901220[0m
+2026-03-01 03:45:36	INFO	[36m[2026-03-01 03:45:36] Processing entry 2/10 - URN: mohammadhasan-s-6116a6112[0m
+2026-03-01 03:45:36	INFO	[33m[2026-03-01 03:45:36] Updating DB: setting status to FETCHING for entry mohammadhasan-s-6116a6112[0m
+2026-03-01 03:45:36	INFO	[36m[FETCHING][0m URN: mohammadhasan-s-6116a6112 (attempt 1)
+2026-03-01 03:45:39	INFO	[32m[SUCCESS][0m URN: mohammadhasan-s-6116a6112 fetched successfully after 1 attempts
+2026-03-01 03:45:39	INFO	fetched profile	{"urn": "mohammadhasan-s-6116a6112", "username": "mohammadhasan-s-6116a6112"}
+2026-03-01 03:45:41	INFO	[33m[2026-03-01 03:45:41] Inserting/Updating DB: upserting profile for URN mohammadhasan-s-6116a6112[0m
+2026-03-01 03:45:41	INFO	[32m[2026-03-01 03:45:41] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:45:41	INFO	[33m[2026-03-01 03:45:41] Updating DB: setting status to COMPLETED for entry mohammadhasan-s-6116a6112[0m
+2026-03-01 03:45:41	INFO	[32m[2026-03-01 03:45:41] Batch #1 progress: 2/10 entries processed (success: 1, failed: 1)[0m
+2026-03-01 03:45:41	INFO	[35m[2026-03-01 03:45:41] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:45:42	INFO	[36m[2026-03-01 03:45:42] Processing entry 3/10 - URN: parth-patel-528565201[0m
+2026-03-01 03:45:42	INFO	[33m[2026-03-01 03:45:42] Updating DB: setting status to FETCHING for entry parth-patel-528565201[0m
+2026-03-01 03:45:42	INFO	[36m[FETCHING][0m URN: parth-patel-528565201 (attempt 1)
+2026-03-01 03:45:44	INFO	[32m[SUCCESS][0m URN: parth-patel-528565201 fetched successfully after 1 attempts
+2026-03-01 03:45:44	INFO	fetched profile	{"urn": "parth-patel-528565201", "username": "parth7d2"}
+2026-03-01 03:45:45	INFO	[33m[2026-03-01 03:45:45] Inserting/Updating DB: upserting profile for URN parth-patel-528565201[0m
+2026-03-01 03:45:45	INFO	[32m[2026-03-01 03:45:45] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:45:45	INFO	[33m[2026-03-01 03:45:45] Updating DB: setting status to COMPLETED for entry parth-patel-528565201[0m
+2026-03-01 03:45:45	INFO	[32m[2026-03-01 03:45:45] Batch #1 progress: 3/10 entries processed (success: 2, failed: 1)[0m
+2026-03-01 03:45:45	INFO	[35m[2026-03-01 03:45:45] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:45:46	INFO	[36m[2026-03-01 03:45:46] Processing entry 4/10 - URN: robin-kuhn-83124b69[0m
+2026-03-01 03:45:46	INFO	[33m[2026-03-01 03:45:46] Updating DB: setting status to FETCHING for entry robin-kuhn-83124b69[0m
+2026-03-01 03:45:46	INFO	[36m[FETCHING][0m URN: robin-kuhn-83124b69 (attempt 1)
+2026-03-01 03:45:49	INFO	[32m[SUCCESS][0m URN: robin-kuhn-83124b69 fetched successfully after 1 attempts
+2026-03-01 03:45:49	INFO	fetched profile	{"urn": "robin-kuhn-83124b69", "username": "robin-kuhn-83124b69"}
+2026-03-01 03:45:49	INFO	[33m[2026-03-01 03:45:49] Inserting/Updating DB: upserting profile for URN robin-kuhn-83124b69[0m
+2026-03-01 03:45:49	INFO	[32m[2026-03-01 03:45:49] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:45:49	INFO	[33m[2026-03-01 03:45:49] Updating DB: setting status to COMPLETED for entry robin-kuhn-83124b69[0m
+2026-03-01 03:45:49	INFO	[32m[2026-03-01 03:45:49] Batch #1 progress: 4/10 entries processed (success: 3, failed: 1)[0m
+2026-03-01 03:45:49	INFO	[35m[2026-03-01 03:45:49] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:45:50	INFO	[36m[2026-03-01 03:45:50] Processing entry 5/10 - URN: khyatisinha[0m
+2026-03-01 03:45:50	INFO	[33m[2026-03-01 03:45:50] Updating DB: setting status to FETCHING for entry khyatisinha[0m
+2026-03-01 03:45:50	INFO	[36m[FETCHING][0m URN: khyatisinha (attempt 1)
+2026-03-01 03:45:53	INFO	[32m[SUCCESS][0m URN: khyatisinha fetched successfully after 1 attempts
+2026-03-01 03:45:53	INFO	fetched profile	{"urn": "khyatisinha", "username": "khyatisinha"}
+2026-03-01 03:45:53	INFO	[33m[2026-03-01 03:45:53] Inserting/Updating DB: upserting profile for URN khyatisinha[0m
+2026-03-01 03:45:53	INFO	[32m[2026-03-01 03:45:53] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:45:53	INFO	[33m[2026-03-01 03:45:53] Updating DB: setting status to COMPLETED for entry khyatisinha[0m
+2026-03-01 03:45:53	INFO	[32m[2026-03-01 03:45:53] Batch #1 progress: 5/10 entries processed (success: 4, failed: 1)[0m
+2026-03-01 03:45:53	INFO	[35m[2026-03-01 03:45:53] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:45:54	INFO	[36m[2026-03-01 03:45:54] Processing entry 6/10 - URN: andreasangourakis[0m
+2026-03-01 03:45:54	INFO	[33m[2026-03-01 03:45:54] Updating DB: setting status to FETCHING for entry andreasangourakis[0m
+2026-03-01 03:45:54	INFO	[36m[FETCHING][0m URN: andreasangourakis (attempt 1)
+2026-03-01 03:45:57	INFO	[32m[SUCCESS][0m URN: andreasangourakis fetched successfully after 1 attempts
+2026-03-01 03:45:57	INFO	fetched profile	{"urn": "andreasangourakis", "username": "andreasangourakis"}
+2026-03-01 03:45:57	INFO	[33m[2026-03-01 03:45:57] Inserting/Updating DB: upserting profile for URN andreasangourakis[0m
+2026-03-01 03:45:57	INFO	[32m[2026-03-01 03:45:57] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:45:57	INFO	[33m[2026-03-01 03:45:57] Updating DB: setting status to COMPLETED for entry andreasangourakis[0m
+2026-03-01 03:45:57	INFO	[32m[2026-03-01 03:45:57] Batch #1 progress: 6/10 entries processed (success: 5, failed: 1)[0m
+2026-03-01 03:45:57	INFO	[35m[2026-03-01 03:45:57] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:45:58	INFO	[36m[2026-03-01 03:45:58] Processing entry 7/10 - URN: vishnuyarramsetty[0m
+2026-03-01 03:45:58	INFO	[33m[2026-03-01 03:45:58] Updating DB: setting status to FETCHING for entry vishnuyarramsetty[0m
+2026-03-01 03:45:58	INFO	[36m[FETCHING][0m URN: vishnuyarramsetty (attempt 1)
+2026-03-01 03:46:00	INFO	[32m[SUCCESS][0m URN: vishnuyarramsetty fetched successfully after 1 attempts
+2026-03-01 03:46:00	INFO	fetched profile	{"urn": "vishnuyarramsetty", "username": "vishnuyarramsetty"}
+2026-03-01 03:46:00	INFO	[33m[2026-03-01 03:46:00] Inserting/Updating DB: upserting profile for URN vishnuyarramsetty[0m
+2026-03-01 03:46:00	INFO	[32m[2026-03-01 03:46:00] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:46:00	INFO	[33m[2026-03-01 03:46:00] Updating DB: setting status to COMPLETED for entry vishnuyarramsetty[0m
+2026-03-01 03:46:00	INFO	[32m[2026-03-01 03:46:00] Batch #1 progress: 7/10 entries processed (success: 6, failed: 1)[0m
+2026-03-01 03:46:00	INFO	[35m[2026-03-01 03:46:00] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:46:01	INFO	[36m[2026-03-01 03:46:01] Processing entry 8/10 - URN: guptagopalji[0m
+2026-03-01 03:46:01	INFO	[33m[2026-03-01 03:46:01] Updating DB: setting status to FETCHING for entry guptagopalji[0m
+2026-03-01 03:46:01	INFO	[36m[FETCHING][0m URN: guptagopalji (attempt 1)
+2026-03-01 03:46:04	INFO	[32m[SUCCESS][0m URN: guptagopalji fetched successfully after 1 attempts
+2026-03-01 03:46:04	INFO	fetched profile	{"urn": "guptagopalji", "username": "guptagopalji"}
+2026-03-01 03:46:04	INFO	[33m[2026-03-01 03:46:04] Inserting/Updating DB: upserting profile for URN guptagopalji[0m
+2026-03-01 03:46:04	INFO	[32m[2026-03-01 03:46:04] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:46:04	INFO	[33m[2026-03-01 03:46:04] Updating DB: setting status to COMPLETED for entry guptagopalji[0m
+2026-03-01 03:46:04	INFO	[32m[2026-03-01 03:46:04] Batch #1 progress: 8/10 entries processed (success: 7, failed: 1)[0m
+2026-03-01 03:46:04	INFO	[35m[2026-03-01 03:46:04] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:46:05	INFO	[36m[2026-03-01 03:46:05] Processing entry 9/10 - URN: ishika-shivhare-3910681a0[0m
+2026-03-01 03:46:05	INFO	[33m[2026-03-01 03:46:05] Updating DB: setting status to FETCHING for entry ishika-shivhare-3910681a0[0m
+2026-03-01 03:46:05	INFO	[36m[FETCHING][0m URN: ishika-shivhare-3910681a0 (attempt 1)
+2026-03-01 03:46:07	WARN	[31m[NOT FOUND][0m URN: ishika-shivhare-3910681a0 - profile not found, skipping retries
+2026-03-01 03:46:07	WARN	[31m[NOT FOUND][0m URN: ishika-shivhare-3910681a0 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:46:07	INFO	[31m[2026-03-01 03:46:07] Updating DB: setting status to NOT_FOUND for entry ishika-shivhare-3910681a0[0m
+2026-03-01 03:46:07	INFO	[36m[2026-03-01 03:46:07] Processing entry 10/10 - URN: ykmanoj[0m
+2026-03-01 03:46:07	INFO	[33m[2026-03-01 03:46:07] Updating DB: setting status to FETCHING for entry ykmanoj[0m
+2026-03-01 03:46:07	INFO	[36m[FETCHING][0m URN: ykmanoj (attempt 1)
+2026-03-01 03:46:09	INFO	[32m[SUCCESS][0m URN: ykmanoj fetched successfully after 1 attempts
+2026-03-01 03:46:09	INFO	fetched profile	{"urn": "ykmanoj", "username": "ykmanoj"}
+2026-03-01 03:46:10	INFO	[33m[2026-03-01 03:46:10] Inserting/Updating DB: upserting profile for URN ykmanoj[0m
+2026-03-01 03:46:10	INFO	[32m[2026-03-01 03:46:10] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:46:10	INFO	[33m[2026-03-01 03:46:10] Updating DB: setting status to COMPLETED for entry ykmanoj[0m
+2026-03-01 03:46:10	INFO	[32m[2026-03-01 03:46:10] Batch #1 progress: 10/10 entries processed (success: 8, failed: 2)[0m
+2026-03-01 03:46:10	INFO	quota check passed	{"allowed_batch_size": 10}
+2026-03-01 03:46:10	INFO	[36m[2026-03-01 03:46:10] Fetching from DB: getting pending profile entries (batch size: 10)[0m
+2026-03-01 03:46:10	INFO	[32m[2026-03-01 03:46:10] Fetched from DB: total to process = 10, fetched = 10[0m
+2026-03-01 03:46:10	INFO	[36m[2026-03-01 03:46:10] Processing entry 1/10 - URN: prem-kumar-b2469a16a[0m
+2026-03-01 03:46:10	INFO	[33m[2026-03-01 03:46:10] Updating DB: setting status to FETCHING for entry prem-kumar-b2469a16a[0m
+2026-03-01 03:46:10	INFO	[36m[FETCHING][0m URN: prem-kumar-b2469a16a (attempt 1)
+2026-03-01 03:46:12	WARN	[31m[NOT FOUND][0m URN: prem-kumar-b2469a16a - profile not found, skipping retries
+2026-03-01 03:46:12	WARN	[31m[NOT FOUND][0m URN: prem-kumar-b2469a16a - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:46:12	INFO	[31m[2026-03-01 03:46:12] Updating DB: setting status to NOT_FOUND for entry prem-kumar-b2469a16a[0m
+2026-03-01 03:46:12	INFO	[36m[2026-03-01 03:46:12] Processing entry 2/10 - URN: aboli-gadekar-b5b7a11b7[0m
+2026-03-01 03:46:12	INFO	[33m[2026-03-01 03:46:12] Updating DB: setting status to FETCHING for entry aboli-gadekar-b5b7a11b7[0m
+2026-03-01 03:46:12	INFO	[36m[FETCHING][0m URN: aboli-gadekar-b5b7a11b7 (attempt 1)
+2026-03-01 03:46:15	INFO	[32m[SUCCESS][0m URN: aboli-gadekar-b5b7a11b7 fetched successfully after 1 attempts
+2026-03-01 03:46:15	INFO	fetched profile	{"urn": "aboli-gadekar-b5b7a11b7", "username": "aboli-gadekar-b5b7a11b7"}
+2026-03-01 03:46:15	INFO	[33m[2026-03-01 03:46:15] Inserting/Updating DB: upserting profile for URN aboli-gadekar-b5b7a11b7[0m
+2026-03-01 03:46:15	INFO	[32m[2026-03-01 03:46:15] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:46:15	INFO	[33m[2026-03-01 03:46:15] Updating DB: setting status to COMPLETED for entry aboli-gadekar-b5b7a11b7[0m
+2026-03-01 03:46:15	INFO	[32m[2026-03-01 03:46:15] Batch #2 progress: 2/10 entries processed (success: 9, failed: 3)[0m
+2026-03-01 03:46:15	INFO	[35m[2026-03-01 03:46:15] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:46:16	INFO	[36m[2026-03-01 03:46:16] Processing entry 3/10 - URN: thushar-murali-vijayam-07622b220[0m
+2026-03-01 03:46:16	INFO	[33m[2026-03-01 03:46:16] Updating DB: setting status to FETCHING for entry thushar-murali-vijayam-07622b220[0m
+2026-03-01 03:46:16	INFO	[36m[FETCHING][0m URN: thushar-murali-vijayam-07622b220 (attempt 1)
+2026-03-01 03:46:19	INFO	[32m[SUCCESS][0m URN: thushar-murali-vijayam-07622b220 fetched successfully after 1 attempts
+2026-03-01 03:46:19	INFO	fetched profile	{"urn": "thushar-murali-vijayam-07622b220", "username": "thushar-murali-vijayam"}
+2026-03-01 03:46:19	INFO	[33m[2026-03-01 03:46:19] Inserting/Updating DB: upserting profile for URN thushar-murali-vijayam-07622b220[0m
+2026-03-01 03:46:19	INFO	[32m[2026-03-01 03:46:19] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:46:19	INFO	[33m[2026-03-01 03:46:19] Updating DB: setting status to COMPLETED for entry thushar-murali-vijayam-07622b220[0m
+2026-03-01 03:46:19	INFO	[32m[2026-03-01 03:46:19] Batch #2 progress: 3/10 entries processed (success: 10, failed: 3)[0m
+2026-03-01 03:46:19	INFO	[35m[2026-03-01 03:46:19] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:46:20	INFO	[36m[2026-03-01 03:46:20] Processing entry 4/10 - URN: salome-wangui-68322b220[0m
+2026-03-01 03:46:20	INFO	[33m[2026-03-01 03:46:20] Updating DB: setting status to FETCHING for entry salome-wangui-68322b220[0m
+2026-03-01 03:46:20	INFO	[36m[FETCHING][0m URN: salome-wangui-68322b220 (attempt 1)
+2026-03-01 03:46:22	INFO	[32m[SUCCESS][0m URN: salome-wangui-68322b220 fetched successfully after 1 attempts
+2026-03-01 03:46:22	INFO	fetched profile	{"urn": "salome-wangui-68322b220", "username": "salome-wangui-68322b220"}
+2026-03-01 03:46:22	INFO	[33m[2026-03-01 03:46:22] Inserting/Updating DB: upserting profile for URN salome-wangui-68322b220[0m
+2026-03-01 03:46:22	INFO	[32m[2026-03-01 03:46:22] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:46:22	INFO	[33m[2026-03-01 03:46:22] Updating DB: setting status to COMPLETED for entry salome-wangui-68322b220[0m
+2026-03-01 03:46:22	INFO	[32m[2026-03-01 03:46:22] Batch #2 progress: 4/10 entries processed (success: 11, failed: 3)[0m
+2026-03-01 03:46:22	INFO	[35m[2026-03-01 03:46:22] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:46:23	INFO	[36m[2026-03-01 03:46:23] Processing entry 5/10 - URN: judy-snow-766900220[0m
+2026-03-01 03:46:23	INFO	[33m[2026-03-01 03:46:23] Updating DB: setting status to FETCHING for entry judy-snow-766900220[0m
+2026-03-01 03:46:23	INFO	[36m[FETCHING][0m URN: judy-snow-766900220 (attempt 1)
+2026-03-01 03:46:25	WARN	[31m[NOT FOUND][0m URN: judy-snow-766900220 - profile not found, skipping retries
+2026-03-01 03:46:25	WARN	[31m[NOT FOUND][0m URN: judy-snow-766900220 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:46:25	INFO	[31m[2026-03-01 03:46:25] Updating DB: setting status to NOT_FOUND for entry judy-snow-766900220[0m
+2026-03-01 03:46:25	INFO	[36m[2026-03-01 03:46:25] Processing entry 6/10 - URN: hajera-begum-82a5ba21b[0m
+2026-03-01 03:46:25	INFO	[33m[2026-03-01 03:46:25] Updating DB: setting status to FETCHING for entry hajera-begum-82a5ba21b[0m
+2026-03-01 03:46:25	INFO	[36m[FETCHING][0m URN: hajera-begum-82a5ba21b (attempt 1)
+2026-03-01 03:46:28	INFO	[32m[SUCCESS][0m URN: hajera-begum-82a5ba21b fetched successfully after 1 attempts
+2026-03-01 03:46:28	INFO	fetched profile	{"urn": "hajera-begum-82a5ba21b", "username": "hajera-begum"}
+2026-03-01 03:46:30	INFO	[33m[2026-03-01 03:46:30] Inserting/Updating DB: upserting profile for URN hajera-begum-82a5ba21b[0m
+2026-03-01 03:46:30	INFO	[32m[2026-03-01 03:46:30] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:46:30	INFO	[33m[2026-03-01 03:46:30] Updating DB: setting status to COMPLETED for entry hajera-begum-82a5ba21b[0m
+2026-03-01 03:46:30	INFO	[32m[2026-03-01 03:46:30] Batch #2 progress: 6/10 entries processed (success: 12, failed: 4)[0m
+2026-03-01 03:46:30	INFO	[35m[2026-03-01 03:46:30] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:46:31	INFO	[36m[2026-03-01 03:46:31] Processing entry 7/10 - URN: muhamad-hidayat-61a4531bb[0m
+2026-03-01 03:46:31	INFO	[33m[2026-03-01 03:46:31] Updating DB: setting status to FETCHING for entry muhamad-hidayat-61a4531bb[0m
+2026-03-01 03:46:31	INFO	[36m[FETCHING][0m URN: muhamad-hidayat-61a4531bb (attempt 1)
+2026-03-01 03:46:33	WARN	[31m[NOT FOUND][0m URN: muhamad-hidayat-61a4531bb - profile not found, skipping retries
+2026-03-01 03:46:33	WARN	[31m[NOT FOUND][0m URN: muhamad-hidayat-61a4531bb - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:46:33	INFO	[31m[2026-03-01 03:46:33] Updating DB: setting status to NOT_FOUND for entry muhamad-hidayat-61a4531bb[0m
+2026-03-01 03:46:33	INFO	[36m[2026-03-01 03:46:33] Processing entry 8/10 - URN: shubham-sharma-7280aa145[0m
+2026-03-01 03:46:33	INFO	[33m[2026-03-01 03:46:33] Updating DB: setting status to FETCHING for entry shubham-sharma-7280aa145[0m
+2026-03-01 03:46:33	INFO	[36m[FETCHING][0m URN: shubham-sharma-7280aa145 (attempt 1)
+2026-03-01 03:46:39	INFO	[32m[SUCCESS][0m URN: shubham-sharma-7280aa145 fetched successfully after 1 attempts
+2026-03-01 03:46:39	INFO	fetched profile	{"urn": "shubham-sharma-7280aa145", "username": "shubham-sharma-andy"}
+2026-03-01 03:46:39	INFO	[33m[2026-03-01 03:46:39] Inserting/Updating DB: upserting profile for URN shubham-sharma-7280aa145[0m
+2026-03-01 03:46:39	INFO	[32m[2026-03-01 03:46:39] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:46:39	INFO	[33m[2026-03-01 03:46:39] Updating DB: setting status to COMPLETED for entry shubham-sharma-7280aa145[0m
+2026-03-01 03:46:39	INFO	[32m[2026-03-01 03:46:39] Batch #2 progress: 8/10 entries processed (success: 13, failed: 5)[0m
+2026-03-01 03:46:39	INFO	[35m[2026-03-01 03:46:39] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:46:40	INFO	[36m[2026-03-01 03:46:40] Processing entry 9/10 - URN: aakash-goyal-250193[0m
+2026-03-01 03:46:40	INFO	[33m[2026-03-01 03:46:40] Updating DB: setting status to FETCHING for entry aakash-goyal-250193[0m
+2026-03-01 03:46:40	INFO	[36m[FETCHING][0m URN: aakash-goyal-250193 (attempt 1)
+2026-03-01 03:46:47	INFO	[32m[SUCCESS][0m URN: aakash-goyal-250193 fetched successfully after 1 attempts
+2026-03-01 03:46:47	INFO	fetched profile	{"urn": "aakash-goyal-250193", "username": "aakash-goyal-250193"}
+2026-03-01 03:47:21	INFO	[33m[2026-03-01 03:47:21] Inserting/Updating DB: upserting profile for URN aakash-goyal-250193[0m
+2026-03-01 03:47:21	INFO	[32m[2026-03-01 03:47:21] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:47:21	INFO	[33m[2026-03-01 03:47:21] Updating DB: setting status to COMPLETED for entry aakash-goyal-250193[0m
+2026-03-01 03:47:21	INFO	[32m[2026-03-01 03:47:21] Batch #2 progress: 9/10 entries processed (success: 14, failed: 5)[0m
+2026-03-01 03:47:21	INFO	[35m[2026-03-01 03:47:21] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:47:22	INFO	[36m[2026-03-01 03:47:22] Processing entry 10/10 - URN: astitwa-mishra-0b061a217[0m
+2026-03-01 03:47:22	INFO	[33m[2026-03-01 03:47:22] Updating DB: setting status to FETCHING for entry astitwa-mishra-0b061a217[0m
+2026-03-01 03:47:22	INFO	[36m[FETCHING][0m URN: astitwa-mishra-0b061a217 (attempt 1)
+2026-03-01 03:47:24	INFO	[32m[SUCCESS][0m URN: astitwa-mishra-0b061a217 fetched successfully after 1 attempts
+2026-03-01 03:47:24	INFO	fetched profile	{"urn": "astitwa-mishra-0b061a217", "username": "astitwa-mishra-01am"}
+2026-03-01 03:47:24	INFO	[33m[2026-03-01 03:47:24] Inserting/Updating DB: upserting profile for URN astitwa-mishra-0b061a217[0m
+2026-03-01 03:47:24	INFO	[32m[2026-03-01 03:47:24] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:47:24	INFO	[33m[2026-03-01 03:47:24] Updating DB: setting status to COMPLETED for entry astitwa-mishra-0b061a217[0m
+2026-03-01 03:47:24	INFO	[32m[2026-03-01 03:47:24] Batch #2 progress: 10/10 entries processed (success: 15, failed: 5)[0m
+2026-03-01 03:47:24	INFO	quota check passed	{"allowed_batch_size": 10}
+2026-03-01 03:47:24	INFO	[36m[2026-03-01 03:47:24] Fetching from DB: getting pending profile entries (batch size: 10)[0m
+2026-03-01 03:47:24	INFO	[32m[2026-03-01 03:47:24] Fetched from DB: total to process = 10, fetched = 10[0m
+2026-03-01 03:47:24	INFO	[36m[2026-03-01 03:47:24] Processing entry 1/10 - URN: kaltoum-rachdi-7164b71b1[0m
+2026-03-01 03:47:24	INFO	[33m[2026-03-01 03:47:24] Updating DB: setting status to FETCHING for entry kaltoum-rachdi-7164b71b1[0m
+2026-03-01 03:47:24	INFO	[36m[FETCHING][0m URN: kaltoum-rachdi-7164b71b1 (attempt 1)
+2026-03-01 03:47:27	INFO	[32m[SUCCESS][0m URN: kaltoum-rachdi-7164b71b1 fetched successfully after 1 attempts
+2026-03-01 03:47:27	INFO	fetched profile	{"urn": "kaltoum-rachdi-7164b71b1", "username": "krachdi-7164b71b1"}
+2026-03-01 03:47:27	INFO	[33m[2026-03-01 03:47:27] Inserting/Updating DB: upserting profile for URN kaltoum-rachdi-7164b71b1[0m
+2026-03-01 03:47:27	INFO	[32m[2026-03-01 03:47:27] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:47:27	INFO	[33m[2026-03-01 03:47:27] Updating DB: setting status to COMPLETED for entry kaltoum-rachdi-7164b71b1[0m
+2026-03-01 03:47:27	INFO	[32m[2026-03-01 03:47:27] Batch #3 progress: 1/10 entries processed (success: 16, failed: 5)[0m
+2026-03-01 03:47:27	INFO	[35m[2026-03-01 03:47:27] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:47:28	INFO	[36m[2026-03-01 03:47:28] Processing entry 2/10 - URN: anusree-sengupta-a96a78218[0m
+2026-03-01 03:47:28	INFO	[33m[2026-03-01 03:47:28] Updating DB: setting status to FETCHING for entry anusree-sengupta-a96a78218[0m
+2026-03-01 03:47:28	INFO	[36m[FETCHING][0m URN: anusree-sengupta-a96a78218 (attempt 1)
+2026-03-01 03:47:31	INFO	[32m[SUCCESS][0m URN: anusree-sengupta-a96a78218 fetched successfully after 1 attempts
+2026-03-01 03:47:31	INFO	fetched profile	{"urn": "anusree-sengupta-a96a78218", "username": "anusree-sengupta-a96a78218"}
+2026-03-01 03:47:32	INFO	[33m[2026-03-01 03:47:32] Inserting/Updating DB: upserting profile for URN anusree-sengupta-a96a78218[0m
+2026-03-01 03:47:32	INFO	[32m[2026-03-01 03:47:32] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:47:32	INFO	[33m[2026-03-01 03:47:32] Updating DB: setting status to COMPLETED for entry anusree-sengupta-a96a78218[0m
+2026-03-01 03:47:32	INFO	[32m[2026-03-01 03:47:32] Batch #3 progress: 2/10 entries processed (success: 17, failed: 5)[0m
+2026-03-01 03:47:32	INFO	[35m[2026-03-01 03:47:32] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:47:33	INFO	[36m[2026-03-01 03:47:33] Processing entry 3/10 - URN: farid-abdullayev98[0m
+2026-03-01 03:47:33	INFO	[33m[2026-03-01 03:47:33] Updating DB: setting status to FETCHING for entry farid-abdullayev98[0m
+2026-03-01 03:47:33	INFO	[36m[FETCHING][0m URN: farid-abdullayev98 (attempt 1)
+2026-03-01 03:47:36	INFO	[32m[SUCCESS][0m URN: farid-abdullayev98 fetched successfully after 1 attempts
+2026-03-01 03:47:36	INFO	fetched profile	{"urn": "farid-abdullayev98", "username": "farid-abdullayev98"}
+2026-03-01 03:47:36	INFO	[33m[2026-03-01 03:47:36] Inserting/Updating DB: upserting profile for URN farid-abdullayev98[0m
+2026-03-01 03:47:36	INFO	[32m[2026-03-01 03:47:36] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:47:36	INFO	[33m[2026-03-01 03:47:36] Updating DB: setting status to COMPLETED for entry farid-abdullayev98[0m
+2026-03-01 03:47:36	INFO	[32m[2026-03-01 03:47:36] Batch #3 progress: 3/10 entries processed (success: 18, failed: 5)[0m
+2026-03-01 03:47:36	INFO	[35m[2026-03-01 03:47:36] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:47:37	INFO	[36m[2026-03-01 03:47:37] Processing entry 4/10 - URN: ingoruschalandt[0m
+2026-03-01 03:47:37	INFO	[33m[2026-03-01 03:47:37] Updating DB: setting status to FETCHING for entry ingoruschalandt[0m
+2026-03-01 03:47:37	INFO	[36m[FETCHING][0m URN: ingoruschalandt (attempt 1)
+2026-03-01 03:47:38	WARN	[31m[NOT FOUND][0m URN: ingoruschalandt - profile not found, skipping retries
+2026-03-01 03:47:38	WARN	[31m[NOT FOUND][0m URN: ingoruschalandt - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:47:38	INFO	[31m[2026-03-01 03:47:38] Updating DB: setting status to NOT_FOUND for entry ingoruschalandt[0m
+2026-03-01 03:47:38	INFO	[36m[2026-03-01 03:47:38] Processing entry 5/10 - URN: atul-kumar-shukla-9937b3104[0m
+2026-03-01 03:47:38	INFO	[33m[2026-03-01 03:47:38] Updating DB: setting status to FETCHING for entry atul-kumar-shukla-9937b3104[0m
+2026-03-01 03:47:38	INFO	[36m[FETCHING][0m URN: atul-kumar-shukla-9937b3104 (attempt 1)
+2026-03-01 03:47:41	INFO	[32m[SUCCESS][0m URN: atul-kumar-shukla-9937b3104 fetched successfully after 1 attempts
+2026-03-01 03:47:41	INFO	fetched profile	{"urn": "atul-kumar-shukla-9937b3104", "username": "atul-kumar-shukla-9937b3104"}
+2026-03-01 03:47:41	INFO	[33m[2026-03-01 03:47:41] Inserting/Updating DB: upserting profile for URN atul-kumar-shukla-9937b3104[0m
+2026-03-01 03:47:41	INFO	[32m[2026-03-01 03:47:41] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:47:41	INFO	[33m[2026-03-01 03:47:41] Updating DB: setting status to COMPLETED for entry atul-kumar-shukla-9937b3104[0m
+2026-03-01 03:47:42	INFO	[32m[2026-03-01 03:47:42] Batch #3 progress: 5/10 entries processed (success: 19, failed: 6)[0m
+2026-03-01 03:47:42	INFO	[35m[2026-03-01 03:47:42] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:47:43	INFO	[36m[2026-03-01 03:47:43] Processing entry 6/10 - URN: md-asraful-gani-chy[0m
+2026-03-01 03:47:43	INFO	[33m[2026-03-01 03:47:43] Updating DB: setting status to FETCHING for entry md-asraful-gani-chy[0m
+2026-03-01 03:47:43	INFO	[36m[FETCHING][0m URN: md-asraful-gani-chy (attempt 1)
+2026-03-01 03:47:44	INFO	[32m[SUCCESS][0m URN: md-asraful-gani-chy fetched successfully after 1 attempts
+2026-03-01 03:47:44	INFO	fetched profile	{"urn": "md-asraful-gani-chy", "username": "md-asraful-gani-chy"}
+2026-03-01 03:47:44	INFO	[33m[2026-03-01 03:47:44] Inserting/Updating DB: upserting profile for URN md-asraful-gani-chy[0m
+2026-03-01 03:47:44	INFO	[32m[2026-03-01 03:47:44] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:47:44	INFO	[33m[2026-03-01 03:47:44] Updating DB: setting status to COMPLETED for entry md-asraful-gani-chy[0m
+2026-03-01 03:47:44	INFO	[32m[2026-03-01 03:47:44] Batch #3 progress: 6/10 entries processed (success: 20, failed: 6)[0m
+2026-03-01 03:47:44	INFO	[35m[2026-03-01 03:47:44] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:47:45	INFO	[36m[2026-03-01 03:47:45] Processing entry 7/10 - URN: amey-thorat-0a2a15215[0m
+2026-03-01 03:47:45	INFO	[33m[2026-03-01 03:47:45] Updating DB: setting status to FETCHING for entry amey-thorat-0a2a15215[0m
+2026-03-01 03:47:45	INFO	[36m[FETCHING][0m URN: amey-thorat-0a2a15215 (attempt 1)
+2026-03-01 03:47:48	INFO	[32m[SUCCESS][0m URN: amey-thorat-0a2a15215 fetched successfully after 1 attempts
+2026-03-01 03:47:48	INFO	fetched profile	{"urn": "amey-thorat-0a2a15215", "username": "ameythorat1210"}
+2026-03-01 03:47:49	INFO	[33m[2026-03-01 03:47:49] Inserting/Updating DB: upserting profile for URN amey-thorat-0a2a15215[0m
+2026-03-01 03:47:49	INFO	[32m[2026-03-01 03:47:49] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:47:49	INFO	[33m[2026-03-01 03:47:49] Updating DB: setting status to COMPLETED for entry amey-thorat-0a2a15215[0m
+2026-03-01 03:47:49	INFO	[32m[2026-03-01 03:47:49] Batch #3 progress: 7/10 entries processed (success: 21, failed: 6)[0m
+2026-03-01 03:47:49	INFO	[35m[2026-03-01 03:47:49] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:47:50	INFO	[36m[2026-03-01 03:47:50] Processing entry 8/10 - URN: jensenjohnny[0m
+2026-03-01 03:47:50	INFO	[33m[2026-03-01 03:47:50] Updating DB: setting status to FETCHING for entry jensenjohnny[0m
+2026-03-01 03:47:50	INFO	[36m[FETCHING][0m URN: jensenjohnny (attempt 1)
+2026-03-01 03:47:54	INFO	[32m[SUCCESS][0m URN: jensenjohnny fetched successfully after 1 attempts
+2026-03-01 03:47:54	INFO	fetched profile	{"urn": "jensenjohnny", "username": "jensenjohnny"}
+2026-03-01 03:47:55	INFO	[33m[2026-03-01 03:47:55] Inserting/Updating DB: upserting profile for URN jensenjohnny[0m
+2026-03-01 03:47:55	INFO	[32m[2026-03-01 03:47:55] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:47:55	INFO	[33m[2026-03-01 03:47:55] Updating DB: setting status to COMPLETED for entry jensenjohnny[0m
+2026-03-01 03:47:55	INFO	[32m[2026-03-01 03:47:55] Batch #3 progress: 8/10 entries processed (success: 22, failed: 6)[0m
+2026-03-01 03:47:55	INFO	[35m[2026-03-01 03:47:55] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:47:56	INFO	[36m[2026-03-01 03:47:56] Processing entry 9/10 - URN: khaled-saqer-5046a521[0m
+2026-03-01 03:47:56	INFO	[33m[2026-03-01 03:47:56] Updating DB: setting status to FETCHING for entry khaled-saqer-5046a521[0m
+2026-03-01 03:47:56	INFO	[36m[FETCHING][0m URN: khaled-saqer-5046a521 (attempt 1)
+2026-03-01 03:48:00	INFO	[32m[SUCCESS][0m URN: khaled-saqer-5046a521 fetched successfully after 1 attempts
+2026-03-01 03:48:00	INFO	fetched profile	{"urn": "khaled-saqer-5046a521", "username": "khaled-saqer-5046a521"}
+2026-03-01 03:48:00	INFO	[33m[2026-03-01 03:48:00] Inserting/Updating DB: upserting profile for URN khaled-saqer-5046a521[0m
+2026-03-01 03:48:00	INFO	[32m[2026-03-01 03:48:00] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:00	INFO	[33m[2026-03-01 03:48:00] Updating DB: setting status to COMPLETED for entry khaled-saqer-5046a521[0m
+2026-03-01 03:48:00	INFO	[32m[2026-03-01 03:48:00] Batch #3 progress: 9/10 entries processed (success: 23, failed: 6)[0m
+2026-03-01 03:48:00	INFO	[35m[2026-03-01 03:48:00] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:01	INFO	[36m[2026-03-01 03:48:01] Processing entry 10/10 - URN: zhang-lina-7b4320148[0m
+2026-03-01 03:48:01	INFO	[33m[2026-03-01 03:48:01] Updating DB: setting status to FETCHING for entry zhang-lina-7b4320148[0m
+2026-03-01 03:48:01	INFO	[36m[FETCHING][0m URN: zhang-lina-7b4320148 (attempt 1)
+2026-03-01 03:48:02	WARN	[31m[NOT FOUND][0m URN: zhang-lina-7b4320148 - profile not found, skipping retries
+2026-03-01 03:48:02	WARN	[31m[NOT FOUND][0m URN: zhang-lina-7b4320148 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:48:02	INFO	[31m[2026-03-01 03:48:02] Updating DB: setting status to NOT_FOUND for entry zhang-lina-7b4320148[0m
+2026-03-01 03:48:02	INFO	quota check passed	{"allowed_batch_size": 10}
+2026-03-01 03:48:02	INFO	[36m[2026-03-01 03:48:02] Fetching from DB: getting pending profile entries (batch size: 10)[0m
+2026-03-01 03:48:02	INFO	[32m[2026-03-01 03:48:02] Fetched from DB: total to process = 10, fetched = 10[0m
+2026-03-01 03:48:02	INFO	[36m[2026-03-01 03:48:02] Processing entry 1/10 - URN: amine-toumi-6161a511[0m
+2026-03-01 03:48:02	INFO	[33m[2026-03-01 03:48:02] Updating DB: setting status to FETCHING for entry amine-toumi-6161a511[0m
+2026-03-01 03:48:02	INFO	[36m[FETCHING][0m URN: amine-toumi-6161a511 (attempt 1)
+2026-03-01 03:48:06	INFO	[32m[SUCCESS][0m URN: amine-toumi-6161a511 fetched successfully after 1 attempts
+2026-03-01 03:48:06	INFO	fetched profile	{"urn": "amine-toumi-6161a511", "username": "amine-toumi-6161a511"}
+2026-03-01 03:48:06	INFO	[33m[2026-03-01 03:48:06] Inserting/Updating DB: upserting profile for URN amine-toumi-6161a511[0m
+2026-03-01 03:48:06	INFO	[32m[2026-03-01 03:48:06] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:06	INFO	[33m[2026-03-01 03:48:06] Updating DB: setting status to COMPLETED for entry amine-toumi-6161a511[0m
+2026-03-01 03:48:06	INFO	[32m[2026-03-01 03:48:06] Batch #4 progress: 1/10 entries processed (success: 24, failed: 7)[0m
+2026-03-01 03:48:06	INFO	[35m[2026-03-01 03:48:06] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:07	INFO	[36m[2026-03-01 03:48:07] Processing entry 2/10 - URN: sneha-bhattacharya-9894651bb[0m
+2026-03-01 03:48:07	INFO	[33m[2026-03-01 03:48:07] Updating DB: setting status to FETCHING for entry sneha-bhattacharya-9894651bb[0m
+2026-03-01 03:48:07	INFO	[36m[FETCHING][0m URN: sneha-bhattacharya-9894651bb (attempt 1)
+2026-03-01 03:48:10	INFO	[32m[SUCCESS][0m URN: sneha-bhattacharya-9894651bb fetched successfully after 1 attempts
+2026-03-01 03:48:10	INFO	fetched profile	{"urn": "sneha-bhattacharya-9894651bb", "username": "sneha-bhattacharya-9894651bb"}
+2026-03-01 03:48:10	INFO	[33m[2026-03-01 03:48:10] Inserting/Updating DB: upserting profile for URN sneha-bhattacharya-9894651bb[0m
+2026-03-01 03:48:10	INFO	[32m[2026-03-01 03:48:10] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:10	INFO	[33m[2026-03-01 03:48:10] Updating DB: setting status to COMPLETED for entry sneha-bhattacharya-9894651bb[0m
+2026-03-01 03:48:10	INFO	[32m[2026-03-01 03:48:10] Batch #4 progress: 2/10 entries processed (success: 25, failed: 7)[0m
+2026-03-01 03:48:10	INFO	[35m[2026-03-01 03:48:10] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:11	INFO	[36m[2026-03-01 03:48:11] Processing entry 3/10 - URN: sonia-morrison-75a24021b[0m
+2026-03-01 03:48:11	INFO	[33m[2026-03-01 03:48:11] Updating DB: setting status to FETCHING for entry sonia-morrison-75a24021b[0m
+2026-03-01 03:48:11	INFO	[36m[FETCHING][0m URN: sonia-morrison-75a24021b (attempt 1)
+2026-03-01 03:48:14	INFO	[32m[SUCCESS][0m URN: sonia-morrison-75a24021b fetched successfully after 1 attempts
+2026-03-01 03:48:14	INFO	fetched profile	{"urn": "sonia-morrison-75a24021b", "username": "sonia-morrison-75a24021b"}
+2026-03-01 03:48:14	INFO	[33m[2026-03-01 03:48:14] Inserting/Updating DB: upserting profile for URN sonia-morrison-75a24021b[0m
+2026-03-01 03:48:14	INFO	[32m[2026-03-01 03:48:14] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:14	INFO	[33m[2026-03-01 03:48:14] Updating DB: setting status to COMPLETED for entry sonia-morrison-75a24021b[0m
+2026-03-01 03:48:14	INFO	[32m[2026-03-01 03:48:14] Batch #4 progress: 3/10 entries processed (success: 26, failed: 7)[0m
+2026-03-01 03:48:14	INFO	[35m[2026-03-01 03:48:14] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:15	INFO	[36m[2026-03-01 03:48:15] Processing entry 4/10 - URN: dr-rajni-rai-69aa5242[0m
+2026-03-01 03:48:15	INFO	[33m[2026-03-01 03:48:15] Updating DB: setting status to FETCHING for entry dr-rajni-rai-69aa5242[0m
+2026-03-01 03:48:15	INFO	[36m[FETCHING][0m URN: dr-rajni-rai-69aa5242 (attempt 1)
+2026-03-01 03:48:17	INFO	[32m[SUCCESS][0m URN: dr-rajni-rai-69aa5242 fetched successfully after 1 attempts
+2026-03-01 03:48:17	INFO	fetched profile	{"urn": "dr-rajni-rai-69aa5242", "username": "dr-rajni-rai-69aa5242"}
+2026-03-01 03:48:18	INFO	[33m[2026-03-01 03:48:18] Inserting/Updating DB: upserting profile for URN dr-rajni-rai-69aa5242[0m
+2026-03-01 03:48:18	INFO	[32m[2026-03-01 03:48:18] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:18	INFO	[33m[2026-03-01 03:48:18] Updating DB: setting status to COMPLETED for entry dr-rajni-rai-69aa5242[0m
+2026-03-01 03:48:18	INFO	[32m[2026-03-01 03:48:18] Batch #4 progress: 4/10 entries processed (success: 27, failed: 7)[0m
+2026-03-01 03:48:18	INFO	[35m[2026-03-01 03:48:18] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:19	INFO	[36m[2026-03-01 03:48:19] Processing entry 5/10 - URN: shivani-angadi-16a17662[0m
+2026-03-01 03:48:19	INFO	[33m[2026-03-01 03:48:19] Updating DB: setting status to FETCHING for entry shivani-angadi-16a17662[0m
+2026-03-01 03:48:19	INFO	[36m[FETCHING][0m URN: shivani-angadi-16a17662 (attempt 1)
+2026-03-01 03:48:21	INFO	[32m[SUCCESS][0m URN: shivani-angadi-16a17662 fetched successfully after 1 attempts
+2026-03-01 03:48:21	INFO	fetched profile	{"urn": "shivani-angadi-16a17662", "username": "shivaniangadi"}
+2026-03-01 03:48:21	INFO	[33m[2026-03-01 03:48:21] Inserting/Updating DB: upserting profile for URN shivani-angadi-16a17662[0m
+2026-03-01 03:48:21	INFO	[32m[2026-03-01 03:48:21] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:21	INFO	[33m[2026-03-01 03:48:21] Updating DB: setting status to COMPLETED for entry shivani-angadi-16a17662[0m
+2026-03-01 03:48:21	INFO	[32m[2026-03-01 03:48:21] Batch #4 progress: 5/10 entries processed (success: 28, failed: 7)[0m
+2026-03-01 03:48:21	INFO	[35m[2026-03-01 03:48:21] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:22	INFO	[36m[2026-03-01 03:48:22] Processing entry 6/10 - URN: sukant-purty-5589bb172[0m
+2026-03-01 03:48:22	INFO	[33m[2026-03-01 03:48:22] Updating DB: setting status to FETCHING for entry sukant-purty-5589bb172[0m
+2026-03-01 03:48:22	INFO	[36m[FETCHING][0m URN: sukant-purty-5589bb172 (attempt 1)
+2026-03-01 03:48:24	INFO	[32m[SUCCESS][0m URN: sukant-purty-5589bb172 fetched successfully after 1 attempts
+2026-03-01 03:48:24	INFO	fetched profile	{"urn": "sukant-purty-5589bb172", "username": "sukant-purty-5589bb172"}
+2026-03-01 03:48:25	INFO	[33m[2026-03-01 03:48:25] Inserting/Updating DB: upserting profile for URN sukant-purty-5589bb172[0m
+2026-03-01 03:48:25	INFO	[32m[2026-03-01 03:48:25] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:25	INFO	[33m[2026-03-01 03:48:25] Updating DB: setting status to COMPLETED for entry sukant-purty-5589bb172[0m
+2026-03-01 03:48:25	INFO	[32m[2026-03-01 03:48:25] Batch #4 progress: 6/10 entries processed (success: 29, failed: 7)[0m
+2026-03-01 03:48:25	INFO	[35m[2026-03-01 03:48:25] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:26	INFO	[36m[2026-03-01 03:48:26] Processing entry 7/10 - URN: avi-paghadar-5b69281a4[0m
+2026-03-01 03:48:26	INFO	[33m[2026-03-01 03:48:26] Updating DB: setting status to FETCHING for entry avi-paghadar-5b69281a4[0m
+2026-03-01 03:48:26	INFO	[36m[FETCHING][0m URN: avi-paghadar-5b69281a4 (attempt 1)
+2026-03-01 03:48:28	INFO	[32m[SUCCESS][0m URN: avi-paghadar-5b69281a4 fetched successfully after 1 attempts
+2026-03-01 03:48:28	INFO	fetched profile	{"urn": "avi-paghadar-5b69281a4", "username": "avi-paghadar-5b69281a4"}
+2026-03-01 03:48:28	INFO	[33m[2026-03-01 03:48:28] Inserting/Updating DB: upserting profile for URN avi-paghadar-5b69281a4[0m
+2026-03-01 03:48:28	INFO	[32m[2026-03-01 03:48:28] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:28	INFO	[33m[2026-03-01 03:48:28] Updating DB: setting status to COMPLETED for entry avi-paghadar-5b69281a4[0m
+2026-03-01 03:48:28	INFO	[32m[2026-03-01 03:48:28] Batch #4 progress: 7/10 entries processed (success: 30, failed: 7)[0m
+2026-03-01 03:48:28	INFO	[35m[2026-03-01 03:48:28] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:29	INFO	[36m[2026-03-01 03:48:29] Processing entry 8/10 - URN: victorbsanchez86[0m
+2026-03-01 03:48:29	INFO	[33m[2026-03-01 03:48:29] Updating DB: setting status to FETCHING for entry victorbsanchez86[0m
+2026-03-01 03:48:29	INFO	[36m[FETCHING][0m URN: victorbsanchez86 (attempt 1)
+2026-03-01 03:48:31	INFO	[32m[SUCCESS][0m URN: victorbsanchez86 fetched successfully after 1 attempts
+2026-03-01 03:48:31	INFO	fetched profile	{"urn": "victorbsanchez86", "username": "victorbsanchez86"}
+2026-03-01 03:48:31	INFO	[33m[2026-03-01 03:48:31] Inserting/Updating DB: upserting profile for URN victorbsanchez86[0m
+2026-03-01 03:48:31	INFO	[32m[2026-03-01 03:48:31] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:31	INFO	[33m[2026-03-01 03:48:31] Updating DB: setting status to COMPLETED for entry victorbsanchez86[0m
+2026-03-01 03:48:31	INFO	[32m[2026-03-01 03:48:31] Batch #4 progress: 8/10 entries processed (success: 31, failed: 7)[0m
+2026-03-01 03:48:31	INFO	[35m[2026-03-01 03:48:31] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:32	INFO	[36m[2026-03-01 03:48:32] Processing entry 9/10 - URN: thomas-ramos-37a7a934[0m
+2026-03-01 03:48:32	INFO	[33m[2026-03-01 03:48:32] Updating DB: setting status to FETCHING for entry thomas-ramos-37a7a934[0m
+2026-03-01 03:48:33	INFO	[36m[FETCHING][0m URN: thomas-ramos-37a7a934 (attempt 1)
+2026-03-01 03:48:34	WARN	[31m[NOT FOUND][0m URN: thomas-ramos-37a7a934 - profile not found, skipping retries
+2026-03-01 03:48:34	WARN	[31m[NOT FOUND][0m URN: thomas-ramos-37a7a934 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:48:34	INFO	[31m[2026-03-01 03:48:34] Updating DB: setting status to NOT_FOUND for entry thomas-ramos-37a7a934[0m
+2026-03-01 03:48:34	INFO	[36m[2026-03-01 03:48:34] Processing entry 10/10 - URN: febryna-sembiring-2aa617103[0m
+2026-03-01 03:48:34	INFO	[33m[2026-03-01 03:48:34] Updating DB: setting status to FETCHING for entry febryna-sembiring-2aa617103[0m
+2026-03-01 03:48:34	INFO	[36m[FETCHING][0m URN: febryna-sembiring-2aa617103 (attempt 1)
+2026-03-01 03:48:35	INFO	[32m[SUCCESS][0m URN: febryna-sembiring-2aa617103 fetched successfully after 1 attempts
+2026-03-01 03:48:35	INFO	fetched profile	{"urn": "febryna-sembiring-2aa617103", "username": "febryna-sembiring-2aa617103"}
+2026-03-01 03:48:36	INFO	[33m[2026-03-01 03:48:36] Inserting/Updating DB: upserting profile for URN febryna-sembiring-2aa617103[0m
+2026-03-01 03:48:36	INFO	[32m[2026-03-01 03:48:36] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:36	INFO	[33m[2026-03-01 03:48:36] Updating DB: setting status to COMPLETED for entry febryna-sembiring-2aa617103[0m
+2026-03-01 03:48:36	INFO	[32m[2026-03-01 03:48:36] Batch #4 progress: 10/10 entries processed (success: 32, failed: 8)[0m
+2026-03-01 03:48:36	INFO	quota check passed	{"allowed_batch_size": 10}
+2026-03-01 03:48:36	INFO	[36m[2026-03-01 03:48:36] Fetching from DB: getting pending profile entries (batch size: 10)[0m
+2026-03-01 03:48:36	INFO	[32m[2026-03-01 03:48:36] Fetched from DB: total to process = 10, fetched = 10[0m
+2026-03-01 03:48:36	INFO	[36m[2026-03-01 03:48:36] Processing entry 1/10 - URN: masudur-rahman-365a28220[0m
+2026-03-01 03:48:36	INFO	[33m[2026-03-01 03:48:36] Updating DB: setting status to FETCHING for entry masudur-rahman-365a28220[0m
+2026-03-01 03:48:36	INFO	[36m[FETCHING][0m URN: masudur-rahman-365a28220 (attempt 1)
+2026-03-01 03:48:39	INFO	[32m[SUCCESS][0m URN: masudur-rahman-365a28220 fetched successfully after 1 attempts
+2026-03-01 03:48:39	INFO	fetched profile	{"urn": "masudur-rahman-365a28220", "username": "masudur-rahman-365a28220"}
+2026-03-01 03:48:39	INFO	[33m[2026-03-01 03:48:39] Inserting/Updating DB: upserting profile for URN masudur-rahman-365a28220[0m
+2026-03-01 03:48:39	INFO	[32m[2026-03-01 03:48:39] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:39	INFO	[33m[2026-03-01 03:48:39] Updating DB: setting status to COMPLETED for entry masudur-rahman-365a28220[0m
+2026-03-01 03:48:39	INFO	[32m[2026-03-01 03:48:39] Batch #5 progress: 1/10 entries processed (success: 33, failed: 8)[0m
+2026-03-01 03:48:39	INFO	[35m[2026-03-01 03:48:39] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:48:40	INFO	[36m[2026-03-01 03:48:40] Processing entry 2/10 - URN: abhishek-agnihotri-2a7aa3200[0m
+2026-03-01 03:48:40	INFO	[33m[2026-03-01 03:48:40] Updating DB: setting status to FETCHING for entry abhishek-agnihotri-2a7aa3200[0m
+2026-03-01 03:48:40	INFO	[36m[FETCHING][0m URN: abhishek-agnihotri-2a7aa3200 (attempt 1)
+2026-03-01 03:48:42	WARN	[31m[NOT FOUND][0m URN: abhishek-agnihotri-2a7aa3200 - profile not found, skipping retries
+2026-03-01 03:48:42	WARN	[31m[NOT FOUND][0m URN: abhishek-agnihotri-2a7aa3200 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:48:42	INFO	[31m[2026-03-01 03:48:42] Updating DB: setting status to NOT_FOUND for entry abhishek-agnihotri-2a7aa3200[0m
+2026-03-01 03:48:42	INFO	[36m[2026-03-01 03:48:42] Processing entry 3/10 - URN: rachitkapoor7[0m
+2026-03-01 03:48:42	INFO	[33m[2026-03-01 03:48:42] Updating DB: setting status to FETCHING for entry rachitkapoor7[0m
+2026-03-01 03:48:42	INFO	[36m[FETCHING][0m URN: rachitkapoor7 (attempt 1)
+2026-03-01 03:48:46	WARN	[31m[NOT FOUND][0m URN: rachitkapoor7 - profile not found, skipping retries
+2026-03-01 03:48:46	WARN	[31m[NOT FOUND][0m URN: rachitkapoor7 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:48:46	INFO	[31m[2026-03-01 03:48:46] Updating DB: setting status to NOT_FOUND for entry rachitkapoor7[0m
+2026-03-01 03:48:46	INFO	[36m[2026-03-01 03:48:46] Processing entry 4/10 - URN: santoshbhuyan7[0m
+2026-03-01 03:48:46	INFO	[33m[2026-03-01 03:48:46] Updating DB: setting status to FETCHING for entry santoshbhuyan7[0m
+2026-03-01 03:48:46	INFO	[36m[FETCHING][0m URN: santoshbhuyan7 (attempt 1)
+2026-03-01 03:48:49	WARN	[31m[NOT FOUND][0m URN: santoshbhuyan7 - profile not found, skipping retries
+2026-03-01 03:48:49	WARN	[31m[NOT FOUND][0m URN: santoshbhuyan7 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:48:49	INFO	[31m[2026-03-01 03:48:49] Updating DB: setting status to NOT_FOUND for entry santoshbhuyan7[0m
+2026-03-01 03:48:49	INFO	[36m[2026-03-01 03:48:49] Processing entry 5/10 - URN: diwakar-singh-phd-82b41651[0m
+2026-03-01 03:48:49	INFO	[33m[2026-03-01 03:48:49] Updating DB: setting status to FETCHING for entry diwakar-singh-phd-82b41651[0m
+2026-03-01 03:48:49	INFO	[36m[FETCHING][0m URN: diwakar-singh-phd-82b41651 (attempt 1)
+2026-03-01 03:48:58	INFO	[32m[SUCCESS][0m URN: diwakar-singh-phd-82b41651 fetched successfully after 1 attempts
+2026-03-01 03:48:58	INFO	fetched profile	{"urn": "diwakar-singh-phd-82b41651", "username": "diwakar-singh-phd-82b41651"}
+2026-03-01 03:48:59	INFO	[33m[2026-03-01 03:48:59] Inserting/Updating DB: upserting profile for URN diwakar-singh-phd-82b41651[0m
+2026-03-01 03:48:59	INFO	[32m[2026-03-01 03:48:59] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:48:59	INFO	[33m[2026-03-01 03:48:59] Updating DB: setting status to COMPLETED for entry diwakar-singh-phd-82b41651[0m
+2026-03-01 03:48:59	INFO	[32m[2026-03-01 03:48:59] Batch #5 progress: 5/10 entries processed (success: 34, failed: 11)[0m
+2026-03-01 03:48:59	INFO	[35m[2026-03-01 03:48:59] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:49:00	INFO	[36m[2026-03-01 03:49:00] Processing entry 6/10 - URN: vaibhav-chauhan-30522212b[0m
+2026-03-01 03:49:00	INFO	[33m[2026-03-01 03:49:00] Updating DB: setting status to FETCHING for entry vaibhav-chauhan-30522212b[0m
+2026-03-01 03:49:00	INFO	[36m[FETCHING][0m URN: vaibhav-chauhan-30522212b (attempt 1)
+2026-03-01 03:49:24	ERROR	[31m[ERROR][0m URN: vaibhav-chauhan-30522212b - non-rate-limit error: API error: Bad gateway error. You will not be charged for this request (attempt 1/3)
+2026-03-01 03:49:24	INFO	[35m[SLEEPING][0m URN: vaibhav-chauhan-30522212b - waiting 1s before retry after error...
+2026-03-01 03:49:25	INFO	[36m[FETCHING][0m URN: vaibhav-chauhan-30522212b (attempt 2)
+2026-03-01 03:49:37	INFO	[32m[SUCCESS][0m URN: vaibhav-chauhan-30522212b fetched successfully after 2 attempts
+2026-03-01 03:49:37	INFO	fetched profile	{"urn": "vaibhav-chauhan-30522212b", "username": "vaibhav-chauhan-30522212b"}
+2026-03-01 03:49:37	INFO	[33m[2026-03-01 03:49:37] Inserting/Updating DB: upserting profile for URN vaibhav-chauhan-30522212b[0m
+2026-03-01 03:49:37	INFO	[32m[2026-03-01 03:49:37] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:49:37	INFO	[33m[2026-03-01 03:49:37] Updating DB: setting status to COMPLETED for entry vaibhav-chauhan-30522212b[0m
+2026-03-01 03:49:37	INFO	[32m[2026-03-01 03:49:37] Batch #5 progress: 6/10 entries processed (success: 35, failed: 11)[0m
+2026-03-01 03:49:37	INFO	[35m[2026-03-01 03:49:37] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:49:38	INFO	[36m[2026-03-01 03:49:38] Processing entry 7/10 - URN: huzefa-shabbir-aa3756a2[0m
+2026-03-01 03:49:38	INFO	[33m[2026-03-01 03:49:38] Updating DB: setting status to FETCHING for entry huzefa-shabbir-aa3756a2[0m
+2026-03-01 03:49:39	INFO	[36m[FETCHING][0m URN: huzefa-shabbir-aa3756a2 (attempt 1)
+2026-03-01 03:49:40	INFO	[32m[SUCCESS][0m URN: huzefa-shabbir-aa3756a2 fetched successfully after 1 attempts
+2026-03-01 03:49:40	INFO	fetched profile	{"urn": "huzefa-shabbir-aa3756a2", "username": "huzefashabbir01"}
+2026-03-01 03:49:41	INFO	[33m[2026-03-01 03:49:41] Inserting/Updating DB: upserting profile for URN huzefa-shabbir-aa3756a2[0m
+2026-03-01 03:49:41	INFO	[32m[2026-03-01 03:49:41] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:49:41	INFO	[33m[2026-03-01 03:49:41] Updating DB: setting status to COMPLETED for entry huzefa-shabbir-aa3756a2[0m
+2026-03-01 03:49:41	INFO	[32m[2026-03-01 03:49:41] Batch #5 progress: 7/10 entries processed (success: 36, failed: 11)[0m
+2026-03-01 03:49:41	INFO	[35m[2026-03-01 03:49:41] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:49:42	INFO	[36m[2026-03-01 03:49:42] Processing entry 8/10 - URN: ritika-jain-4a033118b[0m
+2026-03-01 03:49:42	INFO	[33m[2026-03-01 03:49:42] Updating DB: setting status to FETCHING for entry ritika-jain-4a033118b[0m
+2026-03-01 03:49:42	INFO	[36m[FETCHING][0m URN: ritika-jain-4a033118b (attempt 1)
+2026-03-01 03:49:46	INFO	[32m[SUCCESS][0m URN: ritika-jain-4a033118b fetched successfully after 1 attempts
+2026-03-01 03:49:46	INFO	fetched profile	{"urn": "ritika-jain-4a033118b", "username": "ritika-jain-4a033118b"}
+2026-03-01 03:49:46	INFO	[33m[2026-03-01 03:49:46] Inserting/Updating DB: upserting profile for URN ritika-jain-4a033118b[0m
+2026-03-01 03:49:46	INFO	[32m[2026-03-01 03:49:46] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:49:46	INFO	[33m[2026-03-01 03:49:46] Updating DB: setting status to COMPLETED for entry ritika-jain-4a033118b[0m
+2026-03-01 03:49:46	INFO	[32m[2026-03-01 03:49:46] Batch #5 progress: 8/10 entries processed (success: 37, failed: 11)[0m
+2026-03-01 03:49:46	INFO	[35m[2026-03-01 03:49:46] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:49:47	INFO	[36m[2026-03-01 03:49:47] Processing entry 9/10 - URN: manel-marouani-aa6263169[0m
+2026-03-01 03:49:47	INFO	[33m[2026-03-01 03:49:47] Updating DB: setting status to FETCHING for entry manel-marouani-aa6263169[0m
+2026-03-01 03:49:47	INFO	[36m[FETCHING][0m URN: manel-marouani-aa6263169 (attempt 1)
+2026-03-01 03:49:49	INFO	[32m[SUCCESS][0m URN: manel-marouani-aa6263169 fetched successfully after 1 attempts
+2026-03-01 03:49:49	INFO	fetched profile	{"urn": "manel-marouani-aa6263169", "username": "manel-marouani-aa6263169"}
+2026-03-01 03:49:49	INFO	[33m[2026-03-01 03:49:49] Inserting/Updating DB: upserting profile for URN manel-marouani-aa6263169[0m
+2026-03-01 03:49:49	INFO	[32m[2026-03-01 03:49:49] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:49:49	INFO	[33m[2026-03-01 03:49:49] Updating DB: setting status to COMPLETED for entry manel-marouani-aa6263169[0m
+2026-03-01 03:49:49	INFO	[32m[2026-03-01 03:49:49] Batch #5 progress: 9/10 entries processed (success: 38, failed: 11)[0m
+2026-03-01 03:49:49	INFO	[35m[2026-03-01 03:49:49] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:49:50	INFO	[36m[2026-03-01 03:49:50] Processing entry 10/10 - URN: rajesh-chavhan-6a3b64161[0m
+2026-03-01 03:49:50	INFO	[33m[2026-03-01 03:49:50] Updating DB: setting status to FETCHING for entry rajesh-chavhan-6a3b64161[0m
+2026-03-01 03:49:50	INFO	[36m[FETCHING][0m URN: rajesh-chavhan-6a3b64161 (attempt 1)
+2026-03-01 03:49:53	INFO	[32m[SUCCESS][0m URN: rajesh-chavhan-6a3b64161 fetched successfully after 1 attempts
+2026-03-01 03:49:53	INFO	fetched profile	{"urn": "rajesh-chavhan-6a3b64161", "username": "rajesh-chavhan-6a3b64161"}
+2026-03-01 03:49:53	INFO	[33m[2026-03-01 03:49:53] Inserting/Updating DB: upserting profile for URN rajesh-chavhan-6a3b64161[0m
+2026-03-01 03:49:53	INFO	[32m[2026-03-01 03:49:53] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:49:53	INFO	[33m[2026-03-01 03:49:53] Updating DB: setting status to COMPLETED for entry rajesh-chavhan-6a3b64161[0m
+2026-03-01 03:49:53	INFO	[32m[2026-03-01 03:49:53] Batch #5 progress: 10/10 entries processed (success: 39, failed: 11)[0m
+2026-03-01 03:49:53	INFO	quota check passed	{"allowed_batch_size": 10}
+2026-03-01 03:49:53	INFO	[36m[2026-03-01 03:49:53] Fetching from DB: getting pending profile entries (batch size: 10)[0m
+2026-03-01 03:49:53	INFO	[32m[2026-03-01 03:49:53] Fetched from DB: total to process = 10, fetched = 10[0m
+2026-03-01 03:49:53	INFO	[36m[2026-03-01 03:49:53] Processing entry 1/10 - URN: anjanaajith16[0m
+2026-03-01 03:49:53	INFO	[33m[2026-03-01 03:49:53] Updating DB: setting status to FETCHING for entry anjanaajith16[0m
+2026-03-01 03:49:53	INFO	[36m[FETCHING][0m URN: anjanaajith16 (attempt 1)
+2026-03-01 03:50:15	ERROR	[31m[ERROR][0m URN: anjanaajith16 - non-rate-limit error: API error: Bad gateway error. You will not be charged for this request (attempt 1/3)
+2026-03-01 03:50:15	INFO	[35m[SLEEPING][0m URN: anjanaajith16 - waiting 1s before retry after error...
+2026-03-01 03:50:16	INFO	[36m[FETCHING][0m URN: anjanaajith16 (attempt 2)
+2026-03-01 03:50:46	ERROR	[31m[ERROR][0m URN: anjanaajith16 - non-rate-limit error: failed to execute request: Get "https://real-time-people-company-data.p.rapidapi.com/?username=anjanaajith16": context deadline exceeded (Client.Timeout exceeded while awaiting headers) (attempt 2/3)
+2026-03-01 03:50:46	INFO	[35m[SLEEPING][0m URN: anjanaajith16 - waiting 1s before retry after error...
+2026-03-01 03:50:47	INFO	[36m[FETCHING][0m URN: anjanaajith16 (attempt 3)
+2026-03-01 03:50:50	INFO	[32m[SUCCESS][0m URN: anjanaajith16 fetched successfully after 3 attempts
+2026-03-01 03:50:50	INFO	fetched profile	{"urn": "anjanaajith16", "username": "anjanaajith16"}
+2026-03-01 03:50:52	INFO	[33m[2026-03-01 03:50:52] Inserting/Updating DB: upserting profile for URN anjanaajith16[0m
+2026-03-01 03:50:52	INFO	[32m[2026-03-01 03:50:52] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:50:52	INFO	[33m[2026-03-01 03:50:52] Updating DB: setting status to COMPLETED for entry anjanaajith16[0m
+2026-03-01 03:50:52	INFO	[32m[2026-03-01 03:50:52] Batch #6 progress: 1/10 entries processed (success: 40, failed: 11)[0m
+2026-03-01 03:50:52	INFO	[35m[2026-03-01 03:50:52] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:50:53	INFO	[36m[2026-03-01 03:50:53] Processing entry 2/10 - URN: ishangmehra[0m
+2026-03-01 03:50:53	INFO	[33m[2026-03-01 03:50:53] Updating DB: setting status to FETCHING for entry ishangmehra[0m
+2026-03-01 03:50:53	INFO	[36m[FETCHING][0m URN: ishangmehra (attempt 1)
+2026-03-01 03:50:54	WARN	[31m[NOT FOUND][0m URN: ishangmehra - profile not found, skipping retries
+2026-03-01 03:50:54	WARN	[31m[NOT FOUND][0m URN: ishangmehra - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:50:54	INFO	[31m[2026-03-01 03:50:54] Updating DB: setting status to NOT_FOUND for entry ishangmehra[0m
+2026-03-01 03:50:54	INFO	[36m[2026-03-01 03:50:54] Processing entry 3/10 - URN: aditya-adep-01[0m
+2026-03-01 03:50:54	INFO	[33m[2026-03-01 03:50:54] Updating DB: setting status to FETCHING for entry aditya-adep-01[0m
+2026-03-01 03:50:54	INFO	[36m[FETCHING][0m URN: aditya-adep-01 (attempt 1)
+2026-03-01 03:50:56	INFO	[32m[SUCCESS][0m URN: aditya-adep-01 fetched successfully after 1 attempts
+2026-03-01 03:50:56	INFO	fetched profile	{"urn": "aditya-adep-01", "username": "aditya-adep-01"}
+2026-03-01 03:50:57	INFO	[33m[2026-03-01 03:50:57] Inserting/Updating DB: upserting profile for URN aditya-adep-01[0m
+2026-03-01 03:50:57	INFO	[32m[2026-03-01 03:50:57] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:50:57	INFO	[33m[2026-03-01 03:50:57] Updating DB: setting status to COMPLETED for entry aditya-adep-01[0m
+2026-03-01 03:50:57	INFO	[32m[2026-03-01 03:50:57] Batch #6 progress: 3/10 entries processed (success: 41, failed: 12)[0m
+2026-03-01 03:50:57	INFO	[35m[2026-03-01 03:50:57] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:50:58	INFO	[36m[2026-03-01 03:50:58] Processing entry 4/10 - URN: do%C4%9Fukan-%C3%A7-5a4b32206[0m
+2026-03-01 03:50:58	INFO	[33m[2026-03-01 03:50:58] Updating DB: setting status to FETCHING for entry do%C4%9Fukan-%C3%A7-5a4b32206[0m
+2026-03-01 03:50:58	INFO	[36m[FETCHING][0m URN: do%C4%9Fukan-%C3%A7-5a4b32206 (attempt 1)
+2026-03-01 03:50:59	WARN	[31m[NOT FOUND][0m URN: do%C4%9Fukan-%C3%A7-5a4b32206 - profile not found, skipping retries
+2026-03-01 03:50:59	WARN	[31m[NOT FOUND][0m URN: do%C4%9Fukan-%C3%A7-5a4b32206 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:50:59	INFO	[31m[2026-03-01 03:50:59] Updating DB: setting status to NOT_FOUND for entry do%C4%9Fukan-%C3%A7-5a4b32206[0m
+2026-03-01 03:50:59	INFO	[36m[2026-03-01 03:50:59] Processing entry 5/10 - URN: monica-vatturi-837905200[0m
+2026-03-01 03:50:59	INFO	[33m[2026-03-01 03:50:59] Updating DB: setting status to FETCHING for entry monica-vatturi-837905200[0m
+2026-03-01 03:50:59	INFO	[36m[FETCHING][0m URN: monica-vatturi-837905200 (attempt 1)
+2026-03-01 03:51:02	WARN	[31m[NOT FOUND][0m URN: monica-vatturi-837905200 - profile not found, skipping retries
+2026-03-01 03:51:02	WARN	[31m[NOT FOUND][0m URN: monica-vatturi-837905200 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:51:02	INFO	[31m[2026-03-01 03:51:02] Updating DB: setting status to NOT_FOUND for entry monica-vatturi-837905200[0m
+2026-03-01 03:51:02	INFO	[36m[2026-03-01 03:51:02] Processing entry 6/10 - URN: zi-jin-ng-0a88b3220[0m
+2026-03-01 03:51:02	INFO	[33m[2026-03-01 03:51:02] Updating DB: setting status to FETCHING for entry zi-jin-ng-0a88b3220[0m
+2026-03-01 03:51:02	INFO	[36m[FETCHING][0m URN: zi-jin-ng-0a88b3220 (attempt 1)
+2026-03-01 03:51:05	INFO	[32m[SUCCESS][0m URN: zi-jin-ng-0a88b3220 fetched successfully after 1 attempts
+2026-03-01 03:51:05	INFO	fetched profile	{"urn": "zi-jin-ng-0a88b3220", "username": "zijin-ng"}
+2026-03-01 03:51:18	INFO	[33m[2026-03-01 03:51:18] Inserting/Updating DB: upserting profile for URN zi-jin-ng-0a88b3220[0m
+2026-03-01 03:51:18	INFO	[32m[2026-03-01 03:51:18] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:51:18	INFO	[33m[2026-03-01 03:51:18] Updating DB: setting status to COMPLETED for entry zi-jin-ng-0a88b3220[0m
+2026-03-01 03:51:18	INFO	[32m[2026-03-01 03:51:18] Batch #6 progress: 6/10 entries processed (success: 42, failed: 14)[0m
+2026-03-01 03:51:18	INFO	[35m[2026-03-01 03:51:18] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:51:19	INFO	[36m[2026-03-01 03:51:19] Processing entry 7/10 - URN: angad-bawa-3312661b2[0m
+2026-03-01 03:51:19	INFO	[33m[2026-03-01 03:51:19] Updating DB: setting status to FETCHING for entry angad-bawa-3312661b2[0m
+2026-03-01 03:51:19	INFO	[36m[FETCHING][0m URN: angad-bawa-3312661b2 (attempt 1)
+2026-03-01 03:51:21	INFO	[32m[SUCCESS][0m URN: angad-bawa-3312661b2 fetched successfully after 1 attempts
+2026-03-01 03:51:21	INFO	fetched profile	{"urn": "angad-bawa-3312661b2", "username": "angadbawa"}
+2026-03-01 03:51:22	INFO	[33m[2026-03-01 03:51:22] Inserting/Updating DB: upserting profile for URN angad-bawa-3312661b2[0m
+2026-03-01 03:51:22	INFO	[32m[2026-03-01 03:51:22] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:51:22	INFO	[33m[2026-03-01 03:51:22] Updating DB: setting status to COMPLETED for entry angad-bawa-3312661b2[0m
+2026-03-01 03:51:22	INFO	[32m[2026-03-01 03:51:22] Batch #6 progress: 7/10 entries processed (success: 43, failed: 14)[0m
+2026-03-01 03:51:22	INFO	[35m[2026-03-01 03:51:22] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:51:23	INFO	[36m[2026-03-01 03:51:23] Processing entry 8/10 - URN: amrssakr[0m
+2026-03-01 03:51:23	INFO	[33m[2026-03-01 03:51:23] Updating DB: setting status to FETCHING for entry amrssakr[0m
+2026-03-01 03:51:23	INFO	[36m[FETCHING][0m URN: amrssakr (attempt 1)
+2026-03-01 03:51:26	INFO	[32m[SUCCESS][0m URN: amrssakr fetched successfully after 1 attempts
+2026-03-01 03:51:26	INFO	fetched profile	{"urn": "amrssakr", "username": "amrssakr"}
+2026-03-01 03:51:27	INFO	[33m[2026-03-01 03:51:27] Inserting/Updating DB: upserting profile for URN amrssakr[0m
+2026-03-01 03:51:27	INFO	[32m[2026-03-01 03:51:27] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:51:27	INFO	[33m[2026-03-01 03:51:27] Updating DB: setting status to COMPLETED for entry amrssakr[0m
+2026-03-01 03:51:27	INFO	[32m[2026-03-01 03:51:27] Batch #6 progress: 8/10 entries processed (success: 44, failed: 14)[0m
+2026-03-01 03:51:27	INFO	[35m[2026-03-01 03:51:27] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:51:28	INFO	[36m[2026-03-01 03:51:28] Processing entry 9/10 - URN: zahida-naz-123zn[0m
+2026-03-01 03:51:28	INFO	[33m[2026-03-01 03:51:28] Updating DB: setting status to FETCHING for entry zahida-naz-123zn[0m
+2026-03-01 03:51:28	INFO	[36m[FETCHING][0m URN: zahida-naz-123zn (attempt 1)
+2026-03-01 03:51:31	INFO	[32m[SUCCESS][0m URN: zahida-naz-123zn fetched successfully after 1 attempts
+2026-03-01 03:51:31	INFO	fetched profile	{"urn": "zahida-naz-123zn", "username": "zahida-naz-123zn"}
+2026-03-01 03:51:31	INFO	[33m[2026-03-01 03:51:31] Inserting/Updating DB: upserting profile for URN zahida-naz-123zn[0m
+2026-03-01 03:51:31	INFO	[32m[2026-03-01 03:51:31] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:51:31	INFO	[33m[2026-03-01 03:51:31] Updating DB: setting status to COMPLETED for entry zahida-naz-123zn[0m
+2026-03-01 03:51:31	INFO	[32m[2026-03-01 03:51:31] Batch #6 progress: 9/10 entries processed (success: 45, failed: 14)[0m
+2026-03-01 03:51:31	INFO	[35m[2026-03-01 03:51:31] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:51:32	INFO	[36m[2026-03-01 03:51:32] Processing entry 10/10 - URN: sudarshan-jha-5b9493220[0m
+2026-03-01 03:51:32	INFO	[33m[2026-03-01 03:51:32] Updating DB: setting status to FETCHING for entry sudarshan-jha-5b9493220[0m
+2026-03-01 03:51:32	INFO	[36m[FETCHING][0m URN: sudarshan-jha-5b9493220 (attempt 1)
+2026-03-01 03:51:34	INFO	[32m[SUCCESS][0m URN: sudarshan-jha-5b9493220 fetched successfully after 1 attempts
+2026-03-01 03:51:34	INFO	fetched profile	{"urn": "sudarshan-jha-5b9493220", "username": "sudarshan-jha-5b9493220"}
+2026-03-01 03:51:35	INFO	[33m[2026-03-01 03:51:35] Inserting/Updating DB: upserting profile for URN sudarshan-jha-5b9493220[0m
+2026-03-01 03:51:35	INFO	[32m[2026-03-01 03:51:35] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:51:35	INFO	[33m[2026-03-01 03:51:35] Updating DB: setting status to COMPLETED for entry sudarshan-jha-5b9493220[0m
+2026-03-01 03:51:35	INFO	[32m[2026-03-01 03:51:35] Batch #6 progress: 10/10 entries processed (success: 46, failed: 14)[0m
+2026-03-01 03:51:35	INFO	quota check passed	{"allowed_batch_size": 10}
+2026-03-01 03:51:35	INFO	[36m[2026-03-01 03:51:35] Fetching from DB: getting pending profile entries (batch size: 10)[0m
+2026-03-01 03:51:35	INFO	[32m[2026-03-01 03:51:35] Fetched from DB: total to process = 10, fetched = 10[0m
+2026-03-01 03:51:35	INFO	[36m[2026-03-01 03:51:35] Processing entry 1/10 - URN: pooja-narawade-55a7a91b4[0m
+2026-03-01 03:51:35	INFO	[33m[2026-03-01 03:51:35] Updating DB: setting status to FETCHING for entry pooja-narawade-55a7a91b4[0m
+2026-03-01 03:51:35	INFO	[36m[FETCHING][0m URN: pooja-narawade-55a7a91b4 (attempt 1)
+2026-03-01 03:51:37	INFO	[32m[SUCCESS][0m URN: pooja-narawade-55a7a91b4 fetched successfully after 1 attempts
+2026-03-01 03:51:37	INFO	fetched profile	{"urn": "pooja-narawade-55a7a91b4", "username": "pooja-narawad2528"}
+2026-03-01 03:51:38	INFO	[33m[2026-03-01 03:51:38] Inserting/Updating DB: upserting profile for URN pooja-narawade-55a7a91b4[0m
+2026-03-01 03:51:38	INFO	[32m[2026-03-01 03:51:38] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:51:38	INFO	[33m[2026-03-01 03:51:38] Updating DB: setting status to COMPLETED for entry pooja-narawade-55a7a91b4[0m
+2026-03-01 03:51:38	INFO	[32m[2026-03-01 03:51:38] Batch #7 progress: 1/10 entries processed (success: 47, failed: 14)[0m
+2026-03-01 03:51:38	INFO	[35m[2026-03-01 03:51:38] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:51:39	INFO	[36m[2026-03-01 03:51:39] Processing entry 2/10 - URN: al-haythm-al-essawy-12b871220[0m
+2026-03-01 03:51:39	INFO	[33m[2026-03-01 03:51:39] Updating DB: setting status to FETCHING for entry al-haythm-al-essawy-12b871220[0m
+2026-03-01 03:51:39	INFO	[36m[FETCHING][0m URN: al-haythm-al-essawy-12b871220 (attempt 1)
+2026-03-01 03:52:01	ERROR	[31m[ERROR][0m URN: al-haythm-al-essawy-12b871220 - non-rate-limit error: API error: Bad gateway error. You will not be charged for this request (attempt 1/3)
+2026-03-01 03:52:01	INFO	[35m[SLEEPING][0m URN: al-haythm-al-essawy-12b871220 - waiting 1s before retry after error...
+2026-03-01 03:52:02	INFO	[36m[FETCHING][0m URN: al-haythm-al-essawy-12b871220 (attempt 2)
+2026-03-01 03:52:04	INFO	[32m[SUCCESS][0m URN: al-haythm-al-essawy-12b871220 fetched successfully after 2 attempts
+2026-03-01 03:52:04	INFO	fetched profile	{"urn": "al-haythm-al-essawy-12b871220", "username": "al-haythm-al-essawy-12b871220"}
+2026-03-01 03:52:07	INFO	[33m[2026-03-01 03:52:07] Inserting/Updating DB: upserting profile for URN al-haythm-al-essawy-12b871220[0m
+2026-03-01 03:52:07	INFO	[32m[2026-03-01 03:52:07] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:52:07	INFO	[33m[2026-03-01 03:52:07] Updating DB: setting status to COMPLETED for entry al-haythm-al-essawy-12b871220[0m
+2026-03-01 03:52:07	INFO	[32m[2026-03-01 03:52:07] Batch #7 progress: 2/10 entries processed (success: 48, failed: 14)[0m
+2026-03-01 03:52:07	INFO	[35m[2026-03-01 03:52:07] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:52:08	INFO	[36m[2026-03-01 03:52:08] Processing entry 3/10 - URN: festus-kofi-boateng-otchere-b40591219[0m
+2026-03-01 03:52:08	INFO	[33m[2026-03-01 03:52:08] Updating DB: setting status to FETCHING for entry festus-kofi-boateng-otchere-b40591219[0m
+2026-03-01 03:52:08	INFO	[36m[FETCHING][0m URN: festus-kofi-boateng-otchere-b40591219 (attempt 1)
+2026-03-01 03:52:11	INFO	[32m[SUCCESS][0m URN: festus-kofi-boateng-otchere-b40591219 fetched successfully after 1 attempts
+2026-03-01 03:52:11	INFO	fetched profile	{"urn": "festus-kofi-boateng-otchere-b40591219", "username": "festus-kofi-boateng-otchere-b40591219"}
+2026-03-01 03:52:11	INFO	[33m[2026-03-01 03:52:11] Inserting/Updating DB: upserting profile for URN festus-kofi-boateng-otchere-b40591219[0m
+2026-03-01 03:52:11	INFO	[32m[2026-03-01 03:52:11] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:52:11	INFO	[33m[2026-03-01 03:52:11] Updating DB: setting status to COMPLETED for entry festus-kofi-boateng-otchere-b40591219[0m
+2026-03-01 03:52:11	INFO	[32m[2026-03-01 03:52:11] Batch #7 progress: 3/10 entries processed (success: 49, failed: 14)[0m
+2026-03-01 03:52:11	INFO	[35m[2026-03-01 03:52:11] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:52:12	INFO	[36m[2026-03-01 03:52:12] Processing entry 4/10 - URN: pratap-singh-tanwar-7a11b41a0[0m
+2026-03-01 03:52:12	INFO	[33m[2026-03-01 03:52:12] Updating DB: setting status to FETCHING for entry pratap-singh-tanwar-7a11b41a0[0m
+2026-03-01 03:52:12	INFO	[36m[FETCHING][0m URN: pratap-singh-tanwar-7a11b41a0 (attempt 1)
+2026-03-01 03:52:14	WARN	[31m[NOT FOUND][0m URN: pratap-singh-tanwar-7a11b41a0 - profile not found, skipping retries
+2026-03-01 03:52:14	WARN	[31m[NOT FOUND][0m URN: pratap-singh-tanwar-7a11b41a0 - Profile not found: This profile can't be accessed. Not valid LinkedIn profile
+2026-03-01 03:52:14	INFO	[31m[2026-03-01 03:52:14] Updating DB: setting status to NOT_FOUND for entry pratap-singh-tanwar-7a11b41a0[0m
+2026-03-01 03:52:14	INFO	[36m[2026-03-01 03:52:14] Processing entry 5/10 - URN: sahithi-nagulapati-350ba1137[0m
+2026-03-01 03:52:14	INFO	[33m[2026-03-01 03:52:14] Updating DB: setting status to FETCHING for entry sahithi-nagulapati-350ba1137[0m
+2026-03-01 03:52:14	INFO	[36m[FETCHING][0m URN: sahithi-nagulapati-350ba1137 (attempt 1)
+2026-03-01 03:52:17	INFO	[32m[SUCCESS][0m URN: sahithi-nagulapati-350ba1137 fetched successfully after 1 attempts
+2026-03-01 03:52:17	INFO	fetched profile	{"urn": "sahithi-nagulapati-350ba1137", "username": "sahithi-nagulapati-350ba1137"}
+2026-03-01 03:52:22	INFO	[33m[2026-03-01 03:52:22] Inserting/Updating DB: upserting profile for URN sahithi-nagulapati-350ba1137[0m
+2026-03-01 03:52:22	INFO	[32m[2026-03-01 03:52:22] DB operation complete: profile upserted successfully[0m
+2026-03-01 03:52:22	INFO	[33m[2026-03-01 03:52:22] Updating DB: setting status to COMPLETED for entry sahithi-nagulapati-350ba1137[0m
+2026-03-01 03:52:22	INFO	[32m[2026-03-01 03:52:22] Batch #7 progress: 5/10 entries processed (success: 50, failed: 15)[0m
+2026-03-01 03:52:22	INFO	[35m[2026-03-01 03:52:22] Waiting 1 seconds before next fetch...[0m
+2026-03-01 03:52:23	INFO	[36m[2026-03-01 03:52:23] Processing entry 6/10 - URN: vijay-kumar-3436771a9[0m
+2026-03-01 03:52:23	INFO	[33m[2026-03-01 03:52:23] Updating DB: setting status to FETCHING for entry vijay-kumar-3436771a9[0m
+2026-03-01 03:52:23	INFO	[36m[FETCHING][0m URN: vijay-kumar-3436771a9 (attempt 1)

@@ -17,15 +17,15 @@ start:
 	air
 
 migrate_schema:
-	docker exec -it go_app go run ./cmd/migration/main.go
+	docker exec -it seng_go_app go run ./cmd/migration/main.go
 test_unit:
-	docker exec -it go_app gotestsum --hide-summary=skipped --format short -- -v -short -tags=unit -coverprofile=cover.out ./pkg/...
+	docker exec -it seng_go_app gotestsum --hide-summary=skipped --format short -- -v -short -tags=unit -coverprofile=cover.out ./pkg/...
 
 test_repository:
-		docker exec -it go_app gotestsum --hide-summary=skipped  --format short -- -v -tags=unit  ./pkg/adapter/repository/...
+		docker exec -it seng_go_app gotestsum --hide-summary=skipped  --format short -- -v -tags=unit  ./pkg/adapter/repository/...
 
 test_e2e:
-		docker exec -it go_app go test ./test/e2e/...
+		docker exec -it seng_go_app go test ./test/e2e/...
 
 generate_ent:
 	go generate ./ent
@@ -37,7 +37,7 @@ gqlgen:
 	go run github.com/99designs/gqlgen generate
 
 seed:
-	docker exec -it go_app  go run ./cmd/seed/main.go
+	docker exec -it seng_go_app  go run ./cmd/seed/main.go
 
 seed_dev:
 	APP_ENV=development go run ./cmd/seed/main.go
@@ -49,9 +49,9 @@ seed_e2e:
 	APP_ENV=e2e go run ./cmd/seed/main.go
 
 seed_truncate:
-	docker exec -it go_app go run ./cmd/seed/main.go -truncate
+	docker exec -it seng_go_app go run ./cmd/seed/main.go -truncate
 
 manual_fetch:
-	docker exec -it go_app go run ./cmd/job/main.go 
+	 go run ./cmd/job/main.go 
 
 .PHONY: setup_db setup_db_test setup_db_e2e start migrate_schema test_e2e test_repository generate_ent generate_repo_mocks gqlgen seed seed_dev seed_test seed_e2e seed_truncate manual_fetch

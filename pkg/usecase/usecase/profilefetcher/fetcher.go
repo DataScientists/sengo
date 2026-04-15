@@ -143,14 +143,25 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 		pf.logger.Infow("quota check passed", "allowed_batch_size", allowedBatchSize)
 
 		// Get pending profile entries for this batch
-		pf.logger.Infof("%s[%s] Fetching from DB: getting pending profile entries (batch size: %d)%s",
-			colorCyan, time.Now().Format("2006-01-02 15:04:05"), allowedBatchSize, colorReset)
+		pf.logger.Infof(
+			"%s[%s] Fetching from DB: getting pending profile entries (batch size: %d)%s",
+			colorCyan,
+			time.Now().Format("2006-01-02 15:04:05"),
+			allowedBatchSize,
+			colorReset,
+		)
 		pendingEntries, err := pf.profileEntryRepo.GetPendingBatch(ctx, allowedBatchSize)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get pending entries: %w", err)
 		}
-		pf.logger.Infof("%s[%s] Fetched from DB: total to process = %d, fetched = %d%s",
-			colorGreen, time.Now().Format("2006-01-02 15:04:05"), allowedBatchSize, len(pendingEntries), colorReset)
+		pf.logger.Infof(
+			"%s[%s] Fetched from DB: total to process = %d, fetched = %d%s",
+			colorGreen,
+			time.Now().Format("2006-01-02 15:04:05"),
+			allowedBatchSize,
+			len(pendingEntries),
+			colorReset,
+		)
 
 		if len(pendingEntries) == 0 {
 			pf.logger.Info("no pending profile entries, exiting")
@@ -159,11 +170,23 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 
 		// Process each entry in the batch
 		for i, entry := range pendingEntries {
-			pf.logger.Infof("%s[%s] Processing entry %d/%d - URN: %s%s",
-				colorCyan, time.Now().Format("2006-01-02 15:04:05"), i+1, len(pendingEntries), entry.LinkedinUrn, colorReset)
+			pf.logger.Infof(
+				"%s[%s] Processing entry %d/%d - URN: %s%s",
+				colorCyan,
+				time.Now().Format("2006-01-02 15:04:05"),
+				i+1,
+				len(pendingEntries),
+				entry.LinkedinUrn,
+				colorReset,
+			)
 			// Update status to FETCHING
-			pf.logger.Infof("%s[%s] Updating DB: setting status to FETCHING for entry %s%s",
-				colorYellow, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
+			pf.logger.Infof(
+				"%s[%s] Updating DB: setting status to FETCHING for entry %s%s",
+				colorYellow,
+				time.Now().Format("2006-01-02 15:04:05"),
+				entry.LinkedinUrn,
+				colorReset,
+			)
 			_, _ = pf.profileEntryRepo.UpdateStatus(
 				ctx,
 				string(entry.ID),
@@ -182,23 +205,40 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 					errMsg := fmt.Sprintf("Profile not found: %s", notFoundErr.Message)
 					pf.logger.Warnf("%s[NOT FOUND]%s URN: %s - %s",
 						colorRed, colorReset, entry.LinkedinUrn, errMsg)
-					pf.logger.Infof("%s[%s] Updating DB: setting status to NOT_FOUND for entry %s%s",
-						colorRed, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
+					pf.logger.Infof(
+						"%s[%s] Updating DB: setting status to NOT_FOUND for entry %s%s",
+						colorRed,
+						time.Now().Format("2006-01-02 15:04:05"),
+						entry.LinkedinUrn,
+						colorReset,
+					)
 					_, _ = pf.profileEntryRepo.UpdateStatus(
 						ctx,
 						string(entry.ID),
 						profileentry.StatusNotFound,
 						&errMsg,
 					)
-					errMsgs = append(errMsgs, fmt.Sprintf("URN %s: NOT FOUND - %s", entry.LinkedinUrn, notFoundErr.Message))
+					errMsgs = append(
+						errMsgs,
+						fmt.Sprintf(
+							"URN %s: NOT FOUND - %s",
+							entry.LinkedinUrn,
+							notFoundErr.Message,
+						),
+					)
 					failedCount++
 					continue
 				}
 
 				// Handle other errors as FAILED
 				errMsg := err.Error()
-				pf.logger.Infof("%s[%s] Updating DB: setting status to FAILED for entry %s%s",
-					colorRed, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
+				pf.logger.Infof(
+					"%s[%s] Updating DB: setting status to FAILED for entry %s%s",
+					colorRed,
+					time.Now().Format("2006-01-02 15:04:05"),
+					entry.LinkedinUrn,
+					colorReset,
+				)
 				_, _ = pf.profileEntryRepo.UpdateStatus(
 					ctx,
 					string(entry.ID),
@@ -226,8 +266,18 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 			// Generate S3 keys with batch folder organization (max 900 files per folder)
 			timestamp := time.Now().Unix()
 			folder := (totalProcessed + i) / 900
-			rawS3Key := fmt.Sprintf("profiles/batch-%d/%s-%d-raw.json", folder, entry.LinkedinUrn, timestamp)
-			cleanedS3Key := fmt.Sprintf("profiles/batch-%d/%s-%d-cleaned.json", folder, entry.LinkedinUrn, timestamp)
+			rawS3Key := fmt.Sprintf(
+				"profiles/batch-%d/%s-%d-raw.json",
+				folder,
+				entry.LinkedinUrn,
+				timestamp,
+			)
+			cleanedS3Key := fmt.Sprintf(
+				"profiles/batch-%d/%s-%d-cleaned.json",
+				folder,
+				entry.LinkedinUrn,
+				timestamp,
+			)
 
 			// Upload raw JSON to S3
 			if err := pf.s3Service.UploadJSON(ctx, rawS3Key, rawData); err != nil {
@@ -276,13 +326,23 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 			}
 
 			// Upsert profile in database
-			pf.logger.Infof("%s[%s] Inserting/Updating DB: upserting profile for URN %s%s",
-				colorYellow, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
+			pf.logger.Infof(
+				"%s[%s] Inserting/Updating DB: upserting profile for URN %s%s",
+				colorYellow,
+				time.Now().Format("2006-01-02 15:04:05"),
+				entry.LinkedinUrn,
+				colorReset,
+			)
 			dbProfile := pf.convertToDBProfile(profile, rawS3Key, cleanedS3Key)
 			if _, err := pf.profileRepo.Upsert(ctx, dbProfile); err != nil {
 				errMsg := fmt.Sprintf("DB upsert failed: %v", err)
-				pf.logger.Infof("%s[%s] Updating DB: setting status to FAILED for entry %s%s",
-					colorRed, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
+				pf.logger.Infof(
+					"%s[%s] Updating DB: setting status to FAILED for entry %s%s",
+					colorRed,
+					time.Now().Format("2006-01-02 15:04:05"),
+					entry.LinkedinUrn,
+					colorReset,
+				)
 				_, _ = pf.profileEntryRepo.UpdateStatus(
 					ctx,
 					string(entry.ID),
@@ -298,8 +358,13 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 				colorGreen, time.Now().Format("2006-01-02 15:04:05"), colorReset)
 
 			// Update profile entry as completed
-			pf.logger.Infof("%s[%s] Updating DB: setting status to COMPLETED for entry %s%s",
-				colorYellow, time.Now().Format("2006-01-02 15:04:05"), entry.LinkedinUrn, colorReset)
+			pf.logger.Infof(
+				"%s[%s] Updating DB: setting status to COMPLETED for entry %s%s",
+				colorYellow,
+				time.Now().Format("2006-01-02 15:04:05"),
+				entry.LinkedinUrn,
+				colorReset,
+			)
 			if _, err := pf.profileEntryRepo.UpdateAfterFetch(ctx, string(entry.ID), rawS3Key, cleanedS3Key); err != nil {
 				pf.logger.Warnw(
 					"failed to update profile entry after fetch",
@@ -312,15 +377,28 @@ func (pf *ProfileFetcher) ExecuteFetchJob(ctx context.Context) (*ent.JobExecutio
 
 			processedEntryIDs = append(processedEntryIDs, entry.ID)
 			successCount++
-			pf.logger.Infof("%s[%s] Batch #%d progress: %d/%d entries processed (success: %d, failed: %d)%s",
-				colorGreen, time.Now().Format("2006-01-02 15:04:05"), batchNumber, i+1, len(pendingEntries), successCount, failedCount, colorReset)
+			pf.logger.Infof(
+				"%s[%s] Batch #%d progress: %d/%d entries processed (success: %d, failed: %d)%s",
+				colorGreen,
+				time.Now().Format("2006-01-02 15:04:05"),
+				batchNumber,
+				i+1,
+				len(pendingEntries),
+				successCount,
+				failedCount,
+				colorReset,
+			)
 
 			// Add 5s delay between profile fetch calls to avoid hitting RapidAPI rate limits
 			if i < len(pendingEntries)-1 {
-				pf.logger.Infof("%s[%s] Waiting 5 seconds before next fetch...%s",
+				pf.logger.Infof("%s[%s] Waiting 1 seconds before next fetch...%s",
 					colorMagenta, time.Now().Format("2006-01-02 15:04:05"), colorReset)
-				if err := sleepWithContext(ctx, 5*time.Second); err != nil {
-					pf.logger.Warnf("%s[CANCELLED]%s Context cancelled during inter-fetch delay", colorRed, colorReset)
+				if err := sleepWithContext(ctx, 1*time.Second); err != nil {
+					pf.logger.Warnf(
+						"%s[CANCELLED]%s Context cancelled during inter-fetch delay",
+						colorRed,
+						colorReset,
+					)
 					break
 				}
 			}
@@ -439,7 +517,13 @@ func (pf *ProfileFetcher) fetchProfileWithRetry(
 
 		profile, rawData, err := pf.linkedinClient.FetchProfileByURN(ctx, urn)
 		if err == nil {
-			pf.logger.Infof("%s[SUCCESS]%s URN: %s fetched successfully after %d attempts", colorGreen, colorReset, urn, attempts)
+			pf.logger.Infof(
+				"%s[SUCCESS]%s URN: %s fetched successfully after %d attempts",
+				colorGreen,
+				colorReset,
+				urn,
+				attempts,
+			)
 			return profile, rawData, attempts, nil
 		}
 
@@ -449,7 +533,13 @@ func (pf *ProfileFetcher) fetchProfileWithRetry(
 		var rateErr *rapidapi.RateLimitError
 		if errors.As(err, &rateErr) {
 			// Rate limit error - ALWAYS retry, never give up
-			pf.logger.Warnf("%s[RATE LIMIT]%s URN: %s - API rate limit hit (attempt %d)", colorYellow, colorReset, urn, attempts)
+			pf.logger.Warnf(
+				"%s[RATE LIMIT]%s URN: %s - API rate limit hit (attempt %d)",
+				colorYellow,
+				colorReset,
+				urn,
+				attempts,
+			)
 
 			sleep := backoff
 			if rateErr.RetryAfter > 0 && rateErr.RetryAfter > sleep {
@@ -459,10 +549,21 @@ func (pf *ProfileFetcher) fetchProfileWithRetry(
 				sleep = maxBackoff
 			}
 
-			pf.logger.Infof("%s[SLEEPING]%s URN: %s - waiting %v before retry...", colorMagenta, colorReset, urn, sleep)
+			pf.logger.Infof(
+				"%s[SLEEPING]%s URN: %s - waiting %v before retry...",
+				colorMagenta,
+				colorReset,
+				urn,
+				sleep,
+			)
 
 			if err := sleepWithContext(ctx, sleep); err != nil {
-				pf.logger.Warnf("%s[CANCELLED]%s URN: %s - context cancelled during sleep", colorRed, colorReset, urn)
+				pf.logger.Warnf(
+					"%s[CANCELLED]%s URN: %s - context cancelled during sleep",
+					colorRed,
+					colorReset,
+					urn,
+				)
 				return nil, nil, attempts, err
 			}
 
@@ -472,14 +573,24 @@ func (pf *ProfileFetcher) fetchProfileWithRetry(
 				backoff = maxBackoff
 			}
 
-			pf.logger.Infof("%s[RETRYING]%s URN: %s - resuming after rate limit", colorCyan, colorReset, urn)
+			pf.logger.Infof(
+				"%s[RETRYING]%s URN: %s - resuming after rate limit",
+				colorCyan,
+				colorReset,
+				urn,
+			)
 			continue
 		}
 
 		// Check if URN was not found - no point retrying
 		var notFoundErr *rapidapi.NotFoundError
 		if errors.As(err, &notFoundErr) {
-			pf.logger.Warnf("%s[NOT FOUND]%s URN: %s - profile not found, skipping retries", colorRed, colorReset, urn)
+			pf.logger.Warnf(
+				"%s[NOT FOUND]%s URN: %s - profile not found, skipping retries",
+				colorRed,
+				colorReset,
+				urn,
+			)
 			return nil, nil, attempts, notFoundErr
 		}
 
@@ -495,7 +606,12 @@ func (pf *ProfileFetcher) fetchProfileWithRetry(
 		}
 
 		// Brief wait before retrying non-rate-limit errors
-		pf.logger.Infof("%s[SLEEPING]%s URN: %s - waiting 1s before retry after error...", colorMagenta, colorReset, urn)
+		pf.logger.Infof(
+			"%s[SLEEPING]%s URN: %s - waiting 1s before retry after error...",
+			colorMagenta,
+			colorReset,
+			urn,
+		)
 		if err := sleepWithContext(ctx, time.Second); err != nil {
 			return nil, nil, attempts, err
 		}
