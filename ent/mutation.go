@@ -12,6 +12,8 @@ import (
 	"sheng-go-backend/ent/predicate"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
+	"sheng-go-backend/ent/profilepostitem"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
@@ -36,6 +38,8 @@ const (
 	TypeJobExecutionHistory = "JobExecutionHistory"
 	TypeProfile             = "Profile"
 	TypeProfileEntry        = "ProfileEntry"
+	TypeProfilePost         = "ProfilePost"
+	TypeProfilePostItem     = "ProfilePostItem"
 	TypeTodo                = "Todo"
 	TypeUser                = "User"
 )
@@ -6037,6 +6041,2443 @@ func (m *ProfileEntryMutation) ResetEdge(name string) error {
 		return nil
 	}
 	return fmt.Errorf("unknown ProfileEntry edge %s", name)
+}
+
+// ProfilePostMutation represents an operation that mutates the ProfilePost nodes in the graph.
+type ProfilePostMutation struct {
+	config
+	op               Op
+	typ              string
+	id               *ulid.ID
+	profile_username *string
+	fetch_status     *profilepost.FetchStatus
+	s3_key           *string
+	error_message    *string
+	created_at       *time.Time
+	updated_at       *time.Time
+	clearedFields    map[string]struct{}
+	items            map[ulid.ID]struct{}
+	removeditems     map[ulid.ID]struct{}
+	cleareditems     bool
+	done             bool
+	oldValue         func(context.Context) (*ProfilePost, error)
+	predicates       []predicate.ProfilePost
+}
+
+var _ ent.Mutation = (*ProfilePostMutation)(nil)
+
+// profilepostOption allows management of the mutation configuration using functional options.
+type profilepostOption func(*ProfilePostMutation)
+
+// newProfilePostMutation creates new mutation for the ProfilePost entity.
+func newProfilePostMutation(c config, op Op, opts ...profilepostOption) *ProfilePostMutation {
+	m := &ProfilePostMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProfilePost,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withProfilePostID sets the ID field of the mutation.
+func withProfilePostID(id ulid.ID) profilepostOption {
+	return func(m *ProfilePostMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ProfilePost
+		)
+		m.oldValue = func(ctx context.Context) (*ProfilePost, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProfilePost.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProfilePost sets the old ProfilePost of the mutation.
+func withProfilePost(node *ProfilePost) profilepostOption {
+	return func(m *ProfilePostMutation) {
+		m.oldValue = func(context.Context) (*ProfilePost, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ProfilePostMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ProfilePostMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ProfilePost entities.
+func (m *ProfilePostMutation) SetID(id ulid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ProfilePostMutation) ID() (id ulid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ProfilePostMutation) IDs(ctx context.Context) ([]ulid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []ulid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ProfilePost.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetProfileUsername sets the "profile_username" field.
+func (m *ProfilePostMutation) SetProfileUsername(s string) {
+	m.profile_username = &s
+}
+
+// ProfileUsername returns the value of the "profile_username" field in the mutation.
+func (m *ProfilePostMutation) ProfileUsername() (r string, exists bool) {
+	v := m.profile_username
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfileUsername returns the old "profile_username" field's value of the ProfilePost entity.
+// If the ProfilePost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostMutation) OldProfileUsername(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfileUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfileUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfileUsername: %w", err)
+	}
+	return oldValue.ProfileUsername, nil
+}
+
+// ResetProfileUsername resets all changes to the "profile_username" field.
+func (m *ProfilePostMutation) ResetProfileUsername() {
+	m.profile_username = nil
+}
+
+// SetFetchStatus sets the "fetch_status" field.
+func (m *ProfilePostMutation) SetFetchStatus(ps profilepost.FetchStatus) {
+	m.fetch_status = &ps
+}
+
+// FetchStatus returns the value of the "fetch_status" field in the mutation.
+func (m *ProfilePostMutation) FetchStatus() (r profilepost.FetchStatus, exists bool) {
+	v := m.fetch_status
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFetchStatus returns the old "fetch_status" field's value of the ProfilePost entity.
+// If the ProfilePost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostMutation) OldFetchStatus(ctx context.Context) (v profilepost.FetchStatus, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFetchStatus is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFetchStatus requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFetchStatus: %w", err)
+	}
+	return oldValue.FetchStatus, nil
+}
+
+// ResetFetchStatus resets all changes to the "fetch_status" field.
+func (m *ProfilePostMutation) ResetFetchStatus() {
+	m.fetch_status = nil
+}
+
+// SetS3Key sets the "s3_key" field.
+func (m *ProfilePostMutation) SetS3Key(s string) {
+	m.s3_key = &s
+}
+
+// S3Key returns the value of the "s3_key" field in the mutation.
+func (m *ProfilePostMutation) S3Key() (r string, exists bool) {
+	v := m.s3_key
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldS3Key returns the old "s3_key" field's value of the ProfilePost entity.
+// If the ProfilePost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostMutation) OldS3Key(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldS3Key is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldS3Key requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldS3Key: %w", err)
+	}
+	return oldValue.S3Key, nil
+}
+
+// ClearS3Key clears the value of the "s3_key" field.
+func (m *ProfilePostMutation) ClearS3Key() {
+	m.s3_key = nil
+	m.clearedFields[profilepost.FieldS3Key] = struct{}{}
+}
+
+// S3KeyCleared returns if the "s3_key" field was cleared in this mutation.
+func (m *ProfilePostMutation) S3KeyCleared() bool {
+	_, ok := m.clearedFields[profilepost.FieldS3Key]
+	return ok
+}
+
+// ResetS3Key resets all changes to the "s3_key" field.
+func (m *ProfilePostMutation) ResetS3Key() {
+	m.s3_key = nil
+	delete(m.clearedFields, profilepost.FieldS3Key)
+}
+
+// SetErrorMessage sets the "error_message" field.
+func (m *ProfilePostMutation) SetErrorMessage(s string) {
+	m.error_message = &s
+}
+
+// ErrorMessage returns the value of the "error_message" field in the mutation.
+func (m *ProfilePostMutation) ErrorMessage() (r string, exists bool) {
+	v := m.error_message
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldErrorMessage returns the old "error_message" field's value of the ProfilePost entity.
+// If the ProfilePost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostMutation) OldErrorMessage(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldErrorMessage is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldErrorMessage requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldErrorMessage: %w", err)
+	}
+	return oldValue.ErrorMessage, nil
+}
+
+// ClearErrorMessage clears the value of the "error_message" field.
+func (m *ProfilePostMutation) ClearErrorMessage() {
+	m.error_message = nil
+	m.clearedFields[profilepost.FieldErrorMessage] = struct{}{}
+}
+
+// ErrorMessageCleared returns if the "error_message" field was cleared in this mutation.
+func (m *ProfilePostMutation) ErrorMessageCleared() bool {
+	_, ok := m.clearedFields[profilepost.FieldErrorMessage]
+	return ok
+}
+
+// ResetErrorMessage resets all changes to the "error_message" field.
+func (m *ProfilePostMutation) ResetErrorMessage() {
+	m.error_message = nil
+	delete(m.clearedFields, profilepost.FieldErrorMessage)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProfilePostMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProfilePostMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProfilePost entity.
+// If the ProfilePost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProfilePostMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ProfilePostMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ProfilePostMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ProfilePost entity.
+// If the ProfilePost object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ProfilePostMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// AddItemIDs adds the "items" edge to the ProfilePostItem entity by ids.
+func (m *ProfilePostMutation) AddItemIDs(ids ...ulid.ID) {
+	if m.items == nil {
+		m.items = make(map[ulid.ID]struct{})
+	}
+	for i := range ids {
+		m.items[ids[i]] = struct{}{}
+	}
+}
+
+// ClearItems clears the "items" edge to the ProfilePostItem entity.
+func (m *ProfilePostMutation) ClearItems() {
+	m.cleareditems = true
+}
+
+// ItemsCleared reports if the "items" edge to the ProfilePostItem entity was cleared.
+func (m *ProfilePostMutation) ItemsCleared() bool {
+	return m.cleareditems
+}
+
+// RemoveItemIDs removes the "items" edge to the ProfilePostItem entity by IDs.
+func (m *ProfilePostMutation) RemoveItemIDs(ids ...ulid.ID) {
+	if m.removeditems == nil {
+		m.removeditems = make(map[ulid.ID]struct{})
+	}
+	for i := range ids {
+		delete(m.items, ids[i])
+		m.removeditems[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedItems returns the removed IDs of the "items" edge to the ProfilePostItem entity.
+func (m *ProfilePostMutation) RemovedItemsIDs() (ids []ulid.ID) {
+	for id := range m.removeditems {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ItemsIDs returns the "items" edge IDs in the mutation.
+func (m *ProfilePostMutation) ItemsIDs() (ids []ulid.ID) {
+	for id := range m.items {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetItems resets all changes to the "items" edge.
+func (m *ProfilePostMutation) ResetItems() {
+	m.items = nil
+	m.cleareditems = false
+	m.removeditems = nil
+}
+
+// Where appends a list predicates to the ProfilePostMutation builder.
+func (m *ProfilePostMutation) Where(ps ...predicate.ProfilePost) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ProfilePostMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProfilePostMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProfilePost, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ProfilePostMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProfilePostMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ProfilePost).
+func (m *ProfilePostMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ProfilePostMutation) Fields() []string {
+	fields := make([]string, 0, 6)
+	if m.profile_username != nil {
+		fields = append(fields, profilepost.FieldProfileUsername)
+	}
+	if m.fetch_status != nil {
+		fields = append(fields, profilepost.FieldFetchStatus)
+	}
+	if m.s3_key != nil {
+		fields = append(fields, profilepost.FieldS3Key)
+	}
+	if m.error_message != nil {
+		fields = append(fields, profilepost.FieldErrorMessage)
+	}
+	if m.created_at != nil {
+		fields = append(fields, profilepost.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, profilepost.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ProfilePostMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case profilepost.FieldProfileUsername:
+		return m.ProfileUsername()
+	case profilepost.FieldFetchStatus:
+		return m.FetchStatus()
+	case profilepost.FieldS3Key:
+		return m.S3Key()
+	case profilepost.FieldErrorMessage:
+		return m.ErrorMessage()
+	case profilepost.FieldCreatedAt:
+		return m.CreatedAt()
+	case profilepost.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ProfilePostMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case profilepost.FieldProfileUsername:
+		return m.OldProfileUsername(ctx)
+	case profilepost.FieldFetchStatus:
+		return m.OldFetchStatus(ctx)
+	case profilepost.FieldS3Key:
+		return m.OldS3Key(ctx)
+	case profilepost.FieldErrorMessage:
+		return m.OldErrorMessage(ctx)
+	case profilepost.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case profilepost.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ProfilePost field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProfilePostMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case profilepost.FieldProfileUsername:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfileUsername(v)
+		return nil
+	case profilepost.FieldFetchStatus:
+		v, ok := value.(profilepost.FetchStatus)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFetchStatus(v)
+		return nil
+	case profilepost.FieldS3Key:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetS3Key(v)
+		return nil
+	case profilepost.FieldErrorMessage:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetErrorMessage(v)
+		return nil
+	case profilepost.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case profilepost.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePost field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ProfilePostMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ProfilePostMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProfilePostMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ProfilePost numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ProfilePostMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(profilepost.FieldS3Key) {
+		fields = append(fields, profilepost.FieldS3Key)
+	}
+	if m.FieldCleared(profilepost.FieldErrorMessage) {
+		fields = append(fields, profilepost.FieldErrorMessage)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ProfilePostMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ProfilePostMutation) ClearField(name string) error {
+	switch name {
+	case profilepost.FieldS3Key:
+		m.ClearS3Key()
+		return nil
+	case profilepost.FieldErrorMessage:
+		m.ClearErrorMessage()
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePost nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ProfilePostMutation) ResetField(name string) error {
+	switch name {
+	case profilepost.FieldProfileUsername:
+		m.ResetProfileUsername()
+		return nil
+	case profilepost.FieldFetchStatus:
+		m.ResetFetchStatus()
+		return nil
+	case profilepost.FieldS3Key:
+		m.ResetS3Key()
+		return nil
+	case profilepost.FieldErrorMessage:
+		m.ResetErrorMessage()
+		return nil
+	case profilepost.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case profilepost.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePost field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ProfilePostMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.items != nil {
+		edges = append(edges, profilepost.EdgeItems)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ProfilePostMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case profilepost.EdgeItems:
+		ids := make([]ent.Value, 0, len(m.items))
+		for id := range m.items {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ProfilePostMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.removeditems != nil {
+		edges = append(edges, profilepost.EdgeItems)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ProfilePostMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case profilepost.EdgeItems:
+		ids := make([]ent.Value, 0, len(m.removeditems))
+		for id := range m.removeditems {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ProfilePostMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.cleareditems {
+		edges = append(edges, profilepost.EdgeItems)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ProfilePostMutation) EdgeCleared(name string) bool {
+	switch name {
+	case profilepost.EdgeItems:
+		return m.cleareditems
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ProfilePostMutation) ClearEdge(name string) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown ProfilePost unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ProfilePostMutation) ResetEdge(name string) error {
+	switch name {
+	case profilepost.EdgeItems:
+		m.ResetItems()
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePost edge %s", name)
+}
+
+// ProfilePostItemMutation represents an operation that mutates the ProfilePostItem nodes in the graph.
+type ProfilePostItemMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *ulid.ID
+	profile_username    *string
+	post_urn            *string
+	post_url            *string
+	text                *string
+	content_type        *string
+	is_repost           *bool
+	total_reactions     *int
+	addtotal_reactions  *int
+	like_count          *int
+	addlike_count       *int
+	comments_count      *int
+	addcomments_count   *int
+	reposts_count       *int
+	addreposts_count    *int
+	empathy_count       *int
+	addempathy_count    *int
+	praise_count        *int
+	addpraise_count     *int
+	funny_count         *int
+	addfunny_count      *int
+	interest_count      *int
+	addinterest_count   *int
+	posted_at           *time.Time
+	raw_data            *map[string]interface{}
+	created_at          *time.Time
+	updated_at          *time.Time
+	clearedFields       map[string]struct{}
+	profile_post        *ulid.ID
+	clearedprofile_post bool
+	done                bool
+	oldValue            func(context.Context) (*ProfilePostItem, error)
+	predicates          []predicate.ProfilePostItem
+}
+
+var _ ent.Mutation = (*ProfilePostItemMutation)(nil)
+
+// profilepostitemOption allows management of the mutation configuration using functional options.
+type profilepostitemOption func(*ProfilePostItemMutation)
+
+// newProfilePostItemMutation creates new mutation for the ProfilePostItem entity.
+func newProfilePostItemMutation(c config, op Op, opts ...profilepostitemOption) *ProfilePostItemMutation {
+	m := &ProfilePostItemMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeProfilePostItem,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withProfilePostItemID sets the ID field of the mutation.
+func withProfilePostItemID(id ulid.ID) profilepostitemOption {
+	return func(m *ProfilePostItemMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *ProfilePostItem
+		)
+		m.oldValue = func(ctx context.Context) (*ProfilePostItem, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().ProfilePostItem.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withProfilePostItem sets the old ProfilePostItem of the mutation.
+func withProfilePostItem(node *ProfilePostItem) profilepostitemOption {
+	return func(m *ProfilePostItemMutation) {
+		m.oldValue = func(context.Context) (*ProfilePostItem, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m ProfilePostItemMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m ProfilePostItemMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of ProfilePostItem entities.
+func (m *ProfilePostItemMutation) SetID(id ulid.ID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *ProfilePostItemMutation) ID() (id ulid.ID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *ProfilePostItemMutation) IDs(ctx context.Context) ([]ulid.ID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []ulid.ID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().ProfilePostItem.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetProfileUsername sets the "profile_username" field.
+func (m *ProfilePostItemMutation) SetProfileUsername(s string) {
+	m.profile_username = &s
+}
+
+// ProfileUsername returns the value of the "profile_username" field in the mutation.
+func (m *ProfilePostItemMutation) ProfileUsername() (r string, exists bool) {
+	v := m.profile_username
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldProfileUsername returns the old "profile_username" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldProfileUsername(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldProfileUsername is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldProfileUsername requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldProfileUsername: %w", err)
+	}
+	return oldValue.ProfileUsername, nil
+}
+
+// ResetProfileUsername resets all changes to the "profile_username" field.
+func (m *ProfilePostItemMutation) ResetProfileUsername() {
+	m.profile_username = nil
+}
+
+// SetPostUrn sets the "post_urn" field.
+func (m *ProfilePostItemMutation) SetPostUrn(s string) {
+	m.post_urn = &s
+}
+
+// PostUrn returns the value of the "post_urn" field in the mutation.
+func (m *ProfilePostItemMutation) PostUrn() (r string, exists bool) {
+	v := m.post_urn
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPostUrn returns the old "post_urn" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldPostUrn(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPostUrn is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPostUrn requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPostUrn: %w", err)
+	}
+	return oldValue.PostUrn, nil
+}
+
+// ClearPostUrn clears the value of the "post_urn" field.
+func (m *ProfilePostItemMutation) ClearPostUrn() {
+	m.post_urn = nil
+	m.clearedFields[profilepostitem.FieldPostUrn] = struct{}{}
+}
+
+// PostUrnCleared returns if the "post_urn" field was cleared in this mutation.
+func (m *ProfilePostItemMutation) PostUrnCleared() bool {
+	_, ok := m.clearedFields[profilepostitem.FieldPostUrn]
+	return ok
+}
+
+// ResetPostUrn resets all changes to the "post_urn" field.
+func (m *ProfilePostItemMutation) ResetPostUrn() {
+	m.post_urn = nil
+	delete(m.clearedFields, profilepostitem.FieldPostUrn)
+}
+
+// SetPostURL sets the "post_url" field.
+func (m *ProfilePostItemMutation) SetPostURL(s string) {
+	m.post_url = &s
+}
+
+// PostURL returns the value of the "post_url" field in the mutation.
+func (m *ProfilePostItemMutation) PostURL() (r string, exists bool) {
+	v := m.post_url
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPostURL returns the old "post_url" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldPostURL(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPostURL is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPostURL requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPostURL: %w", err)
+	}
+	return oldValue.PostURL, nil
+}
+
+// ClearPostURL clears the value of the "post_url" field.
+func (m *ProfilePostItemMutation) ClearPostURL() {
+	m.post_url = nil
+	m.clearedFields[profilepostitem.FieldPostURL] = struct{}{}
+}
+
+// PostURLCleared returns if the "post_url" field was cleared in this mutation.
+func (m *ProfilePostItemMutation) PostURLCleared() bool {
+	_, ok := m.clearedFields[profilepostitem.FieldPostURL]
+	return ok
+}
+
+// ResetPostURL resets all changes to the "post_url" field.
+func (m *ProfilePostItemMutation) ResetPostURL() {
+	m.post_url = nil
+	delete(m.clearedFields, profilepostitem.FieldPostURL)
+}
+
+// SetText sets the "text" field.
+func (m *ProfilePostItemMutation) SetText(s string) {
+	m.text = &s
+}
+
+// Text returns the value of the "text" field in the mutation.
+func (m *ProfilePostItemMutation) Text() (r string, exists bool) {
+	v := m.text
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldText returns the old "text" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldText(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldText is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldText requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldText: %w", err)
+	}
+	return oldValue.Text, nil
+}
+
+// ClearText clears the value of the "text" field.
+func (m *ProfilePostItemMutation) ClearText() {
+	m.text = nil
+	m.clearedFields[profilepostitem.FieldText] = struct{}{}
+}
+
+// TextCleared returns if the "text" field was cleared in this mutation.
+func (m *ProfilePostItemMutation) TextCleared() bool {
+	_, ok := m.clearedFields[profilepostitem.FieldText]
+	return ok
+}
+
+// ResetText resets all changes to the "text" field.
+func (m *ProfilePostItemMutation) ResetText() {
+	m.text = nil
+	delete(m.clearedFields, profilepostitem.FieldText)
+}
+
+// SetContentType sets the "content_type" field.
+func (m *ProfilePostItemMutation) SetContentType(s string) {
+	m.content_type = &s
+}
+
+// ContentType returns the value of the "content_type" field in the mutation.
+func (m *ProfilePostItemMutation) ContentType() (r string, exists bool) {
+	v := m.content_type
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldContentType returns the old "content_type" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldContentType(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldContentType is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldContentType requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldContentType: %w", err)
+	}
+	return oldValue.ContentType, nil
+}
+
+// ClearContentType clears the value of the "content_type" field.
+func (m *ProfilePostItemMutation) ClearContentType() {
+	m.content_type = nil
+	m.clearedFields[profilepostitem.FieldContentType] = struct{}{}
+}
+
+// ContentTypeCleared returns if the "content_type" field was cleared in this mutation.
+func (m *ProfilePostItemMutation) ContentTypeCleared() bool {
+	_, ok := m.clearedFields[profilepostitem.FieldContentType]
+	return ok
+}
+
+// ResetContentType resets all changes to the "content_type" field.
+func (m *ProfilePostItemMutation) ResetContentType() {
+	m.content_type = nil
+	delete(m.clearedFields, profilepostitem.FieldContentType)
+}
+
+// SetIsRepost sets the "is_repost" field.
+func (m *ProfilePostItemMutation) SetIsRepost(b bool) {
+	m.is_repost = &b
+}
+
+// IsRepost returns the value of the "is_repost" field in the mutation.
+func (m *ProfilePostItemMutation) IsRepost() (r bool, exists bool) {
+	v := m.is_repost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldIsRepost returns the old "is_repost" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldIsRepost(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldIsRepost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldIsRepost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldIsRepost: %w", err)
+	}
+	return oldValue.IsRepost, nil
+}
+
+// ResetIsRepost resets all changes to the "is_repost" field.
+func (m *ProfilePostItemMutation) ResetIsRepost() {
+	m.is_repost = nil
+}
+
+// SetTotalReactions sets the "total_reactions" field.
+func (m *ProfilePostItemMutation) SetTotalReactions(i int) {
+	m.total_reactions = &i
+	m.addtotal_reactions = nil
+}
+
+// TotalReactions returns the value of the "total_reactions" field in the mutation.
+func (m *ProfilePostItemMutation) TotalReactions() (r int, exists bool) {
+	v := m.total_reactions
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldTotalReactions returns the old "total_reactions" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldTotalReactions(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldTotalReactions is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldTotalReactions requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldTotalReactions: %w", err)
+	}
+	return oldValue.TotalReactions, nil
+}
+
+// AddTotalReactions adds i to the "total_reactions" field.
+func (m *ProfilePostItemMutation) AddTotalReactions(i int) {
+	if m.addtotal_reactions != nil {
+		*m.addtotal_reactions += i
+	} else {
+		m.addtotal_reactions = &i
+	}
+}
+
+// AddedTotalReactions returns the value that was added to the "total_reactions" field in this mutation.
+func (m *ProfilePostItemMutation) AddedTotalReactions() (r int, exists bool) {
+	v := m.addtotal_reactions
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetTotalReactions resets all changes to the "total_reactions" field.
+func (m *ProfilePostItemMutation) ResetTotalReactions() {
+	m.total_reactions = nil
+	m.addtotal_reactions = nil
+}
+
+// SetLikeCount sets the "like_count" field.
+func (m *ProfilePostItemMutation) SetLikeCount(i int) {
+	m.like_count = &i
+	m.addlike_count = nil
+}
+
+// LikeCount returns the value of the "like_count" field in the mutation.
+func (m *ProfilePostItemMutation) LikeCount() (r int, exists bool) {
+	v := m.like_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldLikeCount returns the old "like_count" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldLikeCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldLikeCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldLikeCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldLikeCount: %w", err)
+	}
+	return oldValue.LikeCount, nil
+}
+
+// AddLikeCount adds i to the "like_count" field.
+func (m *ProfilePostItemMutation) AddLikeCount(i int) {
+	if m.addlike_count != nil {
+		*m.addlike_count += i
+	} else {
+		m.addlike_count = &i
+	}
+}
+
+// AddedLikeCount returns the value that was added to the "like_count" field in this mutation.
+func (m *ProfilePostItemMutation) AddedLikeCount() (r int, exists bool) {
+	v := m.addlike_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetLikeCount resets all changes to the "like_count" field.
+func (m *ProfilePostItemMutation) ResetLikeCount() {
+	m.like_count = nil
+	m.addlike_count = nil
+}
+
+// SetCommentsCount sets the "comments_count" field.
+func (m *ProfilePostItemMutation) SetCommentsCount(i int) {
+	m.comments_count = &i
+	m.addcomments_count = nil
+}
+
+// CommentsCount returns the value of the "comments_count" field in the mutation.
+func (m *ProfilePostItemMutation) CommentsCount() (r int, exists bool) {
+	v := m.comments_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCommentsCount returns the old "comments_count" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldCommentsCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCommentsCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCommentsCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCommentsCount: %w", err)
+	}
+	return oldValue.CommentsCount, nil
+}
+
+// AddCommentsCount adds i to the "comments_count" field.
+func (m *ProfilePostItemMutation) AddCommentsCount(i int) {
+	if m.addcomments_count != nil {
+		*m.addcomments_count += i
+	} else {
+		m.addcomments_count = &i
+	}
+}
+
+// AddedCommentsCount returns the value that was added to the "comments_count" field in this mutation.
+func (m *ProfilePostItemMutation) AddedCommentsCount() (r int, exists bool) {
+	v := m.addcomments_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetCommentsCount resets all changes to the "comments_count" field.
+func (m *ProfilePostItemMutation) ResetCommentsCount() {
+	m.comments_count = nil
+	m.addcomments_count = nil
+}
+
+// SetRepostsCount sets the "reposts_count" field.
+func (m *ProfilePostItemMutation) SetRepostsCount(i int) {
+	m.reposts_count = &i
+	m.addreposts_count = nil
+}
+
+// RepostsCount returns the value of the "reposts_count" field in the mutation.
+func (m *ProfilePostItemMutation) RepostsCount() (r int, exists bool) {
+	v := m.reposts_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRepostsCount returns the old "reposts_count" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldRepostsCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRepostsCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRepostsCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRepostsCount: %w", err)
+	}
+	return oldValue.RepostsCount, nil
+}
+
+// AddRepostsCount adds i to the "reposts_count" field.
+func (m *ProfilePostItemMutation) AddRepostsCount(i int) {
+	if m.addreposts_count != nil {
+		*m.addreposts_count += i
+	} else {
+		m.addreposts_count = &i
+	}
+}
+
+// AddedRepostsCount returns the value that was added to the "reposts_count" field in this mutation.
+func (m *ProfilePostItemMutation) AddedRepostsCount() (r int, exists bool) {
+	v := m.addreposts_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetRepostsCount resets all changes to the "reposts_count" field.
+func (m *ProfilePostItemMutation) ResetRepostsCount() {
+	m.reposts_count = nil
+	m.addreposts_count = nil
+}
+
+// SetEmpathyCount sets the "empathy_count" field.
+func (m *ProfilePostItemMutation) SetEmpathyCount(i int) {
+	m.empathy_count = &i
+	m.addempathy_count = nil
+}
+
+// EmpathyCount returns the value of the "empathy_count" field in the mutation.
+func (m *ProfilePostItemMutation) EmpathyCount() (r int, exists bool) {
+	v := m.empathy_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmpathyCount returns the old "empathy_count" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldEmpathyCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmpathyCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmpathyCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmpathyCount: %w", err)
+	}
+	return oldValue.EmpathyCount, nil
+}
+
+// AddEmpathyCount adds i to the "empathy_count" field.
+func (m *ProfilePostItemMutation) AddEmpathyCount(i int) {
+	if m.addempathy_count != nil {
+		*m.addempathy_count += i
+	} else {
+		m.addempathy_count = &i
+	}
+}
+
+// AddedEmpathyCount returns the value that was added to the "empathy_count" field in this mutation.
+func (m *ProfilePostItemMutation) AddedEmpathyCount() (r int, exists bool) {
+	v := m.addempathy_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetEmpathyCount resets all changes to the "empathy_count" field.
+func (m *ProfilePostItemMutation) ResetEmpathyCount() {
+	m.empathy_count = nil
+	m.addempathy_count = nil
+}
+
+// SetPraiseCount sets the "praise_count" field.
+func (m *ProfilePostItemMutation) SetPraiseCount(i int) {
+	m.praise_count = &i
+	m.addpraise_count = nil
+}
+
+// PraiseCount returns the value of the "praise_count" field in the mutation.
+func (m *ProfilePostItemMutation) PraiseCount() (r int, exists bool) {
+	v := m.praise_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPraiseCount returns the old "praise_count" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldPraiseCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPraiseCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPraiseCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPraiseCount: %w", err)
+	}
+	return oldValue.PraiseCount, nil
+}
+
+// AddPraiseCount adds i to the "praise_count" field.
+func (m *ProfilePostItemMutation) AddPraiseCount(i int) {
+	if m.addpraise_count != nil {
+		*m.addpraise_count += i
+	} else {
+		m.addpraise_count = &i
+	}
+}
+
+// AddedPraiseCount returns the value that was added to the "praise_count" field in this mutation.
+func (m *ProfilePostItemMutation) AddedPraiseCount() (r int, exists bool) {
+	v := m.addpraise_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetPraiseCount resets all changes to the "praise_count" field.
+func (m *ProfilePostItemMutation) ResetPraiseCount() {
+	m.praise_count = nil
+	m.addpraise_count = nil
+}
+
+// SetFunnyCount sets the "funny_count" field.
+func (m *ProfilePostItemMutation) SetFunnyCount(i int) {
+	m.funny_count = &i
+	m.addfunny_count = nil
+}
+
+// FunnyCount returns the value of the "funny_count" field in the mutation.
+func (m *ProfilePostItemMutation) FunnyCount() (r int, exists bool) {
+	v := m.funny_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldFunnyCount returns the old "funny_count" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldFunnyCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldFunnyCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldFunnyCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldFunnyCount: %w", err)
+	}
+	return oldValue.FunnyCount, nil
+}
+
+// AddFunnyCount adds i to the "funny_count" field.
+func (m *ProfilePostItemMutation) AddFunnyCount(i int) {
+	if m.addfunny_count != nil {
+		*m.addfunny_count += i
+	} else {
+		m.addfunny_count = &i
+	}
+}
+
+// AddedFunnyCount returns the value that was added to the "funny_count" field in this mutation.
+func (m *ProfilePostItemMutation) AddedFunnyCount() (r int, exists bool) {
+	v := m.addfunny_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetFunnyCount resets all changes to the "funny_count" field.
+func (m *ProfilePostItemMutation) ResetFunnyCount() {
+	m.funny_count = nil
+	m.addfunny_count = nil
+}
+
+// SetInterestCount sets the "interest_count" field.
+func (m *ProfilePostItemMutation) SetInterestCount(i int) {
+	m.interest_count = &i
+	m.addinterest_count = nil
+}
+
+// InterestCount returns the value of the "interest_count" field in the mutation.
+func (m *ProfilePostItemMutation) InterestCount() (r int, exists bool) {
+	v := m.interest_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldInterestCount returns the old "interest_count" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldInterestCount(ctx context.Context) (v int, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldInterestCount is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldInterestCount requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldInterestCount: %w", err)
+	}
+	return oldValue.InterestCount, nil
+}
+
+// AddInterestCount adds i to the "interest_count" field.
+func (m *ProfilePostItemMutation) AddInterestCount(i int) {
+	if m.addinterest_count != nil {
+		*m.addinterest_count += i
+	} else {
+		m.addinterest_count = &i
+	}
+}
+
+// AddedInterestCount returns the value that was added to the "interest_count" field in this mutation.
+func (m *ProfilePostItemMutation) AddedInterestCount() (r int, exists bool) {
+	v := m.addinterest_count
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ResetInterestCount resets all changes to the "interest_count" field.
+func (m *ProfilePostItemMutation) ResetInterestCount() {
+	m.interest_count = nil
+	m.addinterest_count = nil
+}
+
+// SetPostedAt sets the "posted_at" field.
+func (m *ProfilePostItemMutation) SetPostedAt(t time.Time) {
+	m.posted_at = &t
+}
+
+// PostedAt returns the value of the "posted_at" field in the mutation.
+func (m *ProfilePostItemMutation) PostedAt() (r time.Time, exists bool) {
+	v := m.posted_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldPostedAt returns the old "posted_at" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldPostedAt(ctx context.Context) (v *time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldPostedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldPostedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldPostedAt: %w", err)
+	}
+	return oldValue.PostedAt, nil
+}
+
+// ClearPostedAt clears the value of the "posted_at" field.
+func (m *ProfilePostItemMutation) ClearPostedAt() {
+	m.posted_at = nil
+	m.clearedFields[profilepostitem.FieldPostedAt] = struct{}{}
+}
+
+// PostedAtCleared returns if the "posted_at" field was cleared in this mutation.
+func (m *ProfilePostItemMutation) PostedAtCleared() bool {
+	_, ok := m.clearedFields[profilepostitem.FieldPostedAt]
+	return ok
+}
+
+// ResetPostedAt resets all changes to the "posted_at" field.
+func (m *ProfilePostItemMutation) ResetPostedAt() {
+	m.posted_at = nil
+	delete(m.clearedFields, profilepostitem.FieldPostedAt)
+}
+
+// SetRawData sets the "raw_data" field.
+func (m *ProfilePostItemMutation) SetRawData(value map[string]interface{}) {
+	m.raw_data = &value
+}
+
+// RawData returns the value of the "raw_data" field in the mutation.
+func (m *ProfilePostItemMutation) RawData() (r map[string]interface{}, exists bool) {
+	v := m.raw_data
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRawData returns the old "raw_data" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldRawData(ctx context.Context) (v map[string]interface{}, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRawData is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRawData requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRawData: %w", err)
+	}
+	return oldValue.RawData, nil
+}
+
+// ClearRawData clears the value of the "raw_data" field.
+func (m *ProfilePostItemMutation) ClearRawData() {
+	m.raw_data = nil
+	m.clearedFields[profilepostitem.FieldRawData] = struct{}{}
+}
+
+// RawDataCleared returns if the "raw_data" field was cleared in this mutation.
+func (m *ProfilePostItemMutation) RawDataCleared() bool {
+	_, ok := m.clearedFields[profilepostitem.FieldRawData]
+	return ok
+}
+
+// ResetRawData resets all changes to the "raw_data" field.
+func (m *ProfilePostItemMutation) ResetRawData() {
+	m.raw_data = nil
+	delete(m.clearedFields, profilepostitem.FieldRawData)
+}
+
+// SetCreatedAt sets the "created_at" field.
+func (m *ProfilePostItemMutation) SetCreatedAt(t time.Time) {
+	m.created_at = &t
+}
+
+// CreatedAt returns the value of the "created_at" field in the mutation.
+func (m *ProfilePostItemMutation) CreatedAt() (r time.Time, exists bool) {
+	v := m.created_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreatedAt returns the old "created_at" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldCreatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreatedAt: %w", err)
+	}
+	return oldValue.CreatedAt, nil
+}
+
+// ResetCreatedAt resets all changes to the "created_at" field.
+func (m *ProfilePostItemMutation) ResetCreatedAt() {
+	m.created_at = nil
+}
+
+// SetUpdatedAt sets the "updated_at" field.
+func (m *ProfilePostItemMutation) SetUpdatedAt(t time.Time) {
+	m.updated_at = &t
+}
+
+// UpdatedAt returns the value of the "updated_at" field in the mutation.
+func (m *ProfilePostItemMutation) UpdatedAt() (r time.Time, exists bool) {
+	v := m.updated_at
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpdatedAt returns the old "updated_at" field's value of the ProfilePostItem entity.
+// If the ProfilePostItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *ProfilePostItemMutation) OldUpdatedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpdatedAt is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpdatedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpdatedAt: %w", err)
+	}
+	return oldValue.UpdatedAt, nil
+}
+
+// ResetUpdatedAt resets all changes to the "updated_at" field.
+func (m *ProfilePostItemMutation) ResetUpdatedAt() {
+	m.updated_at = nil
+}
+
+// SetProfilePostID sets the "profile_post" edge to the ProfilePost entity by id.
+func (m *ProfilePostItemMutation) SetProfilePostID(id ulid.ID) {
+	m.profile_post = &id
+}
+
+// ClearProfilePost clears the "profile_post" edge to the ProfilePost entity.
+func (m *ProfilePostItemMutation) ClearProfilePost() {
+	m.clearedprofile_post = true
+}
+
+// ProfilePostCleared reports if the "profile_post" edge to the ProfilePost entity was cleared.
+func (m *ProfilePostItemMutation) ProfilePostCleared() bool {
+	return m.clearedprofile_post
+}
+
+// ProfilePostID returns the "profile_post" edge ID in the mutation.
+func (m *ProfilePostItemMutation) ProfilePostID() (id ulid.ID, exists bool) {
+	if m.profile_post != nil {
+		return *m.profile_post, true
+	}
+	return
+}
+
+// ProfilePostIDs returns the "profile_post" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// ProfilePostID instead. It exists only for internal usage by the builders.
+func (m *ProfilePostItemMutation) ProfilePostIDs() (ids []ulid.ID) {
+	if id := m.profile_post; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetProfilePost resets all changes to the "profile_post" edge.
+func (m *ProfilePostItemMutation) ResetProfilePost() {
+	m.profile_post = nil
+	m.clearedprofile_post = false
+}
+
+// Where appends a list predicates to the ProfilePostItemMutation builder.
+func (m *ProfilePostItemMutation) Where(ps ...predicate.ProfilePostItem) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the ProfilePostItemMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *ProfilePostItemMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.ProfilePostItem, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *ProfilePostItemMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *ProfilePostItemMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (ProfilePostItem).
+func (m *ProfilePostItemMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *ProfilePostItemMutation) Fields() []string {
+	fields := make([]string, 0, 18)
+	if m.profile_username != nil {
+		fields = append(fields, profilepostitem.FieldProfileUsername)
+	}
+	if m.post_urn != nil {
+		fields = append(fields, profilepostitem.FieldPostUrn)
+	}
+	if m.post_url != nil {
+		fields = append(fields, profilepostitem.FieldPostURL)
+	}
+	if m.text != nil {
+		fields = append(fields, profilepostitem.FieldText)
+	}
+	if m.content_type != nil {
+		fields = append(fields, profilepostitem.FieldContentType)
+	}
+	if m.is_repost != nil {
+		fields = append(fields, profilepostitem.FieldIsRepost)
+	}
+	if m.total_reactions != nil {
+		fields = append(fields, profilepostitem.FieldTotalReactions)
+	}
+	if m.like_count != nil {
+		fields = append(fields, profilepostitem.FieldLikeCount)
+	}
+	if m.comments_count != nil {
+		fields = append(fields, profilepostitem.FieldCommentsCount)
+	}
+	if m.reposts_count != nil {
+		fields = append(fields, profilepostitem.FieldRepostsCount)
+	}
+	if m.empathy_count != nil {
+		fields = append(fields, profilepostitem.FieldEmpathyCount)
+	}
+	if m.praise_count != nil {
+		fields = append(fields, profilepostitem.FieldPraiseCount)
+	}
+	if m.funny_count != nil {
+		fields = append(fields, profilepostitem.FieldFunnyCount)
+	}
+	if m.interest_count != nil {
+		fields = append(fields, profilepostitem.FieldInterestCount)
+	}
+	if m.posted_at != nil {
+		fields = append(fields, profilepostitem.FieldPostedAt)
+	}
+	if m.raw_data != nil {
+		fields = append(fields, profilepostitem.FieldRawData)
+	}
+	if m.created_at != nil {
+		fields = append(fields, profilepostitem.FieldCreatedAt)
+	}
+	if m.updated_at != nil {
+		fields = append(fields, profilepostitem.FieldUpdatedAt)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *ProfilePostItemMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case profilepostitem.FieldProfileUsername:
+		return m.ProfileUsername()
+	case profilepostitem.FieldPostUrn:
+		return m.PostUrn()
+	case profilepostitem.FieldPostURL:
+		return m.PostURL()
+	case profilepostitem.FieldText:
+		return m.Text()
+	case profilepostitem.FieldContentType:
+		return m.ContentType()
+	case profilepostitem.FieldIsRepost:
+		return m.IsRepost()
+	case profilepostitem.FieldTotalReactions:
+		return m.TotalReactions()
+	case profilepostitem.FieldLikeCount:
+		return m.LikeCount()
+	case profilepostitem.FieldCommentsCount:
+		return m.CommentsCount()
+	case profilepostitem.FieldRepostsCount:
+		return m.RepostsCount()
+	case profilepostitem.FieldEmpathyCount:
+		return m.EmpathyCount()
+	case profilepostitem.FieldPraiseCount:
+		return m.PraiseCount()
+	case profilepostitem.FieldFunnyCount:
+		return m.FunnyCount()
+	case profilepostitem.FieldInterestCount:
+		return m.InterestCount()
+	case profilepostitem.FieldPostedAt:
+		return m.PostedAt()
+	case profilepostitem.FieldRawData:
+		return m.RawData()
+	case profilepostitem.FieldCreatedAt:
+		return m.CreatedAt()
+	case profilepostitem.FieldUpdatedAt:
+		return m.UpdatedAt()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *ProfilePostItemMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case profilepostitem.FieldProfileUsername:
+		return m.OldProfileUsername(ctx)
+	case profilepostitem.FieldPostUrn:
+		return m.OldPostUrn(ctx)
+	case profilepostitem.FieldPostURL:
+		return m.OldPostURL(ctx)
+	case profilepostitem.FieldText:
+		return m.OldText(ctx)
+	case profilepostitem.FieldContentType:
+		return m.OldContentType(ctx)
+	case profilepostitem.FieldIsRepost:
+		return m.OldIsRepost(ctx)
+	case profilepostitem.FieldTotalReactions:
+		return m.OldTotalReactions(ctx)
+	case profilepostitem.FieldLikeCount:
+		return m.OldLikeCount(ctx)
+	case profilepostitem.FieldCommentsCount:
+		return m.OldCommentsCount(ctx)
+	case profilepostitem.FieldRepostsCount:
+		return m.OldRepostsCount(ctx)
+	case profilepostitem.FieldEmpathyCount:
+		return m.OldEmpathyCount(ctx)
+	case profilepostitem.FieldPraiseCount:
+		return m.OldPraiseCount(ctx)
+	case profilepostitem.FieldFunnyCount:
+		return m.OldFunnyCount(ctx)
+	case profilepostitem.FieldInterestCount:
+		return m.OldInterestCount(ctx)
+	case profilepostitem.FieldPostedAt:
+		return m.OldPostedAt(ctx)
+	case profilepostitem.FieldRawData:
+		return m.OldRawData(ctx)
+	case profilepostitem.FieldCreatedAt:
+		return m.OldCreatedAt(ctx)
+	case profilepostitem.FieldUpdatedAt:
+		return m.OldUpdatedAt(ctx)
+	}
+	return nil, fmt.Errorf("unknown ProfilePostItem field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProfilePostItemMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case profilepostitem.FieldProfileUsername:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetProfileUsername(v)
+		return nil
+	case profilepostitem.FieldPostUrn:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPostUrn(v)
+		return nil
+	case profilepostitem.FieldPostURL:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPostURL(v)
+		return nil
+	case profilepostitem.FieldText:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetText(v)
+		return nil
+	case profilepostitem.FieldContentType:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetContentType(v)
+		return nil
+	case profilepostitem.FieldIsRepost:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetIsRepost(v)
+		return nil
+	case profilepostitem.FieldTotalReactions:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetTotalReactions(v)
+		return nil
+	case profilepostitem.FieldLikeCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetLikeCount(v)
+		return nil
+	case profilepostitem.FieldCommentsCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCommentsCount(v)
+		return nil
+	case profilepostitem.FieldRepostsCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRepostsCount(v)
+		return nil
+	case profilepostitem.FieldEmpathyCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmpathyCount(v)
+		return nil
+	case profilepostitem.FieldPraiseCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPraiseCount(v)
+		return nil
+	case profilepostitem.FieldFunnyCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetFunnyCount(v)
+		return nil
+	case profilepostitem.FieldInterestCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetInterestCount(v)
+		return nil
+	case profilepostitem.FieldPostedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetPostedAt(v)
+		return nil
+	case profilepostitem.FieldRawData:
+		v, ok := value.(map[string]interface{})
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRawData(v)
+		return nil
+	case profilepostitem.FieldCreatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreatedAt(v)
+		return nil
+	case profilepostitem.FieldUpdatedAt:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpdatedAt(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePostItem field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *ProfilePostItemMutation) AddedFields() []string {
+	var fields []string
+	if m.addtotal_reactions != nil {
+		fields = append(fields, profilepostitem.FieldTotalReactions)
+	}
+	if m.addlike_count != nil {
+		fields = append(fields, profilepostitem.FieldLikeCount)
+	}
+	if m.addcomments_count != nil {
+		fields = append(fields, profilepostitem.FieldCommentsCount)
+	}
+	if m.addreposts_count != nil {
+		fields = append(fields, profilepostitem.FieldRepostsCount)
+	}
+	if m.addempathy_count != nil {
+		fields = append(fields, profilepostitem.FieldEmpathyCount)
+	}
+	if m.addpraise_count != nil {
+		fields = append(fields, profilepostitem.FieldPraiseCount)
+	}
+	if m.addfunny_count != nil {
+		fields = append(fields, profilepostitem.FieldFunnyCount)
+	}
+	if m.addinterest_count != nil {
+		fields = append(fields, profilepostitem.FieldInterestCount)
+	}
+	return fields
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *ProfilePostItemMutation) AddedField(name string) (ent.Value, bool) {
+	switch name {
+	case profilepostitem.FieldTotalReactions:
+		return m.AddedTotalReactions()
+	case profilepostitem.FieldLikeCount:
+		return m.AddedLikeCount()
+	case profilepostitem.FieldCommentsCount:
+		return m.AddedCommentsCount()
+	case profilepostitem.FieldRepostsCount:
+		return m.AddedRepostsCount()
+	case profilepostitem.FieldEmpathyCount:
+		return m.AddedEmpathyCount()
+	case profilepostitem.FieldPraiseCount:
+		return m.AddedPraiseCount()
+	case profilepostitem.FieldFunnyCount:
+		return m.AddedFunnyCount()
+	case profilepostitem.FieldInterestCount:
+		return m.AddedInterestCount()
+	}
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *ProfilePostItemMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	case profilepostitem.FieldTotalReactions:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddTotalReactions(v)
+		return nil
+	case profilepostitem.FieldLikeCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddLikeCount(v)
+		return nil
+	case profilepostitem.FieldCommentsCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddCommentsCount(v)
+		return nil
+	case profilepostitem.FieldRepostsCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddRepostsCount(v)
+		return nil
+	case profilepostitem.FieldEmpathyCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddEmpathyCount(v)
+		return nil
+	case profilepostitem.FieldPraiseCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddPraiseCount(v)
+		return nil
+	case profilepostitem.FieldFunnyCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddFunnyCount(v)
+		return nil
+	case profilepostitem.FieldInterestCount:
+		v, ok := value.(int)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddInterestCount(v)
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePostItem numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *ProfilePostItemMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(profilepostitem.FieldPostUrn) {
+		fields = append(fields, profilepostitem.FieldPostUrn)
+	}
+	if m.FieldCleared(profilepostitem.FieldPostURL) {
+		fields = append(fields, profilepostitem.FieldPostURL)
+	}
+	if m.FieldCleared(profilepostitem.FieldText) {
+		fields = append(fields, profilepostitem.FieldText)
+	}
+	if m.FieldCleared(profilepostitem.FieldContentType) {
+		fields = append(fields, profilepostitem.FieldContentType)
+	}
+	if m.FieldCleared(profilepostitem.FieldPostedAt) {
+		fields = append(fields, profilepostitem.FieldPostedAt)
+	}
+	if m.FieldCleared(profilepostitem.FieldRawData) {
+		fields = append(fields, profilepostitem.FieldRawData)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *ProfilePostItemMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *ProfilePostItemMutation) ClearField(name string) error {
+	switch name {
+	case profilepostitem.FieldPostUrn:
+		m.ClearPostUrn()
+		return nil
+	case profilepostitem.FieldPostURL:
+		m.ClearPostURL()
+		return nil
+	case profilepostitem.FieldText:
+		m.ClearText()
+		return nil
+	case profilepostitem.FieldContentType:
+		m.ClearContentType()
+		return nil
+	case profilepostitem.FieldPostedAt:
+		m.ClearPostedAt()
+		return nil
+	case profilepostitem.FieldRawData:
+		m.ClearRawData()
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePostItem nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *ProfilePostItemMutation) ResetField(name string) error {
+	switch name {
+	case profilepostitem.FieldProfileUsername:
+		m.ResetProfileUsername()
+		return nil
+	case profilepostitem.FieldPostUrn:
+		m.ResetPostUrn()
+		return nil
+	case profilepostitem.FieldPostURL:
+		m.ResetPostURL()
+		return nil
+	case profilepostitem.FieldText:
+		m.ResetText()
+		return nil
+	case profilepostitem.FieldContentType:
+		m.ResetContentType()
+		return nil
+	case profilepostitem.FieldIsRepost:
+		m.ResetIsRepost()
+		return nil
+	case profilepostitem.FieldTotalReactions:
+		m.ResetTotalReactions()
+		return nil
+	case profilepostitem.FieldLikeCount:
+		m.ResetLikeCount()
+		return nil
+	case profilepostitem.FieldCommentsCount:
+		m.ResetCommentsCount()
+		return nil
+	case profilepostitem.FieldRepostsCount:
+		m.ResetRepostsCount()
+		return nil
+	case profilepostitem.FieldEmpathyCount:
+		m.ResetEmpathyCount()
+		return nil
+	case profilepostitem.FieldPraiseCount:
+		m.ResetPraiseCount()
+		return nil
+	case profilepostitem.FieldFunnyCount:
+		m.ResetFunnyCount()
+		return nil
+	case profilepostitem.FieldInterestCount:
+		m.ResetInterestCount()
+		return nil
+	case profilepostitem.FieldPostedAt:
+		m.ResetPostedAt()
+		return nil
+	case profilepostitem.FieldRawData:
+		m.ResetRawData()
+		return nil
+	case profilepostitem.FieldCreatedAt:
+		m.ResetCreatedAt()
+		return nil
+	case profilepostitem.FieldUpdatedAt:
+		m.ResetUpdatedAt()
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePostItem field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *ProfilePostItemMutation) AddedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.profile_post != nil {
+		edges = append(edges, profilepostitem.EdgeProfilePost)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *ProfilePostItemMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case profilepostitem.EdgeProfilePost:
+		if id := m.profile_post; id != nil {
+			return []ent.Value{*id}
+		}
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *ProfilePostItemMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 1)
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *ProfilePostItemMutation) RemovedIDs(name string) []ent.Value {
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *ProfilePostItemMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 1)
+	if m.clearedprofile_post {
+		edges = append(edges, profilepostitem.EdgeProfilePost)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *ProfilePostItemMutation) EdgeCleared(name string) bool {
+	switch name {
+	case profilepostitem.EdgeProfilePost:
+		return m.clearedprofile_post
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *ProfilePostItemMutation) ClearEdge(name string) error {
+	switch name {
+	case profilepostitem.EdgeProfilePost:
+		m.ClearProfilePost()
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePostItem unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *ProfilePostItemMutation) ResetEdge(name string) error {
+	switch name {
+	case profilepostitem.EdgeProfilePost:
+		m.ResetProfilePost()
+		return nil
+	}
+	return fmt.Errorf("unknown ProfilePostItem edge %s", name)
 }
 
 // TodoMutation represents an operation that mutates the Todo nodes in the graph.

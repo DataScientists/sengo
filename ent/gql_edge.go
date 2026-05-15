@@ -48,6 +48,26 @@ func (pe *ProfileEntry) JobExecutions(ctx context.Context) (result []*JobExecuti
 	return result, err
 }
 
+func (pp *ProfilePost) Items(ctx context.Context) (result []*ProfilePostItem, err error) {
+	if fc := graphql.GetFieldContext(ctx); fc != nil && fc.Field.Alias != "" {
+		result, err = pp.NamedItems(graphql.GetFieldContext(ctx).Field.Alias)
+	} else {
+		result, err = pp.Edges.ItemsOrErr()
+	}
+	if IsNotLoaded(err) {
+		result, err = pp.QueryItems().All(ctx)
+	}
+	return result, err
+}
+
+func (ppi *ProfilePostItem) ProfilePost(ctx context.Context) (*ProfilePost, error) {
+	result, err := ppi.Edges.ProfilePostOrErr()
+	if IsNotLoaded(err) {
+		result, err = ppi.QueryProfilePost().Only(ctx)
+	}
+	return result, MaskNotFound(err)
+}
+
 func (t *Todo) User(ctx context.Context) (*User, error) {
 	result, err := t.Edges.UserOrErr()
 	if IsNotLoaded(err) {

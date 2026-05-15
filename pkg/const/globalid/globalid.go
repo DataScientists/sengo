@@ -9,6 +9,8 @@ import (
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
+	"sheng-go-backend/ent/profilepostitem"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
 )
@@ -27,6 +29,8 @@ type GlobalIDs struct {
 	APIQuotaTracker      field
 	CronJobConfig        field
 	JobExecutionHistory  field
+	ProfilePost          field
+	ProfilePostItem      field
 }
 
 // New generates a map object that is intended to be used as global identification for node interface query.
@@ -60,6 +64,14 @@ func New() GlobalIDs {
 		JobExecutionHistory: field{
 			Prefix: "0AG",
 			Table:  jobexecutionhistory.Table,
+		},
+		ProfilePost: field{
+			Prefix: "0AH",
+			Table:  profilepost.Table,
+		},
+		ProfilePostItem: field{
+			Prefix: "0AI",
+			Table:  profilepostitem.Table,
 		},
 	}
 }

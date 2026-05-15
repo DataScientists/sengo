@@ -12,6 +12,8 @@ import (
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
+	"sheng-go-backend/ent/profilepostitem"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
 	"sync"
@@ -84,6 +86,8 @@ func checkColumn(table, column string) error {
 			jobexecutionhistory.Table: jobexecutionhistory.ValidColumn,
 			profile.Table:             profile.ValidColumn,
 			profileentry.Table:        profileentry.ValidColumn,
+			profilepost.Table:         profilepost.ValidColumn,
+			profilepostitem.Table:     profilepostitem.ValidColumn,
 			todo.Table:                todo.ValidColumn,
 			user.Table:                user.ValidColumn,
 		})

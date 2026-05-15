@@ -22,6 +22,10 @@ type Tx struct {
 	Profile *ProfileClient
 	// ProfileEntry is the client for interacting with the ProfileEntry builders.
 	ProfileEntry *ProfileEntryClient
+	// ProfilePost is the client for interacting with the ProfilePost builders.
+	ProfilePost *ProfilePostClient
+	// ProfilePostItem is the client for interacting with the ProfilePostItem builders.
+	ProfilePostItem *ProfilePostItemClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
@@ -162,6 +166,8 @@ func (tx *Tx) init() {
 	tx.JobExecutionHistory = NewJobExecutionHistoryClient(tx.config)
 	tx.Profile = NewProfileClient(tx.config)
 	tx.ProfileEntry = NewProfileEntryClient(tx.config)
+	tx.ProfilePost = NewProfilePostClient(tx.config)
+	tx.ProfilePostItem = NewProfilePostItemClient(tx.config)
 	tx.Todo = NewTodoClient(tx.config)
 	tx.User = NewUserClient(tx.config)
 }

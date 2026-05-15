@@ -10,6 +10,8 @@ import (
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
+	"sheng-go-backend/ent/profilepostitem"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
@@ -48,6 +50,16 @@ var profileentryImplementors = []string{"ProfileEntry", "Node"}
 
 // IsNode implements the Node interface check for GQLGen.
 func (*ProfileEntry) IsNode() {}
+
+var profilepostImplementors = []string{"ProfilePost", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ProfilePost) IsNode() {}
+
+var profilepostitemImplementors = []string{"ProfilePostItem", "Node"}
+
+// IsNode implements the Node interface check for GQLGen.
+func (*ProfilePostItem) IsNode() {}
 
 var todoImplementors = []string{"Todo", "Node"}
 
@@ -178,6 +190,32 @@ func (c *Client) noder(ctx context.Context, table string, id ulid.ID) (Noder, er
 			Where(profileentry.ID(uid))
 		if fc := graphql.GetFieldContext(ctx); fc != nil {
 			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, profileentryImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case profilepost.Table:
+		var uid ulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.ProfilePost.Query().
+			Where(profilepost.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, profilepostImplementors...); err != nil {
+				return nil, err
+			}
+		}
+		return query.Only(ctx)
+	case profilepostitem.Table:
+		var uid ulid.ID
+		if err := uid.UnmarshalGQL(id); err != nil {
+			return nil, err
+		}
+		query := c.ProfilePostItem.Query().
+			Where(profilepostitem.ID(uid))
+		if fc := graphql.GetFieldContext(ctx); fc != nil {
+			if err := query.collectField(ctx, true, graphql.GetOperationContext(ctx), fc.Field, nil, profilepostitemImplementors...); err != nil {
 				return nil, err
 			}
 		}
@@ -349,6 +387,38 @@ func (c *Client) noders(ctx context.Context, table string, ids []ulid.ID) ([]Nod
 		query := c.ProfileEntry.Query().
 			Where(profileentry.IDIn(ids...))
 		query, err := query.CollectFields(ctx, profileentryImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case profilepost.Table:
+		query := c.ProfilePost.Query().
+			Where(profilepost.IDIn(ids...))
+		query, err := query.CollectFields(ctx, profilepostImplementors...)
+		if err != nil {
+			return nil, err
+		}
+		nodes, err := query.All(ctx)
+		if err != nil {
+			return nil, err
+		}
+		for _, node := range nodes {
+			for _, noder := range idmap[node.ID] {
+				*noder = node
+			}
+		}
+	case profilepostitem.Table:
+		query := c.ProfilePostItem.Query().
+			Where(profilepostitem.IDIn(ids...))
+		query, err := query.CollectFields(ctx, profilepostitemImplementors...)
 		if err != nil {
 			return nil, err
 		}

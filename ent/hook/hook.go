@@ -68,6 +68,30 @@ func (f ProfileEntryFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProfileEntryMutation", m)
 }
 
+// The ProfilePostFunc type is an adapter to allow the use of ordinary
+// function as ProfilePost mutator.
+type ProfilePostFunc func(context.Context, *ent.ProfilePostMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProfilePostFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProfilePostMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProfilePostMutation", m)
+}
+
+// The ProfilePostItemFunc type is an adapter to allow the use of ordinary
+// function as ProfilePostItem mutator.
+type ProfilePostItemFunc func(context.Context, *ent.ProfilePostItemMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f ProfilePostItemFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.ProfilePostItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.ProfilePostItemMutation", m)
+}
+
 // The TodoFunc type is an adapter to allow the use of ordinary
 // function as Todo mutator.
 type TodoFunc func(context.Context, *ent.TodoMutation) (ent.Value, error)

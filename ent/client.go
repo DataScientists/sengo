@@ -17,6 +17,8 @@ import (
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
+	"sheng-go-backend/ent/profilepostitem"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
 
@@ -41,6 +43,10 @@ type Client struct {
 	Profile *ProfileClient
 	// ProfileEntry is the client for interacting with the ProfileEntry builders.
 	ProfileEntry *ProfileEntryClient
+	// ProfilePost is the client for interacting with the ProfilePost builders.
+	ProfilePost *ProfilePostClient
+	// ProfilePostItem is the client for interacting with the ProfilePostItem builders.
+	ProfilePostItem *ProfilePostItemClient
 	// Todo is the client for interacting with the Todo builders.
 	Todo *TodoClient
 	// User is the client for interacting with the User builders.
@@ -61,6 +67,8 @@ func (c *Client) init() {
 	c.JobExecutionHistory = NewJobExecutionHistoryClient(c.config)
 	c.Profile = NewProfileClient(c.config)
 	c.ProfileEntry = NewProfileEntryClient(c.config)
+	c.ProfilePost = NewProfilePostClient(c.config)
+	c.ProfilePostItem = NewProfilePostItemClient(c.config)
 	c.Todo = NewTodoClient(c.config)
 	c.User = NewUserClient(c.config)
 }
@@ -160,6 +168,8 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		JobExecutionHistory: NewJobExecutionHistoryClient(cfg),
 		Profile:             NewProfileClient(cfg),
 		ProfileEntry:        NewProfileEntryClient(cfg),
+		ProfilePost:         NewProfilePostClient(cfg),
+		ProfilePostItem:     NewProfilePostItemClient(cfg),
 		Todo:                NewTodoClient(cfg),
 		User:                NewUserClient(cfg),
 	}, nil
@@ -186,6 +196,8 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		JobExecutionHistory: NewJobExecutionHistoryClient(cfg),
 		Profile:             NewProfileClient(cfg),
 		ProfileEntry:        NewProfileEntryClient(cfg),
+		ProfilePost:         NewProfilePostClient(cfg),
+		ProfilePostItem:     NewProfilePostItemClient(cfg),
 		Todo:                NewTodoClient(cfg),
 		User:                NewUserClient(cfg),
 	}, nil
@@ -218,7 +230,7 @@ func (c *Client) Close() error {
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
 		c.APIQuotaTracker, c.CronJobConfig, c.JobExecutionHistory, c.Profile,
-		c.ProfileEntry, c.Todo, c.User,
+		c.ProfileEntry, c.ProfilePost, c.ProfilePostItem, c.Todo, c.User,
 	} {
 		n.Use(hooks...)
 	}
@@ -229,7 +241,7 @@ func (c *Client) Use(hooks ...Hook) {
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
 		c.APIQuotaTracker, c.CronJobConfig, c.JobExecutionHistory, c.Profile,
-		c.ProfileEntry, c.Todo, c.User,
+		c.ProfileEntry, c.ProfilePost, c.ProfilePostItem, c.Todo, c.User,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -248,6 +260,10 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Profile.mutate(ctx, m)
 	case *ProfileEntryMutation:
 		return c.ProfileEntry.mutate(ctx, m)
+	case *ProfilePostMutation:
+		return c.ProfilePost.mutate(ctx, m)
+	case *ProfilePostItemMutation:
+		return c.ProfilePostItem.mutate(ctx, m)
 	case *TodoMutation:
 		return c.Todo.mutate(ctx, m)
 	case *UserMutation:
@@ -986,6 +1002,304 @@ func (c *ProfileEntryClient) mutate(ctx context.Context, m *ProfileEntryMutation
 	}
 }
 
+// ProfilePostClient is a client for the ProfilePost schema.
+type ProfilePostClient struct {
+	config
+}
+
+// NewProfilePostClient returns a client for the ProfilePost from the given config.
+func NewProfilePostClient(c config) *ProfilePostClient {
+	return &ProfilePostClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `profilepost.Hooks(f(g(h())))`.
+func (c *ProfilePostClient) Use(hooks ...Hook) {
+	c.hooks.ProfilePost = append(c.hooks.ProfilePost, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `profilepost.Intercept(f(g(h())))`.
+func (c *ProfilePostClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProfilePost = append(c.inters.ProfilePost, interceptors...)
+}
+
+// Create returns a builder for creating a ProfilePost entity.
+func (c *ProfilePostClient) Create() *ProfilePostCreate {
+	mutation := newProfilePostMutation(c.config, OpCreate)
+	return &ProfilePostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProfilePost entities.
+func (c *ProfilePostClient) CreateBulk(builders ...*ProfilePostCreate) *ProfilePostCreateBulk {
+	return &ProfilePostCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProfilePostClient) MapCreateBulk(slice any, setFunc func(*ProfilePostCreate, int)) *ProfilePostCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProfilePostCreateBulk{err: fmt.Errorf("calling to ProfilePostClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProfilePostCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProfilePostCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProfilePost.
+func (c *ProfilePostClient) Update() *ProfilePostUpdate {
+	mutation := newProfilePostMutation(c.config, OpUpdate)
+	return &ProfilePostUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProfilePostClient) UpdateOne(pp *ProfilePost) *ProfilePostUpdateOne {
+	mutation := newProfilePostMutation(c.config, OpUpdateOne, withProfilePost(pp))
+	return &ProfilePostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProfilePostClient) UpdateOneID(id ulid.ID) *ProfilePostUpdateOne {
+	mutation := newProfilePostMutation(c.config, OpUpdateOne, withProfilePostID(id))
+	return &ProfilePostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProfilePost.
+func (c *ProfilePostClient) Delete() *ProfilePostDelete {
+	mutation := newProfilePostMutation(c.config, OpDelete)
+	return &ProfilePostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProfilePostClient) DeleteOne(pp *ProfilePost) *ProfilePostDeleteOne {
+	return c.DeleteOneID(pp.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProfilePostClient) DeleteOneID(id ulid.ID) *ProfilePostDeleteOne {
+	builder := c.Delete().Where(profilepost.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProfilePostDeleteOne{builder}
+}
+
+// Query returns a query builder for ProfilePost.
+func (c *ProfilePostClient) Query() *ProfilePostQuery {
+	return &ProfilePostQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProfilePost},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProfilePost entity by its id.
+func (c *ProfilePostClient) Get(ctx context.Context, id ulid.ID) (*ProfilePost, error) {
+	return c.Query().Where(profilepost.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProfilePostClient) GetX(ctx context.Context, id ulid.ID) *ProfilePost {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryItems queries the items edge of a ProfilePost.
+func (c *ProfilePostClient) QueryItems(pp *ProfilePost) *ProfilePostItemQuery {
+	query := (&ProfilePostItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pp.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profilepost.Table, profilepost.FieldID, id),
+			sqlgraph.To(profilepostitem.Table, profilepostitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, profilepost.ItemsTable, profilepost.ItemsColumn),
+		)
+		fromV = sqlgraph.Neighbors(pp.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProfilePostClient) Hooks() []Hook {
+	return c.hooks.ProfilePost
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProfilePostClient) Interceptors() []Interceptor {
+	return c.inters.ProfilePost
+}
+
+func (c *ProfilePostClient) mutate(ctx context.Context, m *ProfilePostMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProfilePostCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProfilePostUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProfilePostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProfilePostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProfilePost mutation op: %q", m.Op())
+	}
+}
+
+// ProfilePostItemClient is a client for the ProfilePostItem schema.
+type ProfilePostItemClient struct {
+	config
+}
+
+// NewProfilePostItemClient returns a client for the ProfilePostItem from the given config.
+func NewProfilePostItemClient(c config) *ProfilePostItemClient {
+	return &ProfilePostItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `profilepostitem.Hooks(f(g(h())))`.
+func (c *ProfilePostItemClient) Use(hooks ...Hook) {
+	c.hooks.ProfilePostItem = append(c.hooks.ProfilePostItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `profilepostitem.Intercept(f(g(h())))`.
+func (c *ProfilePostItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.ProfilePostItem = append(c.inters.ProfilePostItem, interceptors...)
+}
+
+// Create returns a builder for creating a ProfilePostItem entity.
+func (c *ProfilePostItemClient) Create() *ProfilePostItemCreate {
+	mutation := newProfilePostItemMutation(c.config, OpCreate)
+	return &ProfilePostItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of ProfilePostItem entities.
+func (c *ProfilePostItemClient) CreateBulk(builders ...*ProfilePostItemCreate) *ProfilePostItemCreateBulk {
+	return &ProfilePostItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *ProfilePostItemClient) MapCreateBulk(slice any, setFunc func(*ProfilePostItemCreate, int)) *ProfilePostItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &ProfilePostItemCreateBulk{err: fmt.Errorf("calling to ProfilePostItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*ProfilePostItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &ProfilePostItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for ProfilePostItem.
+func (c *ProfilePostItemClient) Update() *ProfilePostItemUpdate {
+	mutation := newProfilePostItemMutation(c.config, OpUpdate)
+	return &ProfilePostItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *ProfilePostItemClient) UpdateOne(ppi *ProfilePostItem) *ProfilePostItemUpdateOne {
+	mutation := newProfilePostItemMutation(c.config, OpUpdateOne, withProfilePostItem(ppi))
+	return &ProfilePostItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *ProfilePostItemClient) UpdateOneID(id ulid.ID) *ProfilePostItemUpdateOne {
+	mutation := newProfilePostItemMutation(c.config, OpUpdateOne, withProfilePostItemID(id))
+	return &ProfilePostItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for ProfilePostItem.
+func (c *ProfilePostItemClient) Delete() *ProfilePostItemDelete {
+	mutation := newProfilePostItemMutation(c.config, OpDelete)
+	return &ProfilePostItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *ProfilePostItemClient) DeleteOne(ppi *ProfilePostItem) *ProfilePostItemDeleteOne {
+	return c.DeleteOneID(ppi.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *ProfilePostItemClient) DeleteOneID(id ulid.ID) *ProfilePostItemDeleteOne {
+	builder := c.Delete().Where(profilepostitem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &ProfilePostItemDeleteOne{builder}
+}
+
+// Query returns a query builder for ProfilePostItem.
+func (c *ProfilePostItemClient) Query() *ProfilePostItemQuery {
+	return &ProfilePostItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeProfilePostItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a ProfilePostItem entity by its id.
+func (c *ProfilePostItemClient) Get(ctx context.Context, id ulid.ID) (*ProfilePostItem, error) {
+	return c.Query().Where(profilepostitem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *ProfilePostItemClient) GetX(ctx context.Context, id ulid.ID) *ProfilePostItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryProfilePost queries the profile_post edge of a ProfilePostItem.
+func (c *ProfilePostItemClient) QueryProfilePost(ppi *ProfilePostItem) *ProfilePostQuery {
+	query := (&ProfilePostClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ppi.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(profilepostitem.Table, profilepostitem.FieldID, id),
+			sqlgraph.To(profilepost.Table, profilepost.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, profilepostitem.ProfilePostTable, profilepostitem.ProfilePostColumn),
+		)
+		fromV = sqlgraph.Neighbors(ppi.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *ProfilePostItemClient) Hooks() []Hook {
+	return c.hooks.ProfilePostItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *ProfilePostItemClient) Interceptors() []Interceptor {
+	return c.inters.ProfilePostItem
+}
+
+func (c *ProfilePostItemClient) mutate(ctx context.Context, m *ProfilePostItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&ProfilePostItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&ProfilePostItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&ProfilePostItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&ProfilePostItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown ProfilePostItem mutation op: %q", m.Op())
+	}
+}
+
 // TodoClient is a client for the Todo schema.
 type TodoClient struct {
 	config
@@ -1288,10 +1602,10 @@ func (c *UserClient) mutate(ctx context.Context, m *UserMutation) (Value, error)
 type (
 	hooks struct {
 		APIQuotaTracker, CronJobConfig, JobExecutionHistory, Profile, ProfileEntry,
-		Todo, User []ent.Hook
+		ProfilePost, ProfilePostItem, Todo, User []ent.Hook
 	}
 	inters struct {
 		APIQuotaTracker, CronJobConfig, JobExecutionHistory, Profile, ProfileEntry,
-		Todo, User []ent.Interceptor
+		ProfilePost, ProfilePostItem, Todo, User []ent.Interceptor
 	}
 )

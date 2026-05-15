@@ -10,6 +10,8 @@ import (
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
+	"sheng-go-backend/ent/profilepostitem"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
@@ -1344,6 +1346,504 @@ func (pe *ProfileEntry) ToEdge(order *ProfileEntryOrder) *ProfileEntryEdge {
 	return &ProfileEntryEdge{
 		Node:   pe,
 		Cursor: order.Field.toCursor(pe),
+	}
+}
+
+// ProfilePostEdge is the edge representation of ProfilePost.
+type ProfilePostEdge struct {
+	Node   *ProfilePost `json:"node"`
+	Cursor Cursor       `json:"cursor"`
+}
+
+// ProfilePostConnection is the connection containing edges to ProfilePost.
+type ProfilePostConnection struct {
+	Edges      []*ProfilePostEdge `json:"edges"`
+	PageInfo   PageInfo           `json:"pageInfo"`
+	TotalCount int                `json:"totalCount"`
+}
+
+func (c *ProfilePostConnection) build(nodes []*ProfilePost, pager *profilepostPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *ProfilePost
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *ProfilePost {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *ProfilePost {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*ProfilePostEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &ProfilePostEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// ProfilePostPaginateOption enables pagination customization.
+type ProfilePostPaginateOption func(*profilepostPager) error
+
+// WithProfilePostOrder configures pagination ordering.
+func WithProfilePostOrder(order *ProfilePostOrder) ProfilePostPaginateOption {
+	if order == nil {
+		order = DefaultProfilePostOrder
+	}
+	o := *order
+	return func(pager *profilepostPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultProfilePostOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithProfilePostFilter configures pagination filter.
+func WithProfilePostFilter(filter func(*ProfilePostQuery) (*ProfilePostQuery, error)) ProfilePostPaginateOption {
+	return func(pager *profilepostPager) error {
+		if filter == nil {
+			return errors.New("ProfilePostQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type profilepostPager struct {
+	reverse bool
+	order   *ProfilePostOrder
+	filter  func(*ProfilePostQuery) (*ProfilePostQuery, error)
+}
+
+func newProfilePostPager(opts []ProfilePostPaginateOption, reverse bool) (*profilepostPager, error) {
+	pager := &profilepostPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultProfilePostOrder
+	}
+	return pager, nil
+}
+
+func (p *profilepostPager) applyFilter(query *ProfilePostQuery) (*ProfilePostQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *profilepostPager) toCursor(pp *ProfilePost) Cursor {
+	return p.order.Field.toCursor(pp)
+}
+
+func (p *profilepostPager) applyCursors(query *ProfilePostQuery, after, before *Cursor) (*ProfilePostQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultProfilePostOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *profilepostPager) applyOrder(query *ProfilePostQuery) *ProfilePostQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultProfilePostOrder.Field {
+		query = query.Order(DefaultProfilePostOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *profilepostPager) orderExpr(query *ProfilePostQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultProfilePostOrder.Field {
+			b.Comma().Ident(DefaultProfilePostOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to ProfilePost.
+func (pp *ProfilePostQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...ProfilePostPaginateOption,
+) (*ProfilePostConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newProfilePostPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if pp, err = pager.applyFilter(pp); err != nil {
+		return nil, err
+	}
+	conn := &ProfilePostConnection{Edges: []*ProfilePostEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := pp.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if pp, err = pager.applyCursors(pp, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		pp.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := pp.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	pp = pager.applyOrder(pp)
+	nodes, err := pp.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// ProfilePostOrderField defines the ordering field of ProfilePost.
+type ProfilePostOrderField struct {
+	// Value extracts the ordering value from the given ProfilePost.
+	Value    func(*ProfilePost) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) profilepost.OrderOption
+	toCursor func(*ProfilePost) Cursor
+}
+
+// ProfilePostOrder defines the ordering of ProfilePost.
+type ProfilePostOrder struct {
+	Direction OrderDirection         `json:"direction"`
+	Field     *ProfilePostOrderField `json:"field"`
+}
+
+// DefaultProfilePostOrder is the default ordering of ProfilePost.
+var DefaultProfilePostOrder = &ProfilePostOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &ProfilePostOrderField{
+		Value: func(pp *ProfilePost) (ent.Value, error) {
+			return pp.ID, nil
+		},
+		column: profilepost.FieldID,
+		toTerm: profilepost.ByID,
+		toCursor: func(pp *ProfilePost) Cursor {
+			return Cursor{ID: pp.ID}
+		},
+	},
+}
+
+// ToEdge converts ProfilePost into ProfilePostEdge.
+func (pp *ProfilePost) ToEdge(order *ProfilePostOrder) *ProfilePostEdge {
+	if order == nil {
+		order = DefaultProfilePostOrder
+	}
+	return &ProfilePostEdge{
+		Node:   pp,
+		Cursor: order.Field.toCursor(pp),
+	}
+}
+
+// ProfilePostItemEdge is the edge representation of ProfilePostItem.
+type ProfilePostItemEdge struct {
+	Node   *ProfilePostItem `json:"node"`
+	Cursor Cursor           `json:"cursor"`
+}
+
+// ProfilePostItemConnection is the connection containing edges to ProfilePostItem.
+type ProfilePostItemConnection struct {
+	Edges      []*ProfilePostItemEdge `json:"edges"`
+	PageInfo   PageInfo               `json:"pageInfo"`
+	TotalCount int                    `json:"totalCount"`
+}
+
+func (c *ProfilePostItemConnection) build(nodes []*ProfilePostItem, pager *profilepostitemPager, after *Cursor, first *int, before *Cursor, last *int) {
+	c.PageInfo.HasNextPage = before != nil
+	c.PageInfo.HasPreviousPage = after != nil
+	if first != nil && *first+1 == len(nodes) {
+		c.PageInfo.HasNextPage = true
+		nodes = nodes[:len(nodes)-1]
+	} else if last != nil && *last+1 == len(nodes) {
+		c.PageInfo.HasPreviousPage = true
+		nodes = nodes[:len(nodes)-1]
+	}
+	var nodeAt func(int) *ProfilePostItem
+	if last != nil {
+		n := len(nodes) - 1
+		nodeAt = func(i int) *ProfilePostItem {
+			return nodes[n-i]
+		}
+	} else {
+		nodeAt = func(i int) *ProfilePostItem {
+			return nodes[i]
+		}
+	}
+	c.Edges = make([]*ProfilePostItemEdge, len(nodes))
+	for i := range nodes {
+		node := nodeAt(i)
+		c.Edges[i] = &ProfilePostItemEdge{
+			Node:   node,
+			Cursor: pager.toCursor(node),
+		}
+	}
+	if l := len(c.Edges); l > 0 {
+		c.PageInfo.StartCursor = &c.Edges[0].Cursor
+		c.PageInfo.EndCursor = &c.Edges[l-1].Cursor
+	}
+	if c.TotalCount == 0 {
+		c.TotalCount = len(nodes)
+	}
+}
+
+// ProfilePostItemPaginateOption enables pagination customization.
+type ProfilePostItemPaginateOption func(*profilepostitemPager) error
+
+// WithProfilePostItemOrder configures pagination ordering.
+func WithProfilePostItemOrder(order *ProfilePostItemOrder) ProfilePostItemPaginateOption {
+	if order == nil {
+		order = DefaultProfilePostItemOrder
+	}
+	o := *order
+	return func(pager *profilepostitemPager) error {
+		if err := o.Direction.Validate(); err != nil {
+			return err
+		}
+		if o.Field == nil {
+			o.Field = DefaultProfilePostItemOrder.Field
+		}
+		pager.order = &o
+		return nil
+	}
+}
+
+// WithProfilePostItemFilter configures pagination filter.
+func WithProfilePostItemFilter(filter func(*ProfilePostItemQuery) (*ProfilePostItemQuery, error)) ProfilePostItemPaginateOption {
+	return func(pager *profilepostitemPager) error {
+		if filter == nil {
+			return errors.New("ProfilePostItemQuery filter cannot be nil")
+		}
+		pager.filter = filter
+		return nil
+	}
+}
+
+type profilepostitemPager struct {
+	reverse bool
+	order   *ProfilePostItemOrder
+	filter  func(*ProfilePostItemQuery) (*ProfilePostItemQuery, error)
+}
+
+func newProfilePostItemPager(opts []ProfilePostItemPaginateOption, reverse bool) (*profilepostitemPager, error) {
+	pager := &profilepostitemPager{reverse: reverse}
+	for _, opt := range opts {
+		if err := opt(pager); err != nil {
+			return nil, err
+		}
+	}
+	if pager.order == nil {
+		pager.order = DefaultProfilePostItemOrder
+	}
+	return pager, nil
+}
+
+func (p *profilepostitemPager) applyFilter(query *ProfilePostItemQuery) (*ProfilePostItemQuery, error) {
+	if p.filter != nil {
+		return p.filter(query)
+	}
+	return query, nil
+}
+
+func (p *profilepostitemPager) toCursor(ppi *ProfilePostItem) Cursor {
+	return p.order.Field.toCursor(ppi)
+}
+
+func (p *profilepostitemPager) applyCursors(query *ProfilePostItemQuery, after, before *Cursor) (*ProfilePostItemQuery, error) {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	for _, predicate := range entgql.CursorsPredicate(after, before, DefaultProfilePostItemOrder.Field.column, p.order.Field.column, direction) {
+		query = query.Where(predicate)
+	}
+	return query, nil
+}
+
+func (p *profilepostitemPager) applyOrder(query *ProfilePostItemQuery) *ProfilePostItemQuery {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	query = query.Order(p.order.Field.toTerm(direction.OrderTermOption()))
+	if p.order.Field != DefaultProfilePostItemOrder.Field {
+		query = query.Order(DefaultProfilePostItemOrder.Field.toTerm(direction.OrderTermOption()))
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return query
+}
+
+func (p *profilepostitemPager) orderExpr(query *ProfilePostItemQuery) sql.Querier {
+	direction := p.order.Direction
+	if p.reverse {
+		direction = direction.Reverse()
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(p.order.Field.column)
+	}
+	return sql.ExprFunc(func(b *sql.Builder) {
+		b.Ident(p.order.Field.column).Pad().WriteString(string(direction))
+		if p.order.Field != DefaultProfilePostItemOrder.Field {
+			b.Comma().Ident(DefaultProfilePostItemOrder.Field.column).Pad().WriteString(string(direction))
+		}
+	})
+}
+
+// Paginate executes the query and returns a relay based cursor connection to ProfilePostItem.
+func (ppi *ProfilePostItemQuery) Paginate(
+	ctx context.Context, after *Cursor, first *int,
+	before *Cursor, last *int, opts ...ProfilePostItemPaginateOption,
+) (*ProfilePostItemConnection, error) {
+	if err := validateFirstLast(first, last); err != nil {
+		return nil, err
+	}
+	pager, err := newProfilePostItemPager(opts, last != nil)
+	if err != nil {
+		return nil, err
+	}
+	if ppi, err = pager.applyFilter(ppi); err != nil {
+		return nil, err
+	}
+	conn := &ProfilePostItemConnection{Edges: []*ProfilePostItemEdge{}}
+	ignoredEdges := !hasCollectedField(ctx, edgesField)
+	if hasCollectedField(ctx, totalCountField) || hasCollectedField(ctx, pageInfoField) {
+		hasPagination := after != nil || first != nil || before != nil || last != nil
+		if hasPagination || ignoredEdges {
+			c := ppi.Clone()
+			c.ctx.Fields = nil
+			if conn.TotalCount, err = c.Count(ctx); err != nil {
+				return nil, err
+			}
+			conn.PageInfo.HasNextPage = first != nil && conn.TotalCount > 0
+			conn.PageInfo.HasPreviousPage = last != nil && conn.TotalCount > 0
+		}
+	}
+	if ignoredEdges || (first != nil && *first == 0) || (last != nil && *last == 0) {
+		return conn, nil
+	}
+	if ppi, err = pager.applyCursors(ppi, after, before); err != nil {
+		return nil, err
+	}
+	limit := paginateLimit(first, last)
+	if limit != 0 {
+		ppi.Limit(limit)
+	}
+	if field := collectedField(ctx, edgesField, nodeField); field != nil {
+		if err := ppi.collectField(ctx, limit == 1, graphql.GetOperationContext(ctx), *field, []string{edgesField, nodeField}); err != nil {
+			return nil, err
+		}
+	}
+	ppi = pager.applyOrder(ppi)
+	nodes, err := ppi.All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	conn.build(nodes, pager, after, first, before, last)
+	return conn, nil
+}
+
+// ProfilePostItemOrderField defines the ordering field of ProfilePostItem.
+type ProfilePostItemOrderField struct {
+	// Value extracts the ordering value from the given ProfilePostItem.
+	Value    func(*ProfilePostItem) (ent.Value, error)
+	column   string // field or computed.
+	toTerm   func(...sql.OrderTermOption) profilepostitem.OrderOption
+	toCursor func(*ProfilePostItem) Cursor
+}
+
+// ProfilePostItemOrder defines the ordering of ProfilePostItem.
+type ProfilePostItemOrder struct {
+	Direction OrderDirection             `json:"direction"`
+	Field     *ProfilePostItemOrderField `json:"field"`
+}
+
+// DefaultProfilePostItemOrder is the default ordering of ProfilePostItem.
+var DefaultProfilePostItemOrder = &ProfilePostItemOrder{
+	Direction: entgql.OrderDirectionAsc,
+	Field: &ProfilePostItemOrderField{
+		Value: func(ppi *ProfilePostItem) (ent.Value, error) {
+			return ppi.ID, nil
+		},
+		column: profilepostitem.FieldID,
+		toTerm: profilepostitem.ByID,
+		toCursor: func(ppi *ProfilePostItem) Cursor {
+			return Cursor{ID: ppi.ID}
+		},
+	},
+}
+
+// ToEdge converts ProfilePostItem into ProfilePostItemEdge.
+func (ppi *ProfilePostItem) ToEdge(order *ProfilePostItemOrder) *ProfilePostItemEdge {
+	if order == nil {
+		order = DefaultProfilePostItemOrder
+	}
+	return &ProfilePostItemEdge{
+		Node:   ppi,
+		Cursor: order.Field.toCursor(ppi),
 	}
 }
 

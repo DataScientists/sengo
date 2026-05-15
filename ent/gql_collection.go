@@ -9,6 +9,8 @@ import (
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
+	"sheng-go-backend/ent/profilepostitem"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
 
@@ -679,6 +681,274 @@ func newProfileEntryPaginateArgs(rv map[string]any) *profileentryPaginateArgs {
 	}
 	if v, ok := rv[whereField].(*ProfileEntryWhereInput); ok {
 		args.opts = append(args.opts, WithProfileEntryFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (pp *ProfilePostQuery) CollectFields(ctx context.Context, satisfies ...string) (*ProfilePostQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return pp, nil
+	}
+	if err := pp.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return pp, nil
+}
+
+func (pp *ProfilePostQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(profilepost.Columns))
+		selectedFields = []string{profilepost.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+
+		case "items":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProfilePostItemClient{config: pp.config}).Query()
+			)
+			if err := query.collectField(ctx, false, opCtx, field, path, mayAddCondition(satisfies, profilepostitemImplementors)...); err != nil {
+				return err
+			}
+			pp.WithNamedItems(alias, func(wq *ProfilePostItemQuery) {
+				*wq = *query
+			})
+		case "profileUsername":
+			if _, ok := fieldSeen[profilepost.FieldProfileUsername]; !ok {
+				selectedFields = append(selectedFields, profilepost.FieldProfileUsername)
+				fieldSeen[profilepost.FieldProfileUsername] = struct{}{}
+			}
+		case "fetchStatus":
+			if _, ok := fieldSeen[profilepost.FieldFetchStatus]; !ok {
+				selectedFields = append(selectedFields, profilepost.FieldFetchStatus)
+				fieldSeen[profilepost.FieldFetchStatus] = struct{}{}
+			}
+		case "s3Key":
+			if _, ok := fieldSeen[profilepost.FieldS3Key]; !ok {
+				selectedFields = append(selectedFields, profilepost.FieldS3Key)
+				fieldSeen[profilepost.FieldS3Key] = struct{}{}
+			}
+		case "errorMessage":
+			if _, ok := fieldSeen[profilepost.FieldErrorMessage]; !ok {
+				selectedFields = append(selectedFields, profilepost.FieldErrorMessage)
+				fieldSeen[profilepost.FieldErrorMessage] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[profilepost.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, profilepost.FieldCreatedAt)
+				fieldSeen[profilepost.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[profilepost.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, profilepost.FieldUpdatedAt)
+				fieldSeen[profilepost.FieldUpdatedAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		pp.Select(selectedFields...)
+	}
+	return nil
+}
+
+type profilepostPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ProfilePostPaginateOption
+}
+
+func newProfilePostPaginateArgs(rv map[string]any) *profilepostPaginateArgs {
+	args := &profilepostPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*ProfilePostWhereInput); ok {
+		args.opts = append(args.opts, WithProfilePostFilter(v.Filter))
+	}
+	return args
+}
+
+// CollectFields tells the query-builder to eagerly load connected nodes by resolver context.
+func (ppi *ProfilePostItemQuery) CollectFields(ctx context.Context, satisfies ...string) (*ProfilePostItemQuery, error) {
+	fc := graphql.GetFieldContext(ctx)
+	if fc == nil {
+		return ppi, nil
+	}
+	if err := ppi.collectField(ctx, false, graphql.GetOperationContext(ctx), fc.Field, nil, satisfies...); err != nil {
+		return nil, err
+	}
+	return ppi, nil
+}
+
+func (ppi *ProfilePostItemQuery) collectField(ctx context.Context, oneNode bool, opCtx *graphql.OperationContext, collected graphql.CollectedField, path []string, satisfies ...string) error {
+	path = append([]string(nil), path...)
+	var (
+		unknownSeen    bool
+		fieldSeen      = make(map[string]struct{}, len(profilepostitem.Columns))
+		selectedFields = []string{profilepostitem.FieldID}
+	)
+	for _, field := range graphql.CollectFields(opCtx, collected.Selections, satisfies) {
+		switch field.Name {
+
+		case "profilePost":
+			var (
+				alias = field.Alias
+				path  = append(path, alias)
+				query = (&ProfilePostClient{config: ppi.config}).Query()
+			)
+			if err := query.collectField(ctx, oneNode, opCtx, field, path, mayAddCondition(satisfies, profilepostImplementors)...); err != nil {
+				return err
+			}
+			ppi.withProfilePost = query
+		case "profileUsername":
+			if _, ok := fieldSeen[profilepostitem.FieldProfileUsername]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldProfileUsername)
+				fieldSeen[profilepostitem.FieldProfileUsername] = struct{}{}
+			}
+		case "postUrn":
+			if _, ok := fieldSeen[profilepostitem.FieldPostUrn]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldPostUrn)
+				fieldSeen[profilepostitem.FieldPostUrn] = struct{}{}
+			}
+		case "postURL":
+			if _, ok := fieldSeen[profilepostitem.FieldPostURL]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldPostURL)
+				fieldSeen[profilepostitem.FieldPostURL] = struct{}{}
+			}
+		case "text":
+			if _, ok := fieldSeen[profilepostitem.FieldText]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldText)
+				fieldSeen[profilepostitem.FieldText] = struct{}{}
+			}
+		case "contentType":
+			if _, ok := fieldSeen[profilepostitem.FieldContentType]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldContentType)
+				fieldSeen[profilepostitem.FieldContentType] = struct{}{}
+			}
+		case "isRepost":
+			if _, ok := fieldSeen[profilepostitem.FieldIsRepost]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldIsRepost)
+				fieldSeen[profilepostitem.FieldIsRepost] = struct{}{}
+			}
+		case "totalReactions":
+			if _, ok := fieldSeen[profilepostitem.FieldTotalReactions]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldTotalReactions)
+				fieldSeen[profilepostitem.FieldTotalReactions] = struct{}{}
+			}
+		case "likeCount":
+			if _, ok := fieldSeen[profilepostitem.FieldLikeCount]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldLikeCount)
+				fieldSeen[profilepostitem.FieldLikeCount] = struct{}{}
+			}
+		case "commentsCount":
+			if _, ok := fieldSeen[profilepostitem.FieldCommentsCount]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldCommentsCount)
+				fieldSeen[profilepostitem.FieldCommentsCount] = struct{}{}
+			}
+		case "repostsCount":
+			if _, ok := fieldSeen[profilepostitem.FieldRepostsCount]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldRepostsCount)
+				fieldSeen[profilepostitem.FieldRepostsCount] = struct{}{}
+			}
+		case "empathyCount":
+			if _, ok := fieldSeen[profilepostitem.FieldEmpathyCount]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldEmpathyCount)
+				fieldSeen[profilepostitem.FieldEmpathyCount] = struct{}{}
+			}
+		case "praiseCount":
+			if _, ok := fieldSeen[profilepostitem.FieldPraiseCount]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldPraiseCount)
+				fieldSeen[profilepostitem.FieldPraiseCount] = struct{}{}
+			}
+		case "funnyCount":
+			if _, ok := fieldSeen[profilepostitem.FieldFunnyCount]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldFunnyCount)
+				fieldSeen[profilepostitem.FieldFunnyCount] = struct{}{}
+			}
+		case "interestCount":
+			if _, ok := fieldSeen[profilepostitem.FieldInterestCount]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldInterestCount)
+				fieldSeen[profilepostitem.FieldInterestCount] = struct{}{}
+			}
+		case "postedAt":
+			if _, ok := fieldSeen[profilepostitem.FieldPostedAt]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldPostedAt)
+				fieldSeen[profilepostitem.FieldPostedAt] = struct{}{}
+			}
+		case "rawData":
+			if _, ok := fieldSeen[profilepostitem.FieldRawData]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldRawData)
+				fieldSeen[profilepostitem.FieldRawData] = struct{}{}
+			}
+		case "createdAt":
+			if _, ok := fieldSeen[profilepostitem.FieldCreatedAt]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldCreatedAt)
+				fieldSeen[profilepostitem.FieldCreatedAt] = struct{}{}
+			}
+		case "updatedAt":
+			if _, ok := fieldSeen[profilepostitem.FieldUpdatedAt]; !ok {
+				selectedFields = append(selectedFields, profilepostitem.FieldUpdatedAt)
+				fieldSeen[profilepostitem.FieldUpdatedAt] = struct{}{}
+			}
+		case "id":
+		case "__typename":
+		default:
+			unknownSeen = true
+		}
+	}
+	if !unknownSeen {
+		ppi.Select(selectedFields...)
+	}
+	return nil
+}
+
+type profilepostitemPaginateArgs struct {
+	first, last   *int
+	after, before *Cursor
+	opts          []ProfilePostItemPaginateOption
+}
+
+func newProfilePostItemPaginateArgs(rv map[string]any) *profilepostitemPaginateArgs {
+	args := &profilepostitemPaginateArgs{}
+	if rv == nil {
+		return args
+	}
+	if v := rv[firstField]; v != nil {
+		args.first = v.(*int)
+	}
+	if v := rv[lastField]; v != nil {
+		args.last = v.(*int)
+	}
+	if v := rv[afterField]; v != nil {
+		args.after = v.(*Cursor)
+	}
+	if v := rv[beforeField]; v != nil {
+		args.before = v.(*Cursor)
+	}
+	if v, ok := rv[whereField].(*ProfilePostItemWhereInput); ok {
+		args.opts = append(args.opts, WithProfilePostItemFilter(v.Filter))
 	}
 	return args
 }

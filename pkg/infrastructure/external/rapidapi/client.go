@@ -316,6 +316,126 @@ func (c *LinkedInClient) FetchProfileByURL(
 	return parseAPIResponse(body)
 }
 
+// FetchProfilePosts fetches up to 5 posts for a LinkedIn profile username.
+// Uses the get-profile-posts endpoint with start=0 to get the most recent posts.
+func (c *LinkedInClient) FetchProfilePosts(
+	ctx context.Context,
+	username string,
+	start int,
+) ([]map[string]interface{}, []byte, error) {
+	url := "https://real-time-people-company-data.p.rapidapi.com/get-profile-posts"
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	q := req.URL.Query()
+	q.Add("username", username)
+	q.Add("start", strconv.Itoa(start))
+	req.URL.RawQuery = q.Encode()
+
+	req.Header.Set("x-rapidapi-key", c.apiKey)
+	req.Header.Set("x-rapidapi-host", "real-time-people-company-data.p.rapidapi.com")
+	req.Header.Set("Content-Type", "application/json")
+
+	log.Printf("FetchProfilePosts: GET %s", req.URL.String())
+
+	startTime := time.Now()
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to execute request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	log.Printf("FetchProfilePosts: status=%d elapsed=%v", resp.StatusCode, time.Since(startTime))
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if resp.StatusCode == http.StatusTooManyRequests {
+		retryAfter := parseRetryAfter(resp.Header.Get("Retry-After"))
+		return nil, body, &RateLimitError{
+			RetryAfter: retryAfter,
+			StatusCode: resp.StatusCode,
+			Message:    string(body),
+		}
+	}
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, body, &NotFoundError{
+			URN:     username,
+			Message: string(body),
+		}
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return nil, body, fmt.Errorf("API returned status %d: %s", resp.StatusCode, string(body))
+	}
+
+	// Parse response: try wrapped format first, then direct array/object
+	posts, err := parsePostsResponse(body)
+	if err != nil {
+		return nil, body, err
+	}
+
+	return posts, body, nil
+}
+
+// parsePostsResponse extracts the posts array from the API response.
+// Handles both wrapped ({success, data: [...]}) and direct ([...]) formats.
+func parsePostsResponse(body []byte) ([]map[string]interface{}, error) {
+	// Try wrapped format: {success: true, data: [...]}
+	var wrapped struct {
+		Success bool                     `json:"success"`
+		Message string                   `json:"message"`
+		Data    []map[string]interface{} `json:"data"`
+	}
+	if err := json.Unmarshal(body, &wrapped); err == nil {
+		var check map[string]interface{}
+		json.Unmarshal(body, &check)
+		if _, hasSuccess := check["success"]; hasSuccess {
+			if !wrapped.Success {
+				msgLower := strings.ToLower(wrapped.Message)
+				if strings.Contains(msgLower, "not found") || strings.Contains(msgLower, "not valid") {
+					return nil, &NotFoundError{Message: wrapped.Message}
+				}
+				return nil, fmt.Errorf("API error: %s", wrapped.Message)
+			}
+			return wrapped.Data, nil
+		}
+	}
+
+	// Try direct array format
+	var posts []map[string]interface{}
+	if err := json.Unmarshal(body, &posts); err == nil {
+		return posts, nil
+	}
+
+	// Try object with a "posts" key
+	var obj map[string]interface{}
+	if err := json.Unmarshal(body, &obj); err != nil {
+		return nil, fmt.Errorf("failed to parse posts response: %w", err)
+	}
+	for _, key := range []string{"posts", "data", "items", "results"} {
+		if v, ok := obj[key]; ok {
+			if arr, ok := v.([]interface{}); ok {
+				result := make([]map[string]interface{}, 0, len(arr))
+				for _, item := range arr {
+					if m, ok := item.(map[string]interface{}); ok {
+						result = append(result, m)
+					}
+				}
+				return result, nil
+			}
+		}
+	}
+
+	return nil, fmt.Errorf("could not extract posts array from response")
+}
+
 func parseRetryAfter(value string) time.Duration {
 	if value == "" {
 		return 0

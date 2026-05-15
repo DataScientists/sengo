@@ -8,6 +8,8 @@ import (
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
+	"sheng-go-backend/ent/profilepostitem"
 	"sheng-go-backend/ent/schema"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
@@ -282,6 +284,116 @@ func init() {
 	profileentryDescID := profileentryMixinFields0[0].Descriptor()
 	// profileentry.DefaultID holds the default value on creation for the id field.
 	profileentry.DefaultID = profileentryDescID.Default.(func() ulid.ID)
+	profilepostMixin := schema.ProfilePost{}.Mixin()
+	profilepostMixinFields0 := profilepostMixin[0].Fields()
+	_ = profilepostMixinFields0
+	profilepostMixinFields1 := profilepostMixin[1].Fields()
+	_ = profilepostMixinFields1
+	profilepostMixinFields2 := profilepostMixin[2].Fields()
+	_ = profilepostMixinFields2
+	profilepostFields := schema.ProfilePost{}.Fields()
+	_ = profilepostFields
+	// profilepostDescProfileUsername is the schema descriptor for profile_username field.
+	profilepostDescProfileUsername := profilepostMixinFields1[0].Descriptor()
+	// profilepost.ProfileUsernameValidator is a validator for the "profile_username" field. It is called by the builders before save.
+	profilepost.ProfileUsernameValidator = profilepostDescProfileUsername.Validators[0].(func(string) error)
+	// profilepostDescS3Key is the schema descriptor for s3_key field.
+	profilepostDescS3Key := profilepostMixinFields1[2].Descriptor()
+	// profilepost.S3KeyValidator is a validator for the "s3_key" field. It is called by the builders before save.
+	profilepost.S3KeyValidator = profilepostDescS3Key.Validators[0].(func(string) error)
+	// profilepostDescCreatedAt is the schema descriptor for created_at field.
+	profilepostDescCreatedAt := profilepostMixinFields2[0].Descriptor()
+	// profilepost.DefaultCreatedAt holds the default value on creation for the created_at field.
+	profilepost.DefaultCreatedAt = profilepostDescCreatedAt.Default.(func() time.Time)
+	// profilepostDescUpdatedAt is the schema descriptor for updated_at field.
+	profilepostDescUpdatedAt := profilepostMixinFields2[1].Descriptor()
+	// profilepost.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	profilepost.DefaultUpdatedAt = profilepostDescUpdatedAt.Default.(func() time.Time)
+	// profilepost.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	profilepost.UpdateDefaultUpdatedAt = profilepostDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// profilepostDescID is the schema descriptor for id field.
+	profilepostDescID := profilepostMixinFields0[0].Descriptor()
+	// profilepost.DefaultID holds the default value on creation for the id field.
+	profilepost.DefaultID = profilepostDescID.Default.(func() ulid.ID)
+	profilepostitemMixin := schema.ProfilePostItem{}.Mixin()
+	profilepostitemMixinFields0 := profilepostitemMixin[0].Fields()
+	_ = profilepostitemMixinFields0
+	profilepostitemMixinFields1 := profilepostitemMixin[1].Fields()
+	_ = profilepostitemMixinFields1
+	profilepostitemMixinFields2 := profilepostitemMixin[2].Fields()
+	_ = profilepostitemMixinFields2
+	profilepostitemFields := schema.ProfilePostItem{}.Fields()
+	_ = profilepostitemFields
+	// profilepostitemDescProfileUsername is the schema descriptor for profile_username field.
+	profilepostitemDescProfileUsername := profilepostitemMixinFields1[0].Descriptor()
+	// profilepostitem.ProfileUsernameValidator is a validator for the "profile_username" field. It is called by the builders before save.
+	profilepostitem.ProfileUsernameValidator = profilepostitemDescProfileUsername.Validators[0].(func(string) error)
+	// profilepostitemDescIsRepost is the schema descriptor for is_repost field.
+	profilepostitemDescIsRepost := profilepostitemMixinFields1[5].Descriptor()
+	// profilepostitem.DefaultIsRepost holds the default value on creation for the is_repost field.
+	profilepostitem.DefaultIsRepost = profilepostitemDescIsRepost.Default.(bool)
+	// profilepostitemDescTotalReactions is the schema descriptor for total_reactions field.
+	profilepostitemDescTotalReactions := profilepostitemMixinFields1[6].Descriptor()
+	// profilepostitem.DefaultTotalReactions holds the default value on creation for the total_reactions field.
+	profilepostitem.DefaultTotalReactions = profilepostitemDescTotalReactions.Default.(int)
+	// profilepostitem.TotalReactionsValidator is a validator for the "total_reactions" field. It is called by the builders before save.
+	profilepostitem.TotalReactionsValidator = profilepostitemDescTotalReactions.Validators[0].(func(int) error)
+	// profilepostitemDescLikeCount is the schema descriptor for like_count field.
+	profilepostitemDescLikeCount := profilepostitemMixinFields1[7].Descriptor()
+	// profilepostitem.DefaultLikeCount holds the default value on creation for the like_count field.
+	profilepostitem.DefaultLikeCount = profilepostitemDescLikeCount.Default.(int)
+	// profilepostitem.LikeCountValidator is a validator for the "like_count" field. It is called by the builders before save.
+	profilepostitem.LikeCountValidator = profilepostitemDescLikeCount.Validators[0].(func(int) error)
+	// profilepostitemDescCommentsCount is the schema descriptor for comments_count field.
+	profilepostitemDescCommentsCount := profilepostitemMixinFields1[8].Descriptor()
+	// profilepostitem.DefaultCommentsCount holds the default value on creation for the comments_count field.
+	profilepostitem.DefaultCommentsCount = profilepostitemDescCommentsCount.Default.(int)
+	// profilepostitem.CommentsCountValidator is a validator for the "comments_count" field. It is called by the builders before save.
+	profilepostitem.CommentsCountValidator = profilepostitemDescCommentsCount.Validators[0].(func(int) error)
+	// profilepostitemDescRepostsCount is the schema descriptor for reposts_count field.
+	profilepostitemDescRepostsCount := profilepostitemMixinFields1[9].Descriptor()
+	// profilepostitem.DefaultRepostsCount holds the default value on creation for the reposts_count field.
+	profilepostitem.DefaultRepostsCount = profilepostitemDescRepostsCount.Default.(int)
+	// profilepostitem.RepostsCountValidator is a validator for the "reposts_count" field. It is called by the builders before save.
+	profilepostitem.RepostsCountValidator = profilepostitemDescRepostsCount.Validators[0].(func(int) error)
+	// profilepostitemDescEmpathyCount is the schema descriptor for empathy_count field.
+	profilepostitemDescEmpathyCount := profilepostitemMixinFields1[10].Descriptor()
+	// profilepostitem.DefaultEmpathyCount holds the default value on creation for the empathy_count field.
+	profilepostitem.DefaultEmpathyCount = profilepostitemDescEmpathyCount.Default.(int)
+	// profilepostitem.EmpathyCountValidator is a validator for the "empathy_count" field. It is called by the builders before save.
+	profilepostitem.EmpathyCountValidator = profilepostitemDescEmpathyCount.Validators[0].(func(int) error)
+	// profilepostitemDescPraiseCount is the schema descriptor for praise_count field.
+	profilepostitemDescPraiseCount := profilepostitemMixinFields1[11].Descriptor()
+	// profilepostitem.DefaultPraiseCount holds the default value on creation for the praise_count field.
+	profilepostitem.DefaultPraiseCount = profilepostitemDescPraiseCount.Default.(int)
+	// profilepostitem.PraiseCountValidator is a validator for the "praise_count" field. It is called by the builders before save.
+	profilepostitem.PraiseCountValidator = profilepostitemDescPraiseCount.Validators[0].(func(int) error)
+	// profilepostitemDescFunnyCount is the schema descriptor for funny_count field.
+	profilepostitemDescFunnyCount := profilepostitemMixinFields1[12].Descriptor()
+	// profilepostitem.DefaultFunnyCount holds the default value on creation for the funny_count field.
+	profilepostitem.DefaultFunnyCount = profilepostitemDescFunnyCount.Default.(int)
+	// profilepostitem.FunnyCountValidator is a validator for the "funny_count" field. It is called by the builders before save.
+	profilepostitem.FunnyCountValidator = profilepostitemDescFunnyCount.Validators[0].(func(int) error)
+	// profilepostitemDescInterestCount is the schema descriptor for interest_count field.
+	profilepostitemDescInterestCount := profilepostitemMixinFields1[13].Descriptor()
+	// profilepostitem.DefaultInterestCount holds the default value on creation for the interest_count field.
+	profilepostitem.DefaultInterestCount = profilepostitemDescInterestCount.Default.(int)
+	// profilepostitem.InterestCountValidator is a validator for the "interest_count" field. It is called by the builders before save.
+	profilepostitem.InterestCountValidator = profilepostitemDescInterestCount.Validators[0].(func(int) error)
+	// profilepostitemDescCreatedAt is the schema descriptor for created_at field.
+	profilepostitemDescCreatedAt := profilepostitemMixinFields2[0].Descriptor()
+	// profilepostitem.DefaultCreatedAt holds the default value on creation for the created_at field.
+	profilepostitem.DefaultCreatedAt = profilepostitemDescCreatedAt.Default.(func() time.Time)
+	// profilepostitemDescUpdatedAt is the schema descriptor for updated_at field.
+	profilepostitemDescUpdatedAt := profilepostitemMixinFields2[1].Descriptor()
+	// profilepostitem.DefaultUpdatedAt holds the default value on creation for the updated_at field.
+	profilepostitem.DefaultUpdatedAt = profilepostitemDescUpdatedAt.Default.(func() time.Time)
+	// profilepostitem.UpdateDefaultUpdatedAt holds the default value on update for the updated_at field.
+	profilepostitem.UpdateDefaultUpdatedAt = profilepostitemDescUpdatedAt.UpdateDefault.(func() time.Time)
+	// profilepostitemDescID is the schema descriptor for id field.
+	profilepostitemDescID := profilepostitemMixinFields0[0].Descriptor()
+	// profilepostitem.DefaultID holds the default value on creation for the id field.
+	profilepostitem.DefaultID = profilepostitemDescID.Default.(func() ulid.ID)
 	todoMixin := schema.Todo{}.Mixin()
 	todoMixinFields0 := todoMixin[0].Fields()
 	_ = todoMixinFields0

@@ -239,6 +239,88 @@ var (
 			},
 		},
 	}
+	// ProfilePostsColumns holds the columns for the "profile_posts" table.
+	ProfilePostsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "profile_username", Type: field.TypeString, Unique: true},
+		{Name: "fetch_status", Type: field.TypeEnum, Enums: []string{"PENDING", "COMPLETED", "FAILED", "NOT_FOUND"}, Default: "PENDING"},
+		{Name: "s3_key", Type: field.TypeString, Nullable: true, Size: 500},
+		{Name: "error_message", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+	}
+	// ProfilePostsTable holds the schema information for the "profile_posts" table.
+	ProfilePostsTable = &schema.Table{
+		Name:       "profile_posts",
+		Columns:    ProfilePostsColumns,
+		PrimaryKey: []*schema.Column{ProfilePostsColumns[0]},
+		Indexes: []*schema.Index{
+			{
+				Name:    "profilepost_profile_username",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilePostsColumns[1]},
+			},
+			{
+				Name:    "profilepost_fetch_status",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilePostsColumns[2]},
+			},
+			{
+				Name:    "profilepost_fetch_status_created_at",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilePostsColumns[2], ProfilePostsColumns[5]},
+			},
+		},
+	}
+	// ProfilePostItemsColumns holds the columns for the "profile_post_items" table.
+	ProfilePostItemsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeString},
+		{Name: "profile_username", Type: field.TypeString},
+		{Name: "post_urn", Type: field.TypeString, Nullable: true},
+		{Name: "post_url", Type: field.TypeString, Nullable: true},
+		{Name: "text", Type: field.TypeString, Nullable: true, Size: 2147483647},
+		{Name: "content_type", Type: field.TypeString, Nullable: true},
+		{Name: "is_repost", Type: field.TypeBool, Default: false},
+		{Name: "total_reactions", Type: field.TypeInt, Default: 0},
+		{Name: "like_count", Type: field.TypeInt, Default: 0},
+		{Name: "comments_count", Type: field.TypeInt, Default: 0},
+		{Name: "reposts_count", Type: field.TypeInt, Default: 0},
+		{Name: "empathy_count", Type: field.TypeInt, Default: 0},
+		{Name: "praise_count", Type: field.TypeInt, Default: 0},
+		{Name: "funny_count", Type: field.TypeInt, Default: 0},
+		{Name: "interest_count", Type: field.TypeInt, Default: 0},
+		{Name: "posted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "raw_data", Type: field.TypeJSON, Nullable: true},
+		{Name: "created_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "updated_at", Type: field.TypeTime, SchemaType: map[string]string{"postgres": "timestamptz"}},
+		{Name: "profile_post_items", Type: field.TypeString, Nullable: true},
+	}
+	// ProfilePostItemsTable holds the schema information for the "profile_post_items" table.
+	ProfilePostItemsTable = &schema.Table{
+		Name:       "profile_post_items",
+		Columns:    ProfilePostItemsColumns,
+		PrimaryKey: []*schema.Column{ProfilePostItemsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "profile_post_items_profile_posts_items",
+				Columns:    []*schema.Column{ProfilePostItemsColumns[19]},
+				RefColumns: []*schema.Column{ProfilePostsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "profilepostitem_profile_username",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilePostItemsColumns[1]},
+			},
+			{
+				Name:    "profilepostitem_profile_username_posted_at",
+				Unique:  false,
+				Columns: []*schema.Column{ProfilePostItemsColumns[1], ProfilePostItemsColumns[15]},
+			},
+		},
+	}
 	// TodosColumns holds the columns for the "todos" table.
 	TodosColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeString},
@@ -311,6 +393,8 @@ var (
 		JobExecutionHistoriesTable,
 		ProfilesTable,
 		ProfileEntriesTable,
+		ProfilePostsTable,
+		ProfilePostItemsTable,
 		TodosTable,
 		UsersTable,
 		JobExecutionHistoryProfileEntriesTable,
@@ -319,6 +403,7 @@ var (
 
 func init() {
 	ProfilesTable.ForeignKeys[0].RefTable = ProfileEntriesTable
+	ProfilePostItemsTable.ForeignKeys[0].RefTable = ProfilePostsTable
 	TodosTable.ForeignKeys[0].RefTable = UsersTable
 	JobExecutionHistoryProfileEntriesTable.ForeignKeys[0].RefTable = JobExecutionHistoriesTable
 	JobExecutionHistoryProfileEntriesTable.ForeignKeys[1].RefTable = ProfileEntriesTable

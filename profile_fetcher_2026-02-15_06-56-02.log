@@ -1,0 +1,15 @@
+2026-02-15 06:56:02	INFO	Log file created: /app/profile_fetcher_2026-02-15_06-56-02.log
+2026-02-15 06:56:02	INFO	profile fetcher job started
+2026-02-15 06:56:02	INFO	quota check passed	{"allowed_batch_size": 10}
+2026-02-15 06:56:02	INFO	[36m[2026-02-15 06:56:02] Fetching from DB: getting pending profile entries (batch size: 10)[0m
+2026-02-15 06:56:02	INFO	[32m[2026-02-15 06:56:02] Fetched from DB: total to process = 10, fetched = 10[0m
+2026-02-15 06:56:02	INFO	[36m[2026-02-15 06:56:02] Processing entry 1/10 - URN: ali-ahani[0m
+2026-02-15 06:56:02	INFO	[33m[2026-02-15 06:56:02] Updating DB: setting status to FETCHING for entry ali-ahani[0m
+2026-02-15 06:56:02	INFO	[36m[FETCHING][0m URN: ali-ahani (attempt 1)
+2026-02-15 06:56:09	INFO	[32m[SUCCESS][0m URN: ali-ahani fetched successfully after 1 attempts
+2026-02-15 06:56:09	INFO	fetched profile	{"urn": "ali-ahani", "username": "ali-ahani"}
+2026-02-15 06:56:10	INFO	[33m[2026-02-15 06:56:10] Inserting/Updating DB: upserting profile for URN ali-ahani[0m
+2026-02-15 06:56:10	INFO	[32m[2026-02-15 06:56:10] DB operation complete: profile upserted successfully[0m
+2026-02-15 06:56:10	INFO	[33m[2026-02-15 06:56:10] Updating DB: setting status to COMPLETED for entry ali-ahani[0m
+2026-02-15 06:56:10	INFO	[32m[2026-02-15 06:56:10] Batch #1 progress: 1/10 entries processed (success: 1, failed: 0)[0m
+2026-02-15 06:56:10	INFO	[35m[2026-02-15 06:56:10] Waiting 5 seconds before next fetch...[0m

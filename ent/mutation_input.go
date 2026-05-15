@@ -6,6 +6,7 @@ import (
 	"sheng-go-backend/ent/cronjobconfig"
 	"sheng-go-backend/ent/jobexecutionhistory"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"time"
@@ -784,6 +785,312 @@ func (u *ProfileEntryUpdate) SetInput(i UpdateProfileEntryInput) *ProfileEntryUp
 
 // SetInput applies the change-set in the UpdateProfileEntryInput on the update-one builder.
 func (u *ProfileEntryUpdateOne) SetInput(i UpdateProfileEntryInput) *ProfileEntryUpdateOne {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// CreateProfilePostInput represents a mutation input for creating profileposts.
+type CreateProfilePostInput struct {
+	ProfileUsername string
+	FetchStatus     *profilepost.FetchStatus
+	S3Key           *string
+	ErrorMessage    *string
+	CreatedAt       *time.Time
+	UpdatedAt       *time.Time
+	ItemIDs         []ulid.ID
+}
+
+// Mutate applies the CreateProfilePostInput on the ProfilePostCreate builder.
+func (i *CreateProfilePostInput) Mutate(m *ProfilePostCreate) {
+	m.SetProfileUsername(i.ProfileUsername)
+	if v := i.FetchStatus; v != nil {
+		m.SetFetchStatus(*v)
+	}
+	if v := i.S3Key; v != nil {
+		m.SetS3Key(*v)
+	}
+	if v := i.ErrorMessage; v != nil {
+		m.SetErrorMessage(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if ids := i.ItemIDs; len(ids) > 0 {
+		m.AddItemIDs(ids...)
+	}
+}
+
+// SetInput applies the change-set in the CreateProfilePostInput on the create builder.
+func (c *ProfilePostCreate) SetInput(i CreateProfilePostInput) *ProfilePostCreate {
+	i.Mutate(c)
+	return c
+}
+
+// UpdateProfilePostInput represents a mutation input for updating profileposts.
+type UpdateProfilePostInput struct {
+	ID                ulid.ID
+	ProfileUsername   *string
+	FetchStatus       *profilepost.FetchStatus
+	S3Key             *string
+	ClearS3Key        bool
+	ErrorMessage      *string
+	ClearErrorMessage bool
+	UpdatedAt         *time.Time
+	AddItemIDs        []ulid.ID
+	RemoveItemIDs     []ulid.ID
+}
+
+// Mutate applies the UpdateProfilePostInput on the ProfilePostMutation.
+func (i *UpdateProfilePostInput) Mutate(m *ProfilePostMutation) {
+	if v := i.ProfileUsername; v != nil {
+		m.SetProfileUsername(*v)
+	}
+	if v := i.FetchStatus; v != nil {
+		m.SetFetchStatus(*v)
+	}
+	if i.ClearS3Key {
+		m.ClearS3Key()
+	}
+	if v := i.S3Key; v != nil {
+		m.SetS3Key(*v)
+	}
+	if i.ClearErrorMessage {
+		m.ClearErrorMessage()
+	}
+	if v := i.ErrorMessage; v != nil {
+		m.SetErrorMessage(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if ids := i.AddItemIDs; len(ids) > 0 {
+		m.AddItemIDs(ids...)
+	}
+	if ids := i.RemoveItemIDs; len(ids) > 0 {
+		m.RemoveItemIDs(ids...)
+	}
+}
+
+// SetInput applies the change-set in the UpdateProfilePostInput on the update builder.
+func (u *ProfilePostUpdate) SetInput(i UpdateProfilePostInput) *ProfilePostUpdate {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// SetInput applies the change-set in the UpdateProfilePostInput on the update-one builder.
+func (u *ProfilePostUpdateOne) SetInput(i UpdateProfilePostInput) *ProfilePostUpdateOne {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// CreateProfilePostItemInput represents a mutation input for creating profilepostitems.
+type CreateProfilePostItemInput struct {
+	ProfileUsername string
+	PostUrn         *string
+	PostURL         *string
+	Text            *string
+	ContentType     *string
+	IsRepost        *bool
+	TotalReactions  *int
+	LikeCount       *int
+	CommentsCount   *int
+	RepostsCount    *int
+	EmpathyCount    *int
+	PraiseCount     *int
+	FunnyCount      *int
+	InterestCount   *int
+	PostedAt        *time.Time
+	RawData         *map[string]interface{}
+	CreatedAt       *time.Time
+	UpdatedAt       *time.Time
+	ProfilePostID   *ulid.ID
+}
+
+// Mutate applies the CreateProfilePostItemInput on the ProfilePostItemCreate builder.
+func (i *CreateProfilePostItemInput) Mutate(m *ProfilePostItemCreate) {
+	m.SetProfileUsername(i.ProfileUsername)
+	if v := i.PostUrn; v != nil {
+		m.SetPostUrn(*v)
+	}
+	if v := i.PostURL; v != nil {
+		m.SetPostURL(*v)
+	}
+	if v := i.Text; v != nil {
+		m.SetText(*v)
+	}
+	if v := i.ContentType; v != nil {
+		m.SetContentType(*v)
+	}
+	if v := i.IsRepost; v != nil {
+		m.SetIsRepost(*v)
+	}
+	if v := i.TotalReactions; v != nil {
+		m.SetTotalReactions(*v)
+	}
+	if v := i.LikeCount; v != nil {
+		m.SetLikeCount(*v)
+	}
+	if v := i.CommentsCount; v != nil {
+		m.SetCommentsCount(*v)
+	}
+	if v := i.RepostsCount; v != nil {
+		m.SetRepostsCount(*v)
+	}
+	if v := i.EmpathyCount; v != nil {
+		m.SetEmpathyCount(*v)
+	}
+	if v := i.PraiseCount; v != nil {
+		m.SetPraiseCount(*v)
+	}
+	if v := i.FunnyCount; v != nil {
+		m.SetFunnyCount(*v)
+	}
+	if v := i.InterestCount; v != nil {
+		m.SetInterestCount(*v)
+	}
+	if v := i.PostedAt; v != nil {
+		m.SetPostedAt(*v)
+	}
+	if v := i.RawData; v != nil {
+		m.SetRawData(*v)
+	}
+	if v := i.CreatedAt; v != nil {
+		m.SetCreatedAt(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if v := i.ProfilePostID; v != nil {
+		m.SetProfilePostID(*v)
+	}
+}
+
+// SetInput applies the change-set in the CreateProfilePostItemInput on the create builder.
+func (c *ProfilePostItemCreate) SetInput(i CreateProfilePostItemInput) *ProfilePostItemCreate {
+	i.Mutate(c)
+	return c
+}
+
+// UpdateProfilePostItemInput represents a mutation input for updating profilepostitems.
+type UpdateProfilePostItemInput struct {
+	ID               ulid.ID
+	ProfileUsername  *string
+	PostUrn          *string
+	ClearPostUrn     bool
+	PostURL          *string
+	ClearPostURL     bool
+	Text             *string
+	ClearText        bool
+	ContentType      *string
+	ClearContentType bool
+	IsRepost         *bool
+	TotalReactions   *int
+	LikeCount        *int
+	CommentsCount    *int
+	RepostsCount     *int
+	EmpathyCount     *int
+	PraiseCount      *int
+	FunnyCount       *int
+	InterestCount    *int
+	PostedAt         *time.Time
+	ClearPostedAt    bool
+	RawData          *map[string]interface{}
+	ClearRawData     bool
+	UpdatedAt        *time.Time
+	ProfilePostID    *ulid.ID
+	ClearProfilePost bool
+}
+
+// Mutate applies the UpdateProfilePostItemInput on the ProfilePostItemMutation.
+func (i *UpdateProfilePostItemInput) Mutate(m *ProfilePostItemMutation) {
+	if v := i.ProfileUsername; v != nil {
+		m.SetProfileUsername(*v)
+	}
+	if i.ClearPostUrn {
+		m.ClearPostUrn()
+	}
+	if v := i.PostUrn; v != nil {
+		m.SetPostUrn(*v)
+	}
+	if i.ClearPostURL {
+		m.ClearPostURL()
+	}
+	if v := i.PostURL; v != nil {
+		m.SetPostURL(*v)
+	}
+	if i.ClearText {
+		m.ClearText()
+	}
+	if v := i.Text; v != nil {
+		m.SetText(*v)
+	}
+	if i.ClearContentType {
+		m.ClearContentType()
+	}
+	if v := i.ContentType; v != nil {
+		m.SetContentType(*v)
+	}
+	if v := i.IsRepost; v != nil {
+		m.SetIsRepost(*v)
+	}
+	if v := i.TotalReactions; v != nil {
+		m.SetTotalReactions(*v)
+	}
+	if v := i.LikeCount; v != nil {
+		m.SetLikeCount(*v)
+	}
+	if v := i.CommentsCount; v != nil {
+		m.SetCommentsCount(*v)
+	}
+	if v := i.RepostsCount; v != nil {
+		m.SetRepostsCount(*v)
+	}
+	if v := i.EmpathyCount; v != nil {
+		m.SetEmpathyCount(*v)
+	}
+	if v := i.PraiseCount; v != nil {
+		m.SetPraiseCount(*v)
+	}
+	if v := i.FunnyCount; v != nil {
+		m.SetFunnyCount(*v)
+	}
+	if v := i.InterestCount; v != nil {
+		m.SetInterestCount(*v)
+	}
+	if i.ClearPostedAt {
+		m.ClearPostedAt()
+	}
+	if v := i.PostedAt; v != nil {
+		m.SetPostedAt(*v)
+	}
+	if i.ClearRawData {
+		m.ClearRawData()
+	}
+	if v := i.RawData; v != nil {
+		m.SetRawData(*v)
+	}
+	if v := i.UpdatedAt; v != nil {
+		m.SetUpdatedAt(*v)
+	}
+	if i.ClearProfilePost {
+		m.ClearProfilePost()
+	}
+	if v := i.ProfilePostID; v != nil {
+		m.SetProfilePostID(*v)
+	}
+}
+
+// SetInput applies the change-set in the UpdateProfilePostItemInput on the update builder.
+func (u *ProfilePostItemUpdate) SetInput(i UpdateProfilePostItemInput) *ProfilePostItemUpdate {
+	i.Mutate(u.Mutation())
+	return u
+}
+
+// SetInput applies the change-set in the UpdateProfilePostItemInput on the update-one builder.
+func (u *ProfilePostItemUpdateOne) SetInput(i UpdateProfilePostItemInput) *ProfilePostItemUpdateOne {
 	i.Mutate(u.Mutation())
 	return u
 }

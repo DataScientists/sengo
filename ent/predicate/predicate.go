@@ -21,6 +21,12 @@ type Profile func(*sql.Selector)
 // ProfileEntry is the predicate function for profileentry builders.
 type ProfileEntry func(*sql.Selector)
 
+// ProfilePost is the predicate function for profilepost builders.
+type ProfilePost func(*sql.Selector)
+
+// ProfilePostItem is the predicate function for profilepostitem builders.
+type ProfilePostItem func(*sql.Selector)
+
 // Todo is the predicate function for todo builders.
 type Todo func(*sql.Selector)
 

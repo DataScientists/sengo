@@ -11,6 +11,8 @@ import (
 	"sheng-go-backend/ent/predicate"
 	"sheng-go-backend/ent/profile"
 	"sheng-go-backend/ent/profileentry"
+	"sheng-go-backend/ent/profilepost"
+	"sheng-go-backend/ent/profilepostitem"
 	"sheng-go-backend/ent/schema/ulid"
 	"sheng-go-backend/ent/todo"
 	"sheng-go-backend/ent/user"
@@ -2902,6 +2904,1188 @@ func (i *ProfileEntryWhereInput) P() (predicate.ProfileEntry, error) {
 		return predicates[0], nil
 	default:
 		return profileentry.And(predicates...), nil
+	}
+}
+
+// ProfilePostWhereInput represents a where input for filtering ProfilePost queries.
+type ProfilePostWhereInput struct {
+	Predicates []predicate.ProfilePost  `json:"-"`
+	Not        *ProfilePostWhereInput   `json:"not,omitempty"`
+	Or         []*ProfilePostWhereInput `json:"or,omitempty"`
+	And        []*ProfilePostWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *ulid.ID  `json:"id,omitempty"`
+	IDNEQ   *ulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []ulid.ID `json:"idIn,omitempty"`
+	IDNotIn []ulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *ulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *ulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *ulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *ulid.ID  `json:"idLTE,omitempty"`
+
+	// "profile_username" field predicates.
+	ProfileUsername             *string  `json:"profileUsername,omitempty"`
+	ProfileUsernameNEQ          *string  `json:"profileUsernameNEQ,omitempty"`
+	ProfileUsernameIn           []string `json:"profileUsernameIn,omitempty"`
+	ProfileUsernameNotIn        []string `json:"profileUsernameNotIn,omitempty"`
+	ProfileUsernameGT           *string  `json:"profileUsernameGT,omitempty"`
+	ProfileUsernameGTE          *string  `json:"profileUsernameGTE,omitempty"`
+	ProfileUsernameLT           *string  `json:"profileUsernameLT,omitempty"`
+	ProfileUsernameLTE          *string  `json:"profileUsernameLTE,omitempty"`
+	ProfileUsernameContains     *string  `json:"profileUsernameContains,omitempty"`
+	ProfileUsernameHasPrefix    *string  `json:"profileUsernameHasPrefix,omitempty"`
+	ProfileUsernameHasSuffix    *string  `json:"profileUsernameHasSuffix,omitempty"`
+	ProfileUsernameEqualFold    *string  `json:"profileUsernameEqualFold,omitempty"`
+	ProfileUsernameContainsFold *string  `json:"profileUsernameContainsFold,omitempty"`
+
+	// "fetch_status" field predicates.
+	FetchStatus      *profilepost.FetchStatus  `json:"fetchStatus,omitempty"`
+	FetchStatusNEQ   *profilepost.FetchStatus  `json:"fetchStatusNEQ,omitempty"`
+	FetchStatusIn    []profilepost.FetchStatus `json:"fetchStatusIn,omitempty"`
+	FetchStatusNotIn []profilepost.FetchStatus `json:"fetchStatusNotIn,omitempty"`
+
+	// "s3_key" field predicates.
+	S3Key             *string  `json:"s3Key,omitempty"`
+	S3KeyNEQ          *string  `json:"s3KeyNEQ,omitempty"`
+	S3KeyIn           []string `json:"s3KeyIn,omitempty"`
+	S3KeyNotIn        []string `json:"s3KeyNotIn,omitempty"`
+	S3KeyGT           *string  `json:"s3KeyGT,omitempty"`
+	S3KeyGTE          *string  `json:"s3KeyGTE,omitempty"`
+	S3KeyLT           *string  `json:"s3KeyLT,omitempty"`
+	S3KeyLTE          *string  `json:"s3KeyLTE,omitempty"`
+	S3KeyContains     *string  `json:"s3KeyContains,omitempty"`
+	S3KeyHasPrefix    *string  `json:"s3KeyHasPrefix,omitempty"`
+	S3KeyHasSuffix    *string  `json:"s3KeyHasSuffix,omitempty"`
+	S3KeyIsNil        bool     `json:"s3KeyIsNil,omitempty"`
+	S3KeyNotNil       bool     `json:"s3KeyNotNil,omitempty"`
+	S3KeyEqualFold    *string  `json:"s3KeyEqualFold,omitempty"`
+	S3KeyContainsFold *string  `json:"s3KeyContainsFold,omitempty"`
+
+	// "error_message" field predicates.
+	ErrorMessage             *string  `json:"errorMessage,omitempty"`
+	ErrorMessageNEQ          *string  `json:"errorMessageNEQ,omitempty"`
+	ErrorMessageIn           []string `json:"errorMessageIn,omitempty"`
+	ErrorMessageNotIn        []string `json:"errorMessageNotIn,omitempty"`
+	ErrorMessageGT           *string  `json:"errorMessageGT,omitempty"`
+	ErrorMessageGTE          *string  `json:"errorMessageGTE,omitempty"`
+	ErrorMessageLT           *string  `json:"errorMessageLT,omitempty"`
+	ErrorMessageLTE          *string  `json:"errorMessageLTE,omitempty"`
+	ErrorMessageContains     *string  `json:"errorMessageContains,omitempty"`
+	ErrorMessageHasPrefix    *string  `json:"errorMessageHasPrefix,omitempty"`
+	ErrorMessageHasSuffix    *string  `json:"errorMessageHasSuffix,omitempty"`
+	ErrorMessageIsNil        bool     `json:"errorMessageIsNil,omitempty"`
+	ErrorMessageNotNil       bool     `json:"errorMessageNotNil,omitempty"`
+	ErrorMessageEqualFold    *string  `json:"errorMessageEqualFold,omitempty"`
+	ErrorMessageContainsFold *string  `json:"errorMessageContainsFold,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "items" edge predicates.
+	HasItems     *bool                        `json:"hasItems,omitempty"`
+	HasItemsWith []*ProfilePostItemWhereInput `json:"hasItemsWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *ProfilePostWhereInput) AddPredicates(predicates ...predicate.ProfilePost) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the ProfilePostWhereInput filter on the ProfilePostQuery builder.
+func (i *ProfilePostWhereInput) Filter(q *ProfilePostQuery) (*ProfilePostQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyProfilePostWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyProfilePostWhereInput is returned in case the ProfilePostWhereInput is empty.
+var ErrEmptyProfilePostWhereInput = errors.New("ent: empty predicate ProfilePostWhereInput")
+
+// P returns a predicate for filtering profileposts.
+// An error is returned if the input is empty or invalid.
+func (i *ProfilePostWhereInput) P() (predicate.ProfilePost, error) {
+	var predicates []predicate.ProfilePost
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, profilepost.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.ProfilePost, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, profilepost.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.ProfilePost, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, profilepost.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, profilepost.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, profilepost.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, profilepost.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, profilepost.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, profilepost.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, profilepost.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, profilepost.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, profilepost.IDLTE(*i.IDLTE))
+	}
+	if i.ProfileUsername != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameEQ(*i.ProfileUsername))
+	}
+	if i.ProfileUsernameNEQ != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameNEQ(*i.ProfileUsernameNEQ))
+	}
+	if len(i.ProfileUsernameIn) > 0 {
+		predicates = append(predicates, profilepost.ProfileUsernameIn(i.ProfileUsernameIn...))
+	}
+	if len(i.ProfileUsernameNotIn) > 0 {
+		predicates = append(predicates, profilepost.ProfileUsernameNotIn(i.ProfileUsernameNotIn...))
+	}
+	if i.ProfileUsernameGT != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameGT(*i.ProfileUsernameGT))
+	}
+	if i.ProfileUsernameGTE != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameGTE(*i.ProfileUsernameGTE))
+	}
+	if i.ProfileUsernameLT != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameLT(*i.ProfileUsernameLT))
+	}
+	if i.ProfileUsernameLTE != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameLTE(*i.ProfileUsernameLTE))
+	}
+	if i.ProfileUsernameContains != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameContains(*i.ProfileUsernameContains))
+	}
+	if i.ProfileUsernameHasPrefix != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameHasPrefix(*i.ProfileUsernameHasPrefix))
+	}
+	if i.ProfileUsernameHasSuffix != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameHasSuffix(*i.ProfileUsernameHasSuffix))
+	}
+	if i.ProfileUsernameEqualFold != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameEqualFold(*i.ProfileUsernameEqualFold))
+	}
+	if i.ProfileUsernameContainsFold != nil {
+		predicates = append(predicates, profilepost.ProfileUsernameContainsFold(*i.ProfileUsernameContainsFold))
+	}
+	if i.FetchStatus != nil {
+		predicates = append(predicates, profilepost.FetchStatusEQ(*i.FetchStatus))
+	}
+	if i.FetchStatusNEQ != nil {
+		predicates = append(predicates, profilepost.FetchStatusNEQ(*i.FetchStatusNEQ))
+	}
+	if len(i.FetchStatusIn) > 0 {
+		predicates = append(predicates, profilepost.FetchStatusIn(i.FetchStatusIn...))
+	}
+	if len(i.FetchStatusNotIn) > 0 {
+		predicates = append(predicates, profilepost.FetchStatusNotIn(i.FetchStatusNotIn...))
+	}
+	if i.S3Key != nil {
+		predicates = append(predicates, profilepost.S3KeyEQ(*i.S3Key))
+	}
+	if i.S3KeyNEQ != nil {
+		predicates = append(predicates, profilepost.S3KeyNEQ(*i.S3KeyNEQ))
+	}
+	if len(i.S3KeyIn) > 0 {
+		predicates = append(predicates, profilepost.S3KeyIn(i.S3KeyIn...))
+	}
+	if len(i.S3KeyNotIn) > 0 {
+		predicates = append(predicates, profilepost.S3KeyNotIn(i.S3KeyNotIn...))
+	}
+	if i.S3KeyGT != nil {
+		predicates = append(predicates, profilepost.S3KeyGT(*i.S3KeyGT))
+	}
+	if i.S3KeyGTE != nil {
+		predicates = append(predicates, profilepost.S3KeyGTE(*i.S3KeyGTE))
+	}
+	if i.S3KeyLT != nil {
+		predicates = append(predicates, profilepost.S3KeyLT(*i.S3KeyLT))
+	}
+	if i.S3KeyLTE != nil {
+		predicates = append(predicates, profilepost.S3KeyLTE(*i.S3KeyLTE))
+	}
+	if i.S3KeyContains != nil {
+		predicates = append(predicates, profilepost.S3KeyContains(*i.S3KeyContains))
+	}
+	if i.S3KeyHasPrefix != nil {
+		predicates = append(predicates, profilepost.S3KeyHasPrefix(*i.S3KeyHasPrefix))
+	}
+	if i.S3KeyHasSuffix != nil {
+		predicates = append(predicates, profilepost.S3KeyHasSuffix(*i.S3KeyHasSuffix))
+	}
+	if i.S3KeyIsNil {
+		predicates = append(predicates, profilepost.S3KeyIsNil())
+	}
+	if i.S3KeyNotNil {
+		predicates = append(predicates, profilepost.S3KeyNotNil())
+	}
+	if i.S3KeyEqualFold != nil {
+		predicates = append(predicates, profilepost.S3KeyEqualFold(*i.S3KeyEqualFold))
+	}
+	if i.S3KeyContainsFold != nil {
+		predicates = append(predicates, profilepost.S3KeyContainsFold(*i.S3KeyContainsFold))
+	}
+	if i.ErrorMessage != nil {
+		predicates = append(predicates, profilepost.ErrorMessageEQ(*i.ErrorMessage))
+	}
+	if i.ErrorMessageNEQ != nil {
+		predicates = append(predicates, profilepost.ErrorMessageNEQ(*i.ErrorMessageNEQ))
+	}
+	if len(i.ErrorMessageIn) > 0 {
+		predicates = append(predicates, profilepost.ErrorMessageIn(i.ErrorMessageIn...))
+	}
+	if len(i.ErrorMessageNotIn) > 0 {
+		predicates = append(predicates, profilepost.ErrorMessageNotIn(i.ErrorMessageNotIn...))
+	}
+	if i.ErrorMessageGT != nil {
+		predicates = append(predicates, profilepost.ErrorMessageGT(*i.ErrorMessageGT))
+	}
+	if i.ErrorMessageGTE != nil {
+		predicates = append(predicates, profilepost.ErrorMessageGTE(*i.ErrorMessageGTE))
+	}
+	if i.ErrorMessageLT != nil {
+		predicates = append(predicates, profilepost.ErrorMessageLT(*i.ErrorMessageLT))
+	}
+	if i.ErrorMessageLTE != nil {
+		predicates = append(predicates, profilepost.ErrorMessageLTE(*i.ErrorMessageLTE))
+	}
+	if i.ErrorMessageContains != nil {
+		predicates = append(predicates, profilepost.ErrorMessageContains(*i.ErrorMessageContains))
+	}
+	if i.ErrorMessageHasPrefix != nil {
+		predicates = append(predicates, profilepost.ErrorMessageHasPrefix(*i.ErrorMessageHasPrefix))
+	}
+	if i.ErrorMessageHasSuffix != nil {
+		predicates = append(predicates, profilepost.ErrorMessageHasSuffix(*i.ErrorMessageHasSuffix))
+	}
+	if i.ErrorMessageIsNil {
+		predicates = append(predicates, profilepost.ErrorMessageIsNil())
+	}
+	if i.ErrorMessageNotNil {
+		predicates = append(predicates, profilepost.ErrorMessageNotNil())
+	}
+	if i.ErrorMessageEqualFold != nil {
+		predicates = append(predicates, profilepost.ErrorMessageEqualFold(*i.ErrorMessageEqualFold))
+	}
+	if i.ErrorMessageContainsFold != nil {
+		predicates = append(predicates, profilepost.ErrorMessageContainsFold(*i.ErrorMessageContainsFold))
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, profilepost.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, profilepost.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, profilepost.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, profilepost.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, profilepost.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, profilepost.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, profilepost.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, profilepost.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+
+	if i.HasItems != nil {
+		p := profilepost.HasItems()
+		if !*i.HasItems {
+			p = profilepost.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasItemsWith) > 0 {
+		with := make([]predicate.ProfilePostItem, 0, len(i.HasItemsWith))
+		for _, w := range i.HasItemsWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasItemsWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, profilepost.HasItemsWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyProfilePostWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return profilepost.And(predicates...), nil
+	}
+}
+
+// ProfilePostItemWhereInput represents a where input for filtering ProfilePostItem queries.
+type ProfilePostItemWhereInput struct {
+	Predicates []predicate.ProfilePostItem  `json:"-"`
+	Not        *ProfilePostItemWhereInput   `json:"not,omitempty"`
+	Or         []*ProfilePostItemWhereInput `json:"or,omitempty"`
+	And        []*ProfilePostItemWhereInput `json:"and,omitempty"`
+
+	// "id" field predicates.
+	ID      *ulid.ID  `json:"id,omitempty"`
+	IDNEQ   *ulid.ID  `json:"idNEQ,omitempty"`
+	IDIn    []ulid.ID `json:"idIn,omitempty"`
+	IDNotIn []ulid.ID `json:"idNotIn,omitempty"`
+	IDGT    *ulid.ID  `json:"idGT,omitempty"`
+	IDGTE   *ulid.ID  `json:"idGTE,omitempty"`
+	IDLT    *ulid.ID  `json:"idLT,omitempty"`
+	IDLTE   *ulid.ID  `json:"idLTE,omitempty"`
+
+	// "profile_username" field predicates.
+	ProfileUsername             *string  `json:"profileUsername,omitempty"`
+	ProfileUsernameNEQ          *string  `json:"profileUsernameNEQ,omitempty"`
+	ProfileUsernameIn           []string `json:"profileUsernameIn,omitempty"`
+	ProfileUsernameNotIn        []string `json:"profileUsernameNotIn,omitempty"`
+	ProfileUsernameGT           *string  `json:"profileUsernameGT,omitempty"`
+	ProfileUsernameGTE          *string  `json:"profileUsernameGTE,omitempty"`
+	ProfileUsernameLT           *string  `json:"profileUsernameLT,omitempty"`
+	ProfileUsernameLTE          *string  `json:"profileUsernameLTE,omitempty"`
+	ProfileUsernameContains     *string  `json:"profileUsernameContains,omitempty"`
+	ProfileUsernameHasPrefix    *string  `json:"profileUsernameHasPrefix,omitempty"`
+	ProfileUsernameHasSuffix    *string  `json:"profileUsernameHasSuffix,omitempty"`
+	ProfileUsernameEqualFold    *string  `json:"profileUsernameEqualFold,omitempty"`
+	ProfileUsernameContainsFold *string  `json:"profileUsernameContainsFold,omitempty"`
+
+	// "post_urn" field predicates.
+	PostUrn             *string  `json:"postUrn,omitempty"`
+	PostUrnNEQ          *string  `json:"postUrnNEQ,omitempty"`
+	PostUrnIn           []string `json:"postUrnIn,omitempty"`
+	PostUrnNotIn        []string `json:"postUrnNotIn,omitempty"`
+	PostUrnGT           *string  `json:"postUrnGT,omitempty"`
+	PostUrnGTE          *string  `json:"postUrnGTE,omitempty"`
+	PostUrnLT           *string  `json:"postUrnLT,omitempty"`
+	PostUrnLTE          *string  `json:"postUrnLTE,omitempty"`
+	PostUrnContains     *string  `json:"postUrnContains,omitempty"`
+	PostUrnHasPrefix    *string  `json:"postUrnHasPrefix,omitempty"`
+	PostUrnHasSuffix    *string  `json:"postUrnHasSuffix,omitempty"`
+	PostUrnIsNil        bool     `json:"postUrnIsNil,omitempty"`
+	PostUrnNotNil       bool     `json:"postUrnNotNil,omitempty"`
+	PostUrnEqualFold    *string  `json:"postUrnEqualFold,omitempty"`
+	PostUrnContainsFold *string  `json:"postUrnContainsFold,omitempty"`
+
+	// "post_url" field predicates.
+	PostURL             *string  `json:"postURL,omitempty"`
+	PostURLNEQ          *string  `json:"postURLNEQ,omitempty"`
+	PostURLIn           []string `json:"postURLIn,omitempty"`
+	PostURLNotIn        []string `json:"postURLNotIn,omitempty"`
+	PostURLGT           *string  `json:"postURLGT,omitempty"`
+	PostURLGTE          *string  `json:"postURLGTE,omitempty"`
+	PostURLLT           *string  `json:"postURLLT,omitempty"`
+	PostURLLTE          *string  `json:"postURLLTE,omitempty"`
+	PostURLContains     *string  `json:"postURLContains,omitempty"`
+	PostURLHasPrefix    *string  `json:"postURLHasPrefix,omitempty"`
+	PostURLHasSuffix    *string  `json:"postURLHasSuffix,omitempty"`
+	PostURLIsNil        bool     `json:"postURLIsNil,omitempty"`
+	PostURLNotNil       bool     `json:"postURLNotNil,omitempty"`
+	PostURLEqualFold    *string  `json:"postURLEqualFold,omitempty"`
+	PostURLContainsFold *string  `json:"postURLContainsFold,omitempty"`
+
+	// "text" field predicates.
+	Text             *string  `json:"text,omitempty"`
+	TextNEQ          *string  `json:"textNEQ,omitempty"`
+	TextIn           []string `json:"textIn,omitempty"`
+	TextNotIn        []string `json:"textNotIn,omitempty"`
+	TextGT           *string  `json:"textGT,omitempty"`
+	TextGTE          *string  `json:"textGTE,omitempty"`
+	TextLT           *string  `json:"textLT,omitempty"`
+	TextLTE          *string  `json:"textLTE,omitempty"`
+	TextContains     *string  `json:"textContains,omitempty"`
+	TextHasPrefix    *string  `json:"textHasPrefix,omitempty"`
+	TextHasSuffix    *string  `json:"textHasSuffix,omitempty"`
+	TextIsNil        bool     `json:"textIsNil,omitempty"`
+	TextNotNil       bool     `json:"textNotNil,omitempty"`
+	TextEqualFold    *string  `json:"textEqualFold,omitempty"`
+	TextContainsFold *string  `json:"textContainsFold,omitempty"`
+
+	// "content_type" field predicates.
+	ContentType             *string  `json:"contentType,omitempty"`
+	ContentTypeNEQ          *string  `json:"contentTypeNEQ,omitempty"`
+	ContentTypeIn           []string `json:"contentTypeIn,omitempty"`
+	ContentTypeNotIn        []string `json:"contentTypeNotIn,omitempty"`
+	ContentTypeGT           *string  `json:"contentTypeGT,omitempty"`
+	ContentTypeGTE          *string  `json:"contentTypeGTE,omitempty"`
+	ContentTypeLT           *string  `json:"contentTypeLT,omitempty"`
+	ContentTypeLTE          *string  `json:"contentTypeLTE,omitempty"`
+	ContentTypeContains     *string  `json:"contentTypeContains,omitempty"`
+	ContentTypeHasPrefix    *string  `json:"contentTypeHasPrefix,omitempty"`
+	ContentTypeHasSuffix    *string  `json:"contentTypeHasSuffix,omitempty"`
+	ContentTypeIsNil        bool     `json:"contentTypeIsNil,omitempty"`
+	ContentTypeNotNil       bool     `json:"contentTypeNotNil,omitempty"`
+	ContentTypeEqualFold    *string  `json:"contentTypeEqualFold,omitempty"`
+	ContentTypeContainsFold *string  `json:"contentTypeContainsFold,omitempty"`
+
+	// "is_repost" field predicates.
+	IsRepost    *bool `json:"isRepost,omitempty"`
+	IsRepostNEQ *bool `json:"isRepostNEQ,omitempty"`
+
+	// "total_reactions" field predicates.
+	TotalReactions      *int  `json:"totalReactions,omitempty"`
+	TotalReactionsNEQ   *int  `json:"totalReactionsNEQ,omitempty"`
+	TotalReactionsIn    []int `json:"totalReactionsIn,omitempty"`
+	TotalReactionsNotIn []int `json:"totalReactionsNotIn,omitempty"`
+	TotalReactionsGT    *int  `json:"totalReactionsGT,omitempty"`
+	TotalReactionsGTE   *int  `json:"totalReactionsGTE,omitempty"`
+	TotalReactionsLT    *int  `json:"totalReactionsLT,omitempty"`
+	TotalReactionsLTE   *int  `json:"totalReactionsLTE,omitempty"`
+
+	// "like_count" field predicates.
+	LikeCount      *int  `json:"likeCount,omitempty"`
+	LikeCountNEQ   *int  `json:"likeCountNEQ,omitempty"`
+	LikeCountIn    []int `json:"likeCountIn,omitempty"`
+	LikeCountNotIn []int `json:"likeCountNotIn,omitempty"`
+	LikeCountGT    *int  `json:"likeCountGT,omitempty"`
+	LikeCountGTE   *int  `json:"likeCountGTE,omitempty"`
+	LikeCountLT    *int  `json:"likeCountLT,omitempty"`
+	LikeCountLTE   *int  `json:"likeCountLTE,omitempty"`
+
+	// "comments_count" field predicates.
+	CommentsCount      *int  `json:"commentsCount,omitempty"`
+	CommentsCountNEQ   *int  `json:"commentsCountNEQ,omitempty"`
+	CommentsCountIn    []int `json:"commentsCountIn,omitempty"`
+	CommentsCountNotIn []int `json:"commentsCountNotIn,omitempty"`
+	CommentsCountGT    *int  `json:"commentsCountGT,omitempty"`
+	CommentsCountGTE   *int  `json:"commentsCountGTE,omitempty"`
+	CommentsCountLT    *int  `json:"commentsCountLT,omitempty"`
+	CommentsCountLTE   *int  `json:"commentsCountLTE,omitempty"`
+
+	// "reposts_count" field predicates.
+	RepostsCount      *int  `json:"repostsCount,omitempty"`
+	RepostsCountNEQ   *int  `json:"repostsCountNEQ,omitempty"`
+	RepostsCountIn    []int `json:"repostsCountIn,omitempty"`
+	RepostsCountNotIn []int `json:"repostsCountNotIn,omitempty"`
+	RepostsCountGT    *int  `json:"repostsCountGT,omitempty"`
+	RepostsCountGTE   *int  `json:"repostsCountGTE,omitempty"`
+	RepostsCountLT    *int  `json:"repostsCountLT,omitempty"`
+	RepostsCountLTE   *int  `json:"repostsCountLTE,omitempty"`
+
+	// "empathy_count" field predicates.
+	EmpathyCount      *int  `json:"empathyCount,omitempty"`
+	EmpathyCountNEQ   *int  `json:"empathyCountNEQ,omitempty"`
+	EmpathyCountIn    []int `json:"empathyCountIn,omitempty"`
+	EmpathyCountNotIn []int `json:"empathyCountNotIn,omitempty"`
+	EmpathyCountGT    *int  `json:"empathyCountGT,omitempty"`
+	EmpathyCountGTE   *int  `json:"empathyCountGTE,omitempty"`
+	EmpathyCountLT    *int  `json:"empathyCountLT,omitempty"`
+	EmpathyCountLTE   *int  `json:"empathyCountLTE,omitempty"`
+
+	// "praise_count" field predicates.
+	PraiseCount      *int  `json:"praiseCount,omitempty"`
+	PraiseCountNEQ   *int  `json:"praiseCountNEQ,omitempty"`
+	PraiseCountIn    []int `json:"praiseCountIn,omitempty"`
+	PraiseCountNotIn []int `json:"praiseCountNotIn,omitempty"`
+	PraiseCountGT    *int  `json:"praiseCountGT,omitempty"`
+	PraiseCountGTE   *int  `json:"praiseCountGTE,omitempty"`
+	PraiseCountLT    *int  `json:"praiseCountLT,omitempty"`
+	PraiseCountLTE   *int  `json:"praiseCountLTE,omitempty"`
+
+	// "funny_count" field predicates.
+	FunnyCount      *int  `json:"funnyCount,omitempty"`
+	FunnyCountNEQ   *int  `json:"funnyCountNEQ,omitempty"`
+	FunnyCountIn    []int `json:"funnyCountIn,omitempty"`
+	FunnyCountNotIn []int `json:"funnyCountNotIn,omitempty"`
+	FunnyCountGT    *int  `json:"funnyCountGT,omitempty"`
+	FunnyCountGTE   *int  `json:"funnyCountGTE,omitempty"`
+	FunnyCountLT    *int  `json:"funnyCountLT,omitempty"`
+	FunnyCountLTE   *int  `json:"funnyCountLTE,omitempty"`
+
+	// "interest_count" field predicates.
+	InterestCount      *int  `json:"interestCount,omitempty"`
+	InterestCountNEQ   *int  `json:"interestCountNEQ,omitempty"`
+	InterestCountIn    []int `json:"interestCountIn,omitempty"`
+	InterestCountNotIn []int `json:"interestCountNotIn,omitempty"`
+	InterestCountGT    *int  `json:"interestCountGT,omitempty"`
+	InterestCountGTE   *int  `json:"interestCountGTE,omitempty"`
+	InterestCountLT    *int  `json:"interestCountLT,omitempty"`
+	InterestCountLTE   *int  `json:"interestCountLTE,omitempty"`
+
+	// "posted_at" field predicates.
+	PostedAt       *time.Time  `json:"postedAt,omitempty"`
+	PostedAtNEQ    *time.Time  `json:"postedAtNEQ,omitempty"`
+	PostedAtIn     []time.Time `json:"postedAtIn,omitempty"`
+	PostedAtNotIn  []time.Time `json:"postedAtNotIn,omitempty"`
+	PostedAtGT     *time.Time  `json:"postedAtGT,omitempty"`
+	PostedAtGTE    *time.Time  `json:"postedAtGTE,omitempty"`
+	PostedAtLT     *time.Time  `json:"postedAtLT,omitempty"`
+	PostedAtLTE    *time.Time  `json:"postedAtLTE,omitempty"`
+	PostedAtIsNil  bool        `json:"postedAtIsNil,omitempty"`
+	PostedAtNotNil bool        `json:"postedAtNotNil,omitempty"`
+
+	// "created_at" field predicates.
+	CreatedAt      *time.Time  `json:"createdAt,omitempty"`
+	CreatedAtNEQ   *time.Time  `json:"createdAtNEQ,omitempty"`
+	CreatedAtIn    []time.Time `json:"createdAtIn,omitempty"`
+	CreatedAtNotIn []time.Time `json:"createdAtNotIn,omitempty"`
+	CreatedAtGT    *time.Time  `json:"createdAtGT,omitempty"`
+	CreatedAtGTE   *time.Time  `json:"createdAtGTE,omitempty"`
+	CreatedAtLT    *time.Time  `json:"createdAtLT,omitempty"`
+	CreatedAtLTE   *time.Time  `json:"createdAtLTE,omitempty"`
+
+	// "profile_post" edge predicates.
+	HasProfilePost     *bool                    `json:"hasProfilePost,omitempty"`
+	HasProfilePostWith []*ProfilePostWhereInput `json:"hasProfilePostWith,omitempty"`
+}
+
+// AddPredicates adds custom predicates to the where input to be used during the filtering phase.
+func (i *ProfilePostItemWhereInput) AddPredicates(predicates ...predicate.ProfilePostItem) {
+	i.Predicates = append(i.Predicates, predicates...)
+}
+
+// Filter applies the ProfilePostItemWhereInput filter on the ProfilePostItemQuery builder.
+func (i *ProfilePostItemWhereInput) Filter(q *ProfilePostItemQuery) (*ProfilePostItemQuery, error) {
+	if i == nil {
+		return q, nil
+	}
+	p, err := i.P()
+	if err != nil {
+		if err == ErrEmptyProfilePostItemWhereInput {
+			return q, nil
+		}
+		return nil, err
+	}
+	return q.Where(p), nil
+}
+
+// ErrEmptyProfilePostItemWhereInput is returned in case the ProfilePostItemWhereInput is empty.
+var ErrEmptyProfilePostItemWhereInput = errors.New("ent: empty predicate ProfilePostItemWhereInput")
+
+// P returns a predicate for filtering profilepostitems.
+// An error is returned if the input is empty or invalid.
+func (i *ProfilePostItemWhereInput) P() (predicate.ProfilePostItem, error) {
+	var predicates []predicate.ProfilePostItem
+	if i.Not != nil {
+		p, err := i.Not.P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'not'", err)
+		}
+		predicates = append(predicates, profilepostitem.Not(p))
+	}
+	switch n := len(i.Or); {
+	case n == 1:
+		p, err := i.Or[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'or'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		or := make([]predicate.ProfilePostItem, 0, n)
+		for _, w := range i.Or {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'or'", err)
+			}
+			or = append(or, p)
+		}
+		predicates = append(predicates, profilepostitem.Or(or...))
+	}
+	switch n := len(i.And); {
+	case n == 1:
+		p, err := i.And[0].P()
+		if err != nil {
+			return nil, fmt.Errorf("%w: field 'and'", err)
+		}
+		predicates = append(predicates, p)
+	case n > 1:
+		and := make([]predicate.ProfilePostItem, 0, n)
+		for _, w := range i.And {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'and'", err)
+			}
+			and = append(and, p)
+		}
+		predicates = append(predicates, profilepostitem.And(and...))
+	}
+	predicates = append(predicates, i.Predicates...)
+	if i.ID != nil {
+		predicates = append(predicates, profilepostitem.IDEQ(*i.ID))
+	}
+	if i.IDNEQ != nil {
+		predicates = append(predicates, profilepostitem.IDNEQ(*i.IDNEQ))
+	}
+	if len(i.IDIn) > 0 {
+		predicates = append(predicates, profilepostitem.IDIn(i.IDIn...))
+	}
+	if len(i.IDNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.IDNotIn(i.IDNotIn...))
+	}
+	if i.IDGT != nil {
+		predicates = append(predicates, profilepostitem.IDGT(*i.IDGT))
+	}
+	if i.IDGTE != nil {
+		predicates = append(predicates, profilepostitem.IDGTE(*i.IDGTE))
+	}
+	if i.IDLT != nil {
+		predicates = append(predicates, profilepostitem.IDLT(*i.IDLT))
+	}
+	if i.IDLTE != nil {
+		predicates = append(predicates, profilepostitem.IDLTE(*i.IDLTE))
+	}
+	if i.ProfileUsername != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameEQ(*i.ProfileUsername))
+	}
+	if i.ProfileUsernameNEQ != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameNEQ(*i.ProfileUsernameNEQ))
+	}
+	if len(i.ProfileUsernameIn) > 0 {
+		predicates = append(predicates, profilepostitem.ProfileUsernameIn(i.ProfileUsernameIn...))
+	}
+	if len(i.ProfileUsernameNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.ProfileUsernameNotIn(i.ProfileUsernameNotIn...))
+	}
+	if i.ProfileUsernameGT != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameGT(*i.ProfileUsernameGT))
+	}
+	if i.ProfileUsernameGTE != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameGTE(*i.ProfileUsernameGTE))
+	}
+	if i.ProfileUsernameLT != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameLT(*i.ProfileUsernameLT))
+	}
+	if i.ProfileUsernameLTE != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameLTE(*i.ProfileUsernameLTE))
+	}
+	if i.ProfileUsernameContains != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameContains(*i.ProfileUsernameContains))
+	}
+	if i.ProfileUsernameHasPrefix != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameHasPrefix(*i.ProfileUsernameHasPrefix))
+	}
+	if i.ProfileUsernameHasSuffix != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameHasSuffix(*i.ProfileUsernameHasSuffix))
+	}
+	if i.ProfileUsernameEqualFold != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameEqualFold(*i.ProfileUsernameEqualFold))
+	}
+	if i.ProfileUsernameContainsFold != nil {
+		predicates = append(predicates, profilepostitem.ProfileUsernameContainsFold(*i.ProfileUsernameContainsFold))
+	}
+	if i.PostUrn != nil {
+		predicates = append(predicates, profilepostitem.PostUrnEQ(*i.PostUrn))
+	}
+	if i.PostUrnNEQ != nil {
+		predicates = append(predicates, profilepostitem.PostUrnNEQ(*i.PostUrnNEQ))
+	}
+	if len(i.PostUrnIn) > 0 {
+		predicates = append(predicates, profilepostitem.PostUrnIn(i.PostUrnIn...))
+	}
+	if len(i.PostUrnNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.PostUrnNotIn(i.PostUrnNotIn...))
+	}
+	if i.PostUrnGT != nil {
+		predicates = append(predicates, profilepostitem.PostUrnGT(*i.PostUrnGT))
+	}
+	if i.PostUrnGTE != nil {
+		predicates = append(predicates, profilepostitem.PostUrnGTE(*i.PostUrnGTE))
+	}
+	if i.PostUrnLT != nil {
+		predicates = append(predicates, profilepostitem.PostUrnLT(*i.PostUrnLT))
+	}
+	if i.PostUrnLTE != nil {
+		predicates = append(predicates, profilepostitem.PostUrnLTE(*i.PostUrnLTE))
+	}
+	if i.PostUrnContains != nil {
+		predicates = append(predicates, profilepostitem.PostUrnContains(*i.PostUrnContains))
+	}
+	if i.PostUrnHasPrefix != nil {
+		predicates = append(predicates, profilepostitem.PostUrnHasPrefix(*i.PostUrnHasPrefix))
+	}
+	if i.PostUrnHasSuffix != nil {
+		predicates = append(predicates, profilepostitem.PostUrnHasSuffix(*i.PostUrnHasSuffix))
+	}
+	if i.PostUrnIsNil {
+		predicates = append(predicates, profilepostitem.PostUrnIsNil())
+	}
+	if i.PostUrnNotNil {
+		predicates = append(predicates, profilepostitem.PostUrnNotNil())
+	}
+	if i.PostUrnEqualFold != nil {
+		predicates = append(predicates, profilepostitem.PostUrnEqualFold(*i.PostUrnEqualFold))
+	}
+	if i.PostUrnContainsFold != nil {
+		predicates = append(predicates, profilepostitem.PostUrnContainsFold(*i.PostUrnContainsFold))
+	}
+	if i.PostURL != nil {
+		predicates = append(predicates, profilepostitem.PostURLEQ(*i.PostURL))
+	}
+	if i.PostURLNEQ != nil {
+		predicates = append(predicates, profilepostitem.PostURLNEQ(*i.PostURLNEQ))
+	}
+	if len(i.PostURLIn) > 0 {
+		predicates = append(predicates, profilepostitem.PostURLIn(i.PostURLIn...))
+	}
+	if len(i.PostURLNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.PostURLNotIn(i.PostURLNotIn...))
+	}
+	if i.PostURLGT != nil {
+		predicates = append(predicates, profilepostitem.PostURLGT(*i.PostURLGT))
+	}
+	if i.PostURLGTE != nil {
+		predicates = append(predicates, profilepostitem.PostURLGTE(*i.PostURLGTE))
+	}
+	if i.PostURLLT != nil {
+		predicates = append(predicates, profilepostitem.PostURLLT(*i.PostURLLT))
+	}
+	if i.PostURLLTE != nil {
+		predicates = append(predicates, profilepostitem.PostURLLTE(*i.PostURLLTE))
+	}
+	if i.PostURLContains != nil {
+		predicates = append(predicates, profilepostitem.PostURLContains(*i.PostURLContains))
+	}
+	if i.PostURLHasPrefix != nil {
+		predicates = append(predicates, profilepostitem.PostURLHasPrefix(*i.PostURLHasPrefix))
+	}
+	if i.PostURLHasSuffix != nil {
+		predicates = append(predicates, profilepostitem.PostURLHasSuffix(*i.PostURLHasSuffix))
+	}
+	if i.PostURLIsNil {
+		predicates = append(predicates, profilepostitem.PostURLIsNil())
+	}
+	if i.PostURLNotNil {
+		predicates = append(predicates, profilepostitem.PostURLNotNil())
+	}
+	if i.PostURLEqualFold != nil {
+		predicates = append(predicates, profilepostitem.PostURLEqualFold(*i.PostURLEqualFold))
+	}
+	if i.PostURLContainsFold != nil {
+		predicates = append(predicates, profilepostitem.PostURLContainsFold(*i.PostURLContainsFold))
+	}
+	if i.Text != nil {
+		predicates = append(predicates, profilepostitem.TextEQ(*i.Text))
+	}
+	if i.TextNEQ != nil {
+		predicates = append(predicates, profilepostitem.TextNEQ(*i.TextNEQ))
+	}
+	if len(i.TextIn) > 0 {
+		predicates = append(predicates, profilepostitem.TextIn(i.TextIn...))
+	}
+	if len(i.TextNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.TextNotIn(i.TextNotIn...))
+	}
+	if i.TextGT != nil {
+		predicates = append(predicates, profilepostitem.TextGT(*i.TextGT))
+	}
+	if i.TextGTE != nil {
+		predicates = append(predicates, profilepostitem.TextGTE(*i.TextGTE))
+	}
+	if i.TextLT != nil {
+		predicates = append(predicates, profilepostitem.TextLT(*i.TextLT))
+	}
+	if i.TextLTE != nil {
+		predicates = append(predicates, profilepostitem.TextLTE(*i.TextLTE))
+	}
+	if i.TextContains != nil {
+		predicates = append(predicates, profilepostitem.TextContains(*i.TextContains))
+	}
+	if i.TextHasPrefix != nil {
+		predicates = append(predicates, profilepostitem.TextHasPrefix(*i.TextHasPrefix))
+	}
+	if i.TextHasSuffix != nil {
+		predicates = append(predicates, profilepostitem.TextHasSuffix(*i.TextHasSuffix))
+	}
+	if i.TextIsNil {
+		predicates = append(predicates, profilepostitem.TextIsNil())
+	}
+	if i.TextNotNil {
+		predicates = append(predicates, profilepostitem.TextNotNil())
+	}
+	if i.TextEqualFold != nil {
+		predicates = append(predicates, profilepostitem.TextEqualFold(*i.TextEqualFold))
+	}
+	if i.TextContainsFold != nil {
+		predicates = append(predicates, profilepostitem.TextContainsFold(*i.TextContainsFold))
+	}
+	if i.ContentType != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeEQ(*i.ContentType))
+	}
+	if i.ContentTypeNEQ != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeNEQ(*i.ContentTypeNEQ))
+	}
+	if len(i.ContentTypeIn) > 0 {
+		predicates = append(predicates, profilepostitem.ContentTypeIn(i.ContentTypeIn...))
+	}
+	if len(i.ContentTypeNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.ContentTypeNotIn(i.ContentTypeNotIn...))
+	}
+	if i.ContentTypeGT != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeGT(*i.ContentTypeGT))
+	}
+	if i.ContentTypeGTE != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeGTE(*i.ContentTypeGTE))
+	}
+	if i.ContentTypeLT != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeLT(*i.ContentTypeLT))
+	}
+	if i.ContentTypeLTE != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeLTE(*i.ContentTypeLTE))
+	}
+	if i.ContentTypeContains != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeContains(*i.ContentTypeContains))
+	}
+	if i.ContentTypeHasPrefix != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeHasPrefix(*i.ContentTypeHasPrefix))
+	}
+	if i.ContentTypeHasSuffix != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeHasSuffix(*i.ContentTypeHasSuffix))
+	}
+	if i.ContentTypeIsNil {
+		predicates = append(predicates, profilepostitem.ContentTypeIsNil())
+	}
+	if i.ContentTypeNotNil {
+		predicates = append(predicates, profilepostitem.ContentTypeNotNil())
+	}
+	if i.ContentTypeEqualFold != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeEqualFold(*i.ContentTypeEqualFold))
+	}
+	if i.ContentTypeContainsFold != nil {
+		predicates = append(predicates, profilepostitem.ContentTypeContainsFold(*i.ContentTypeContainsFold))
+	}
+	if i.IsRepost != nil {
+		predicates = append(predicates, profilepostitem.IsRepostEQ(*i.IsRepost))
+	}
+	if i.IsRepostNEQ != nil {
+		predicates = append(predicates, profilepostitem.IsRepostNEQ(*i.IsRepostNEQ))
+	}
+	if i.TotalReactions != nil {
+		predicates = append(predicates, profilepostitem.TotalReactionsEQ(*i.TotalReactions))
+	}
+	if i.TotalReactionsNEQ != nil {
+		predicates = append(predicates, profilepostitem.TotalReactionsNEQ(*i.TotalReactionsNEQ))
+	}
+	if len(i.TotalReactionsIn) > 0 {
+		predicates = append(predicates, profilepostitem.TotalReactionsIn(i.TotalReactionsIn...))
+	}
+	if len(i.TotalReactionsNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.TotalReactionsNotIn(i.TotalReactionsNotIn...))
+	}
+	if i.TotalReactionsGT != nil {
+		predicates = append(predicates, profilepostitem.TotalReactionsGT(*i.TotalReactionsGT))
+	}
+	if i.TotalReactionsGTE != nil {
+		predicates = append(predicates, profilepostitem.TotalReactionsGTE(*i.TotalReactionsGTE))
+	}
+	if i.TotalReactionsLT != nil {
+		predicates = append(predicates, profilepostitem.TotalReactionsLT(*i.TotalReactionsLT))
+	}
+	if i.TotalReactionsLTE != nil {
+		predicates = append(predicates, profilepostitem.TotalReactionsLTE(*i.TotalReactionsLTE))
+	}
+	if i.LikeCount != nil {
+		predicates = append(predicates, profilepostitem.LikeCountEQ(*i.LikeCount))
+	}
+	if i.LikeCountNEQ != nil {
+		predicates = append(predicates, profilepostitem.LikeCountNEQ(*i.LikeCountNEQ))
+	}
+	if len(i.LikeCountIn) > 0 {
+		predicates = append(predicates, profilepostitem.LikeCountIn(i.LikeCountIn...))
+	}
+	if len(i.LikeCountNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.LikeCountNotIn(i.LikeCountNotIn...))
+	}
+	if i.LikeCountGT != nil {
+		predicates = append(predicates, profilepostitem.LikeCountGT(*i.LikeCountGT))
+	}
+	if i.LikeCountGTE != nil {
+		predicates = append(predicates, profilepostitem.LikeCountGTE(*i.LikeCountGTE))
+	}
+	if i.LikeCountLT != nil {
+		predicates = append(predicates, profilepostitem.LikeCountLT(*i.LikeCountLT))
+	}
+	if i.LikeCountLTE != nil {
+		predicates = append(predicates, profilepostitem.LikeCountLTE(*i.LikeCountLTE))
+	}
+	if i.CommentsCount != nil {
+		predicates = append(predicates, profilepostitem.CommentsCountEQ(*i.CommentsCount))
+	}
+	if i.CommentsCountNEQ != nil {
+		predicates = append(predicates, profilepostitem.CommentsCountNEQ(*i.CommentsCountNEQ))
+	}
+	if len(i.CommentsCountIn) > 0 {
+		predicates = append(predicates, profilepostitem.CommentsCountIn(i.CommentsCountIn...))
+	}
+	if len(i.CommentsCountNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.CommentsCountNotIn(i.CommentsCountNotIn...))
+	}
+	if i.CommentsCountGT != nil {
+		predicates = append(predicates, profilepostitem.CommentsCountGT(*i.CommentsCountGT))
+	}
+	if i.CommentsCountGTE != nil {
+		predicates = append(predicates, profilepostitem.CommentsCountGTE(*i.CommentsCountGTE))
+	}
+	if i.CommentsCountLT != nil {
+		predicates = append(predicates, profilepostitem.CommentsCountLT(*i.CommentsCountLT))
+	}
+	if i.CommentsCountLTE != nil {
+		predicates = append(predicates, profilepostitem.CommentsCountLTE(*i.CommentsCountLTE))
+	}
+	if i.RepostsCount != nil {
+		predicates = append(predicates, profilepostitem.RepostsCountEQ(*i.RepostsCount))
+	}
+	if i.RepostsCountNEQ != nil {
+		predicates = append(predicates, profilepostitem.RepostsCountNEQ(*i.RepostsCountNEQ))
+	}
+	if len(i.RepostsCountIn) > 0 {
+		predicates = append(predicates, profilepostitem.RepostsCountIn(i.RepostsCountIn...))
+	}
+	if len(i.RepostsCountNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.RepostsCountNotIn(i.RepostsCountNotIn...))
+	}
+	if i.RepostsCountGT != nil {
+		predicates = append(predicates, profilepostitem.RepostsCountGT(*i.RepostsCountGT))
+	}
+	if i.RepostsCountGTE != nil {
+		predicates = append(predicates, profilepostitem.RepostsCountGTE(*i.RepostsCountGTE))
+	}
+	if i.RepostsCountLT != nil {
+		predicates = append(predicates, profilepostitem.RepostsCountLT(*i.RepostsCountLT))
+	}
+	if i.RepostsCountLTE != nil {
+		predicates = append(predicates, profilepostitem.RepostsCountLTE(*i.RepostsCountLTE))
+	}
+	if i.EmpathyCount != nil {
+		predicates = append(predicates, profilepostitem.EmpathyCountEQ(*i.EmpathyCount))
+	}
+	if i.EmpathyCountNEQ != nil {
+		predicates = append(predicates, profilepostitem.EmpathyCountNEQ(*i.EmpathyCountNEQ))
+	}
+	if len(i.EmpathyCountIn) > 0 {
+		predicates = append(predicates, profilepostitem.EmpathyCountIn(i.EmpathyCountIn...))
+	}
+	if len(i.EmpathyCountNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.EmpathyCountNotIn(i.EmpathyCountNotIn...))
+	}
+	if i.EmpathyCountGT != nil {
+		predicates = append(predicates, profilepostitem.EmpathyCountGT(*i.EmpathyCountGT))
+	}
+	if i.EmpathyCountGTE != nil {
+		predicates = append(predicates, profilepostitem.EmpathyCountGTE(*i.EmpathyCountGTE))
+	}
+	if i.EmpathyCountLT != nil {
+		predicates = append(predicates, profilepostitem.EmpathyCountLT(*i.EmpathyCountLT))
+	}
+	if i.EmpathyCountLTE != nil {
+		predicates = append(predicates, profilepostitem.EmpathyCountLTE(*i.EmpathyCountLTE))
+	}
+	if i.PraiseCount != nil {
+		predicates = append(predicates, profilepostitem.PraiseCountEQ(*i.PraiseCount))
+	}
+	if i.PraiseCountNEQ != nil {
+		predicates = append(predicates, profilepostitem.PraiseCountNEQ(*i.PraiseCountNEQ))
+	}
+	if len(i.PraiseCountIn) > 0 {
+		predicates = append(predicates, profilepostitem.PraiseCountIn(i.PraiseCountIn...))
+	}
+	if len(i.PraiseCountNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.PraiseCountNotIn(i.PraiseCountNotIn...))
+	}
+	if i.PraiseCountGT != nil {
+		predicates = append(predicates, profilepostitem.PraiseCountGT(*i.PraiseCountGT))
+	}
+	if i.PraiseCountGTE != nil {
+		predicates = append(predicates, profilepostitem.PraiseCountGTE(*i.PraiseCountGTE))
+	}
+	if i.PraiseCountLT != nil {
+		predicates = append(predicates, profilepostitem.PraiseCountLT(*i.PraiseCountLT))
+	}
+	if i.PraiseCountLTE != nil {
+		predicates = append(predicates, profilepostitem.PraiseCountLTE(*i.PraiseCountLTE))
+	}
+	if i.FunnyCount != nil {
+		predicates = append(predicates, profilepostitem.FunnyCountEQ(*i.FunnyCount))
+	}
+	if i.FunnyCountNEQ != nil {
+		predicates = append(predicates, profilepostitem.FunnyCountNEQ(*i.FunnyCountNEQ))
+	}
+	if len(i.FunnyCountIn) > 0 {
+		predicates = append(predicates, profilepostitem.FunnyCountIn(i.FunnyCountIn...))
+	}
+	if len(i.FunnyCountNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.FunnyCountNotIn(i.FunnyCountNotIn...))
+	}
+	if i.FunnyCountGT != nil {
+		predicates = append(predicates, profilepostitem.FunnyCountGT(*i.FunnyCountGT))
+	}
+	if i.FunnyCountGTE != nil {
+		predicates = append(predicates, profilepostitem.FunnyCountGTE(*i.FunnyCountGTE))
+	}
+	if i.FunnyCountLT != nil {
+		predicates = append(predicates, profilepostitem.FunnyCountLT(*i.FunnyCountLT))
+	}
+	if i.FunnyCountLTE != nil {
+		predicates = append(predicates, profilepostitem.FunnyCountLTE(*i.FunnyCountLTE))
+	}
+	if i.InterestCount != nil {
+		predicates = append(predicates, profilepostitem.InterestCountEQ(*i.InterestCount))
+	}
+	if i.InterestCountNEQ != nil {
+		predicates = append(predicates, profilepostitem.InterestCountNEQ(*i.InterestCountNEQ))
+	}
+	if len(i.InterestCountIn) > 0 {
+		predicates = append(predicates, profilepostitem.InterestCountIn(i.InterestCountIn...))
+	}
+	if len(i.InterestCountNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.InterestCountNotIn(i.InterestCountNotIn...))
+	}
+	if i.InterestCountGT != nil {
+		predicates = append(predicates, profilepostitem.InterestCountGT(*i.InterestCountGT))
+	}
+	if i.InterestCountGTE != nil {
+		predicates = append(predicates, profilepostitem.InterestCountGTE(*i.InterestCountGTE))
+	}
+	if i.InterestCountLT != nil {
+		predicates = append(predicates, profilepostitem.InterestCountLT(*i.InterestCountLT))
+	}
+	if i.InterestCountLTE != nil {
+		predicates = append(predicates, profilepostitem.InterestCountLTE(*i.InterestCountLTE))
+	}
+	if i.PostedAt != nil {
+		predicates = append(predicates, profilepostitem.PostedAtEQ(*i.PostedAt))
+	}
+	if i.PostedAtNEQ != nil {
+		predicates = append(predicates, profilepostitem.PostedAtNEQ(*i.PostedAtNEQ))
+	}
+	if len(i.PostedAtIn) > 0 {
+		predicates = append(predicates, profilepostitem.PostedAtIn(i.PostedAtIn...))
+	}
+	if len(i.PostedAtNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.PostedAtNotIn(i.PostedAtNotIn...))
+	}
+	if i.PostedAtGT != nil {
+		predicates = append(predicates, profilepostitem.PostedAtGT(*i.PostedAtGT))
+	}
+	if i.PostedAtGTE != nil {
+		predicates = append(predicates, profilepostitem.PostedAtGTE(*i.PostedAtGTE))
+	}
+	if i.PostedAtLT != nil {
+		predicates = append(predicates, profilepostitem.PostedAtLT(*i.PostedAtLT))
+	}
+	if i.PostedAtLTE != nil {
+		predicates = append(predicates, profilepostitem.PostedAtLTE(*i.PostedAtLTE))
+	}
+	if i.PostedAtIsNil {
+		predicates = append(predicates, profilepostitem.PostedAtIsNil())
+	}
+	if i.PostedAtNotNil {
+		predicates = append(predicates, profilepostitem.PostedAtNotNil())
+	}
+	if i.CreatedAt != nil {
+		predicates = append(predicates, profilepostitem.CreatedAtEQ(*i.CreatedAt))
+	}
+	if i.CreatedAtNEQ != nil {
+		predicates = append(predicates, profilepostitem.CreatedAtNEQ(*i.CreatedAtNEQ))
+	}
+	if len(i.CreatedAtIn) > 0 {
+		predicates = append(predicates, profilepostitem.CreatedAtIn(i.CreatedAtIn...))
+	}
+	if len(i.CreatedAtNotIn) > 0 {
+		predicates = append(predicates, profilepostitem.CreatedAtNotIn(i.CreatedAtNotIn...))
+	}
+	if i.CreatedAtGT != nil {
+		predicates = append(predicates, profilepostitem.CreatedAtGT(*i.CreatedAtGT))
+	}
+	if i.CreatedAtGTE != nil {
+		predicates = append(predicates, profilepostitem.CreatedAtGTE(*i.CreatedAtGTE))
+	}
+	if i.CreatedAtLT != nil {
+		predicates = append(predicates, profilepostitem.CreatedAtLT(*i.CreatedAtLT))
+	}
+	if i.CreatedAtLTE != nil {
+		predicates = append(predicates, profilepostitem.CreatedAtLTE(*i.CreatedAtLTE))
+	}
+
+	if i.HasProfilePost != nil {
+		p := profilepostitem.HasProfilePost()
+		if !*i.HasProfilePost {
+			p = profilepostitem.Not(p)
+		}
+		predicates = append(predicates, p)
+	}
+	if len(i.HasProfilePostWith) > 0 {
+		with := make([]predicate.ProfilePost, 0, len(i.HasProfilePostWith))
+		for _, w := range i.HasProfilePostWith {
+			p, err := w.P()
+			if err != nil {
+				return nil, fmt.Errorf("%w: field 'HasProfilePostWith'", err)
+			}
+			with = append(with, p)
+		}
+		predicates = append(predicates, profilepostitem.HasProfilePostWith(with...))
+	}
+	switch len(predicates) {
+	case 0:
+		return nil, ErrEmptyProfilePostItemWhereInput
+	case 1:
+		return predicates[0], nil
+	default:
+		return profilepostitem.And(predicates...), nil
 	}
 }
 

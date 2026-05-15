@@ -1,0 +1,31 @@
+2026-02-18 06:58:00	INFO	Log file created: /app/profile_fetcher_2026-02-18_06-58-00.log
+2026-02-18 06:58:00	INFO	profile fetcher job started
+2026-02-18 06:58:00	INFO	quota check passed	{"allowed_batch_size": 10}
+2026-02-18 06:58:00	INFO	[36m[2026-02-18 06:58:00] Fetching from DB: getting pending profile entries (batch size: 10)[0m
+2026-02-18 06:58:00	INFO	[32m[2026-02-18 06:58:00] Fetched from DB: total to process = 10, fetched = 10[0m
+2026-02-18 06:58:00	INFO	[36m[2026-02-18 06:58:00] Processing entry 1/10 - URN: dylanhogg[0m
+2026-02-18 06:58:00	INFO	[33m[2026-02-18 06:58:00] Updating DB: setting status to FETCHING for entry dylanhogg[0m
+2026-02-18 06:58:00	INFO	[36m[FETCHING][0m URN: dylanhogg (attempt 1)
+2026-02-18 06:58:10	ERROR	[31m[ERROR][0m URN: dylanhogg - non-rate-limit error: failed to execute request: Get "https://real-time-people-company-data.p.rapidapi.com/?username=dylanhogg": dial tcp: lookup real-time-people-company-data.p.rapidapi.com on 127.0.0.11:53: read udp 127.0.0.1:60941->127.0.0.11:53: i/o timeout (attempt 1/3)
+2026-02-18 06:58:10	INFO	[35m[SLEEPING][0m URN: dylanhogg - waiting 1s before retry after error...
+2026-02-18 06:58:11	INFO	[36m[FETCHING][0m URN: dylanhogg (attempt 2)
+2026-02-18 06:58:17	INFO	[32m[SUCCESS][0m URN: dylanhogg fetched successfully after 2 attempts
+2026-02-18 06:58:17	INFO	fetched profile	{"urn": "dylanhogg", "username": "dylanhogg"}
+2026-02-18 06:58:18	INFO	[33m[2026-02-18 06:58:18] Inserting/Updating DB: upserting profile for URN dylanhogg[0m
+2026-02-18 06:58:18	INFO	[32m[2026-02-18 06:58:18] DB operation complete: profile upserted successfully[0m
+2026-02-18 06:58:18	INFO	[33m[2026-02-18 06:58:18] Updating DB: setting status to COMPLETED for entry dylanhogg[0m
+2026-02-18 06:58:18	INFO	[32m[2026-02-18 06:58:18] Batch #1 progress: 1/10 entries processed (success: 1, failed: 0)[0m
+2026-02-18 06:58:18	INFO	[35m[2026-02-18 06:58:18] Waiting 5 seconds before next fetch...[0m
+2026-02-18 06:58:23	INFO	[36m[2026-02-18 06:58:23] Processing entry 2/10 - URN: randalljamesaustin[0m
+2026-02-18 06:58:23	INFO	[33m[2026-02-18 06:58:23] Updating DB: setting status to FETCHING for entry randalljamesaustin[0m
+2026-02-18 06:58:23	INFO	[36m[FETCHING][0m URN: randalljamesaustin (attempt 1)
+2026-02-18 06:58:25	INFO	[32m[SUCCESS][0m URN: randalljamesaustin fetched successfully after 1 attempts
+2026-02-18 06:58:25	INFO	fetched profile	{"urn": "randalljamesaustin", "username": "randalljamesaustin"}
+2026-02-18 06:58:26	INFO	[33m[2026-02-18 06:58:26] Inserting/Updating DB: upserting profile for URN randalljamesaustin[0m
+2026-02-18 06:58:26	INFO	[32m[2026-02-18 06:58:26] DB operation complete: profile upserted successfully[0m
+2026-02-18 06:58:26	INFO	[33m[2026-02-18 06:58:26] Updating DB: setting status to COMPLETED for entry randalljamesaustin[0m
+2026-02-18 06:58:26	INFO	[32m[2026-02-18 06:58:26] Batch #1 progress: 2/10 entries processed (success: 2, failed: 0)[0m
+2026-02-18 06:58:26	INFO	[35m[2026-02-18 06:58:26] Waiting 5 seconds before next fetch...[0m
+2026-02-18 06:58:31	INFO	[36m[2026-02-18 06:58:31] Processing entry 3/10 - URN: dpwoodford[0m
+2026-02-18 06:58:31	INFO	[33m[2026-02-18 06:58:31] Updating DB: setting status to FETCHING for entry dpwoodford[0m
+2026-02-18 06:58:31	INFO	[36m[FETCHING][0m URN: dpwoodford (attempt 1)
