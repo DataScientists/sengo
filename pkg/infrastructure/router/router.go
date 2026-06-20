@@ -3,6 +3,8 @@ package router
 import (
 	"net/http"
 
+	resthandler "sheng-go-backend/pkg/adapter/handler"
+
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/labstack/echo/v4"
@@ -26,7 +28,7 @@ type Options struct {
 }
 
 // New creates route endpoint
-func New(srv *handler.Server, options Options) *echo.Echo {
+func New(srv *handler.Server, profileRESTHandler *resthandler.ProfileRESTHandler, options Options) *echo.Echo {
 	e := echo.New()
 	e.Use(middleware.Recover())
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -52,6 +54,9 @@ func New(srv *handler.Server, options Options) *echo.Echo {
 			return nil
 		})
 	}
+
+	// REST endpoints
+	e.POST(apiPath+"/profiles/fetch", profileRESTHandler.Fetch)
 
 	return e
 }

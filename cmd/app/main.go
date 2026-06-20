@@ -9,6 +9,7 @@ import (
 	"sheng-go-backend/ent"
 	_ "sheng-go-backend/ent/runtime"
 	"sheng-go-backend/pkg/adapter/controller"
+	resthandler "sheng-go-backend/pkg/adapter/handler"
 	"sheng-go-backend/pkg/adapter/repository/apiquotatrackerrepository"
 	"sheng-go-backend/pkg/adapter/repository/cronjobconfigrepository"
 	"sheng-go-backend/pkg/adapter/repository/jobexecutionhistoryrepository"
@@ -92,7 +93,9 @@ func main() {
 	// Start GraphQL server
 	srv := graphql.NewServer(client, ctrl)
 
-	e := router.New(srv, router.Options{
+	profileRESTHandler := resthandler.NewProfileRESTHandler(ctrl.ProfileEntry)
+
+	e := router.New(srv, profileRESTHandler, router.Options{
 		Auth: false,
 	})
 

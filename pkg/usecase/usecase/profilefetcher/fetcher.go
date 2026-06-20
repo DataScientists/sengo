@@ -898,3 +898,54 @@ func (pf *ProfileFetcher) FetchSinglEntry(ctx context.Context, entryId model.ID)
 
 	return nil
 }
+
+// FetchProfileByURL takes a LinkedIn profile URL plus an optional gender and
+// returns the stored profile, fetching it on demand when necessary.
+//
+// The flow mirrors fetchProfileEntry(id):
+//  1. extract the username slug from the URL (used as the urn).
+//  2. if the profile already exists, return it.
+//  3. if a profile entry exists but the profile has not been fetched yet,
+//     run the fetch and return the resulting profile.
+//  4. otherwise create the profile entry, run the fetch, and return the profile.
+func (pf *ProfileFetcher) FetchProfileByURL(
+	ctx context.Context,
+	linkedinURL string,
+	gender *string,
+) (*ent.Profile, error) {
+	urn, err := usernameFromURL(linkedinURL)
+	if err != nil {
+		return nil, model.NewValidationError(err)
+	}
+
+	// 1. Profile already fetched -> return it.
+	if profile, err := pf.profileRepo.GetByURN(ctx, urn); err == nil {
+		return profile, nil
+	} else if !ent.IsNotFound(err) {
+		return nil, err
+	}
+
+	// 2. Resolve the profile entry: reuse an existing one or create it.
+	entry, err := pf.profileEntryRepo.GetByURN(ctx, urn)
+	if err != nil {
+		if !ent.IsNotFound(err) {
+			return nil, err
+		}
+
+		entry, err = pf.profileEntryRepo.Create(ctx, model.CreateProfileEntryInput{
+			LinkedinUrn: urn,
+			Gender:      gender,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	// 3. Run the same fetch flow used by fetchProfileEntry(id).
+	if err := pf.fetchSingleProfileEntry(ctx, entry); err != nil {
+		return nil, err
+	}
+
+	// 4. Return the freshly upserted profile.
+	return pf.profileRepo.GetByURN(ctx, urn)
+}

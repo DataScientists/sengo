@@ -4,6 +4,7 @@ import (
 	"net/http/httptest"
 	"sheng-go-backend/ent"
 	"sheng-go-backend/pkg/adapter/controller"
+	resthandler "sheng-go-backend/pkg/adapter/handler"
 	"sheng-go-backend/pkg/infrastructure/graphql"
 	"sheng-go-backend/pkg/infrastructure/router"
 	"sheng-go-backend/pkg/registry"
@@ -30,7 +31,8 @@ func Setup(
 
 	ctrl := newController(client)
 	gqlServer := graphql.NewServer(client, ctrl)
-	router := router.New(gqlServer, router.Options{
+	profileRESTHandler := resthandler.NewProfileRESTHandler(ctrl.ProfileEntry)
+	router := router.New(gqlServer, profileRESTHandler, router.Options{
 		Auth: false,
 	})
 	srv := httptest.NewServer(router)

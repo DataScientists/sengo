@@ -33,6 +33,8 @@ type ProfileEntryRepository interface {
 	CountByStatus(ctx context.Context, status profileentry.Status) (int, error)
 	GetStats(ctx context.Context) (*model.ProfileEntryStats, error)
 	GetById(ctx context.Context, id ulid.ID) (*model.ProfileEntry, error)
+	GetByURN(ctx context.Context, urn string) (*model.ProfileEntry, error)
+	Create(ctx context.Context, input model.CreateProfileEntryInput) (*model.ProfileEntry, error)
 }
 
 type profileentryRepository struct {
@@ -151,5 +153,17 @@ func (r *profileentryRepository) GetById(
 		return nil, err
 	}
 	return u, nil
+}
+
+// GetByURN retrieves a profile entry by its linkedin urn (username slug).
+// Returns an ent not-found error when no entry exists for the urn.
+func (r *profileentryRepository) GetByURN(
+	ctx context.Context,
+	urn string,
+) (*model.ProfileEntry, error) {
+	return r.client.ProfileEntry.
+		Query().
+		Where(profileentry.LinkedinUrnEQ(urn)).
+		Only(ctx)
 }
 
