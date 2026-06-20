@@ -899,28 +899,33 @@ func (pf *ProfileFetcher) FetchSinglEntry(ctx context.Context, entryId model.ID)
 	return nil
 }
 
-// FetchProfileByURL takes a LinkedIn profile URL plus an optional gender and
-// returns the stored profile, fetching it on demand when necessary.
+// defaultGender is stored on profile entries created via the URL flow; the real
+// value is derived from the fetched RapidAPI profile later.
+const defaultGender = "OTHER"
+
+// FetchProfileByURL takes a LinkedIn profile URL and returns the raw RapidAPI
+// profile JSON (as stored in S3), fetching it on demand when necessary.
 //
 // The flow mirrors fetchProfileEntry(id):
 //  1. extract the username slug from the URL (used as the urn).
-//  2. if the profile already exists, return it.
+//  2. if the profile already exists, return its raw JSON from S3.
 //  3. if a profile entry exists but the profile has not been fetched yet,
-//     run the fetch and return the resulting profile.
-//  4. otherwise create the profile entry, run the fetch, and return the profile.
+//     run the fetch and return the raw JSON.
+//  4. otherwise create the profile entry, run the fetch, and return the raw JSON.
 func (pf *ProfileFetcher) FetchProfileByURL(
 	ctx context.Context,
 	linkedinURL string,
-	gender *string,
-) (*ent.Profile, error) {
+) (json.RawMessage, error) {
 	urn, err := usernameFromURL(linkedinURL)
 	if err != nil {
 		return nil, model.NewValidationError(err)
 	}
 
-	// 1. Profile already fetched -> return it.
-	if profile, err := pf.profileRepo.GetByURN(ctx, urn); err == nil {
-		return profile, nil
+	// 1. Profile already fetched -> return its raw JSON from S3.
+	// The slug is stored as the profile's username (the urn column holds the
+	// RapidAPI URN), so match on either column.
+	if profile, err := pf.profileRepo.GetByURNOrUsername(ctx, urn); err == nil {
+		return pf.rawProfileJSON(ctx, profile)
 	} else if !ent.IsNotFound(err) {
 		return nil, err
 	}
@@ -932,9 +937,10 @@ func (pf *ProfileFetcher) FetchProfileByURL(
 			return nil, err
 		}
 
+		defGender := defaultGender
 		entry, err = pf.profileEntryRepo.Create(ctx, model.CreateProfileEntryInput{
 			LinkedinUrn: urn,
-			Gender:      gender,
+			Gender:      &defGender,
 		})
 		if err != nil {
 			return nil, err
@@ -946,6 +952,28 @@ func (pf *ProfileFetcher) FetchProfileByURL(
 		return nil, err
 	}
 
-	// 4. Return the freshly upserted profile.
-	return pf.profileRepo.GetByURN(ctx, urn)
+	// 4. Return the freshly upserted profile's raw JSON from S3.
+	profile, err := pf.profileRepo.GetByURNOrUsername(ctx, urn)
+	if err != nil {
+		return nil, err
+	}
+	return pf.rawProfileJSON(ctx, profile)
+}
+
+// rawProfileJSON downloads the raw RapidAPI response JSON for a profile from S3.
+func (pf *ProfileFetcher) rawProfileJSON(
+	ctx context.Context,
+	profile *ent.Profile,
+) (json.RawMessage, error) {
+	if profile.RawDataS3Key == nil || *profile.RawDataS3Key == "" {
+		return nil, model.NewNotFoundError(
+			fmt.Errorf("raw profile data not available for urn %s", profile.Urn),
+			profile.Urn,
+		)
+	}
+	data, err := pf.s3Service.DownloadJSON(ctx, *profile.RawDataS3Key)
+	if err != nil {
+		return nil, err
+	}
+	return json.RawMessage(data), nil
 }

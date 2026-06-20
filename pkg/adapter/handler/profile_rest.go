@@ -25,13 +25,12 @@ func NewProfileRESTHandler(profileEntry controller.ProfileEntry) *ProfileRESTHan
 
 type fetchProfileRequest struct {
 	LinkedinURL string `json:"linkedinUrl"`
-	Gender      string `json:"gender"`
 }
 
 // Fetch handles POST /api/profiles/fetch.
 //
-// It accepts a LinkedIn profile URL and gender, then returns the stored
-// profile data, fetching it on demand when it has not been fetched yet.
+// It accepts a LinkedIn profile URL and returns the raw RapidAPI profile JSON,
+// fetching it on demand when it has not been fetched yet.
 func (h *ProfileRESTHandler) Fetch(c echo.Context) error {
 	var req fetchProfileRequest
 	if err := c.Bind(&req); err != nil {
@@ -42,17 +41,13 @@ func (h *ProfileRESTHandler) Fetch(c echo.Context) error {
 		return routerhandler.HandleError(c, model.NewInvalidParamError("linkedinUrl is required"))
 	}
 
-	var gender *string
-	if g := strings.TrimSpace(req.Gender); g != "" {
-		gender = &g
-	}
-
-	profile, err := h.profileEntry.FetchProfileByURL(c.Request().Context(), req.LinkedinURL, gender)
+	raw, err := h.profileEntry.FetchProfileByURL(c.Request().Context(), req.LinkedinURL)
 	if err != nil {
 		return routerhandler.HandleError(c, toRESTError(err))
 	}
 
-	return c.JSON(http.StatusOK, profile)
+	// raw is already JSON (the original RapidAPI response); pass it through as-is.
+	return c.JSONBlob(http.StatusOK, raw)
 }
 
 // toRESTError normalises errors from the fetch flow into model errors that the

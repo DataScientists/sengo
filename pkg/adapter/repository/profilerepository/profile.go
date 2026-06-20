@@ -10,6 +10,7 @@ import (
 // ProfileRepository interface for profile operations
 type ProfileRepository interface {
 	GetByURN(ctx context.Context, urn string) (*ent.Profile, error)
+	GetByURNOrUsername(ctx context.Context, value string) (*ent.Profile, error)
 	Upsert(ctx context.Context, p *ent.Profile) (*ent.Profile, error)
 }
 
@@ -32,6 +33,20 @@ func (r *profileRepository) GetByURN(ctx context.Context, urn string) (*ent.Prof
 		Query().
 		Where(profile.Urn(urn)).
 		Only(ctx)
+}
+
+// GetByURNOrUsername retrieves a profile whose urn OR username matches value.
+// The URL flow keys on the LinkedIn username slug, which is stored as the
+// profile's username (the urn column holds the RapidAPI-reported URN, which
+// differs from the slug), so both columns must be checked.
+func (r *profileRepository) GetByURNOrUsername(
+	ctx context.Context,
+	value string,
+) (*ent.Profile, error) {
+	return r.client.Profile.
+		Query().
+		Where(profile.Or(profile.UrnEQ(value), profile.UsernameEQ(value))).
+		First(ctx)
 }
 
 // Upsert creates or updates a profile

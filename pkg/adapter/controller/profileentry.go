@@ -2,7 +2,7 @@ package controller
 
 import (
 	"context"
-	"sheng-go-backend/ent"
+	"encoding/json"
 	"sheng-go-backend/pkg/entity/model"
 	usecase "sheng-go-backend/pkg/usecase/usecase/profileentry"
 	"sheng-go-backend/pkg/usecase/usecase/profilefetcher"
@@ -20,7 +20,7 @@ type ProfileEntry interface {
 		last *int, where *model.ProfileEntryWhereInput) (*model.ProfileEntryConnection, error)
 	GetStats(ctx context.Context) (*model.ProfileEntryStats, error)
 	FetchProfileEntry(ctx context.Context, id model.ID) error
-	FetchProfileByURL(ctx context.Context, url string, gender *string) (*ent.Profile, error)
+	FetchProfileByURL(ctx context.Context, url string) (json.RawMessage, error)
 }
 
 type profileEntryController struct {
@@ -89,7 +89,6 @@ func (pc *profileEntryController) FetchProfileEntry(
 func (pc *profileEntryController) FetchProfileByURL(
 	ctx context.Context,
 	url string,
-	gender *string,
-) (*ent.Profile, error) {
-	return pc.profilefetcherUserCase.FetchProfileByURL(ctx, url, gender)
+) (json.RawMessage, error) {
+	return pc.profilefetcherUserCase.FetchProfileByURL(ctx, url)
 }
